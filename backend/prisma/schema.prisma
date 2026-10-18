@@ -1,0 +1,171 @@
+// Prisma Schema for PMB Kampus Mulia Angkasa
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  APPLICANT
+}
+
+enum RegistrationStatus {
+  BELUM_LENGKAP
+  MENUNGGU_VERIFIKASI
+  DIVERIFIKASI
+  LULUS_SELEKSI
+  DAFTAR_ULANG
+  DITERIMA
+  DITOLAK
+}
+
+enum DocumentType {
+  FOTO
+  KTP
+  IJAZAH
+  TRANSKRIP
+  SURAT_KET_SEHAT
+  LAINNYA
+}
+
+enum PaymentStatus {
+  PENDING
+  VERIFIED
+  REJECTED
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  role      Role     @default(APPLICANT)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  applicant Applicant?
+}
+
+model Applicant {
+  id                 String   @id @default(uuid())
+  userId             String   @unique
+  fullName           String
+  phone              String
+  registrationNumber String   @unique @default(uuid())
+  deletedAt          DateTime? 
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  personalData  PersonalData?
+  educationData EducationData?
+  registrations Registration[]
+  documents     Document[]
+}
+
+model PersonalData {
+  id          String   @id @default(uuid())
+  applicantId String   @unique
+  nik         String
+  birthPlace  String
+  birthDate   DateTime
+  gender      String
+  address     String
+  city        String
+  province    String
+
+  applicant Applicant @relation(fields: [applicantId], references: [id], onDelete: Cascade)
+}
+
+model EducationData {
+  id             String @id @default(uuid())
+  applicantId    String @unique
+  schoolName     String
+  npsn           String
+  major          String
+  graduationYear Int
+
+  applicant Applicant @relation(fields: [applicantId], references: [id], onDelete: Cascade)
+}
+
+model StudyProgram {
+  id          String   @id @default(uuid())
+  code        String   @unique
+  name        String
+  description String?
+  quota       Int      @default(50)
+  tuitionFee  Float    @default(0)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  registrations Registration[]
+}
+
+model PmbPeriod {
+  id        String   @id @default(uuid())
+  year      String
+  name      String
+  startDate DateTime
+  endDate   DateTime
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  registrations Registration[]
+}
+
+model Registration {
+  id             String             @id @default(uuid())
+  applicantId    String
+  studyProgramId String
+  periodId       String
+  status         RegistrationStatus @default(BELUM_LENGKAP)
+  notes          String?
+  registeredAt   DateTime           @default(now())
+
+  applicant    Applicant    @relation(fields: [applicantId], references: [id], onDelete: Cascade)
+  studyProgram StudyProgram @relation(fields: [studyProgramId], references: [id])
+  period       PmbPeriod    @relation(fields: [periodId], references: [id])
+  payments     Payment[]
+}
+
+model Document {
+  id          String       @id @default(uuid())
+  applicantId String
+  type        DocumentType
+  fileUrl     String
+  fileName    String
+  isVerified  Boolean      @default(false)
+  verifiedAt  DateTime?
+  notes       String?
+  createdAt   DateTime     @default(now())
+
+  applicant Applicant @relation(fields: [applicantId], references: [id], onDelete: Cascade)
+}
+
+model Payment {
+  id             String        @id @default(uuid())
+  registrationId String
+  amount         Float
+  paymentType    String        @default("Biaya Pendaftaran")
+  proofUrl       String
+  status         PaymentStatus @default(PENDING)
+  notes          String?
+  verifiedAt     DateTime?
+  createdAt      DateTime      @default(now())
+
+  registration Registration @relation(fields: [registrationId], references: [id], onDelete: Cascade)
+}
+
+model Announcement {
+  id          String   @id @default(uuid())
+  title       String
+  content     String
+  isPublic    Boolean  @default(true)
+  publishedAt DateTime @default(now())
+}
+
