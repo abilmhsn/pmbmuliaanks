@@ -70,7 +70,7 @@ export default function RegisterPage() {
 
           <div className="text-left">
             <span className="text-base font-extrabold text-white tracking-tight">
-              MULIA ANGKASA AKADEMIK
+              MULIA ANGKASA AKADEMI
             </span>
 
             <span className="block text-[10px] font-semibold text-sky-400 tracking-wider uppercase">

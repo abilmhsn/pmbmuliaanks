@@ -6,30 +6,39 @@ import { RegistrationStatus, PaymentStatus } from '@prisma/client';
 export class AdminService {
   constructor(private prisma: PrismaService) { }
 
-  async getDashboardStats() {
-    const totalApplicants = await this.prisma.applicant.count();
+
+  async getDashboardStats(periodId?: string) {
+    const registrationFilter = periodId ? { periodId } : {};
+
+    const totalApplicants = await this.prisma.applicant.count({
+      where: periodId ? { registrations: { some: { periodId } } } : {},
+    });
 
     const sevenDaysAgo = new Date();
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
     const newApplicants = await this.prisma.applicant.count({
-      where: { createdAt: { gte: sevenDaysAgo } },
+      where: {
+        createdAt: { gte: sevenDaysAgo },
+        ...(periodId ? { registrations: { some: { periodId } } } : {}),
+      },
     });
 
     const pendingVerification = await this.prisma.registration.count({
-      where: { status: RegistrationStatus.MENUNGGU_VERIFIKASI },
+      where: { status: RegistrationStatus.MENUNGGU_VERIFIKASI, ...registrationFilter },
     });
 
     const verified = await this.prisma.registration.count({
-      where: { status: RegistrationStatus.DIVERIFIKASI },
+      where: { status: RegistrationStatus.DIVERIFIKASI, ...registrationFilter },
     });
 
     const passed = await this.prisma.registration.count({
-      where: { status: RegistrationStatus.LULUS_SELEKSI },
+      where: { status: RegistrationStatus.LULUS_SELEKSI, ...registrationFilter },
     });
 
     const reRegistered = await this.prisma.registration.count({
       where: {
         status: { in: [RegistrationStatus.DAFTAR_ULANG, RegistrationStatus.DITERIMA] },
+        ...registrationFilter,
       },
     });
 
@@ -46,7 +55,7 @@ export class AdminService {
     };
   }
 
-  async getApplicants(search?: string, status?: RegistrationStatus, studyProgramId?: string) {
+  async getApplicants(search?: string, status?: RegistrationStatus, studyProgramId?: string, periodId?: string) {
     const where: any = {};
 
     if (search) {
@@ -58,11 +67,13 @@ export class AdminService {
       ];
     }
 
-    if (status || studyProgramId) {
+    // Filter berdasarkan status, prodi, atau periodId gelombang
+    if (status || studyProgramId || periodId) {
       where.registrations = {
         some: {
           ...(status ? { status } : {}),
           ...(studyProgramId ? { studyProgramId } : {}),
+          ...(periodId ? { periodId } : {}),
         },
       };
     }
@@ -110,6 +121,7 @@ export class AdminService {
 
     return applicant;
   }
+
   // --- FUNGSI TRASH / SOFT DELETE ---
   async softDeleteApplicant(id: string) {
     const applicant = await this.prisma.applicant.findUnique({ where: { id } });
@@ -159,7 +171,6 @@ export class AdminService {
     });
   }
 
-  // --- BAGIAN INI YANG DIPERBARUI ---
   async verifyDocument(documentId: string, isVerified: boolean, notes?: string) {
     const doc = await this.prisma.document.update({
       where: { id: documentId },
@@ -171,7 +182,6 @@ export class AdminService {
       include: { applicant: true },
     });
 
-    // Otomatis ubah status pendaftaran ke DIVERIFIKASI jika dokumen disetujui
     if (isVerified && doc.applicantId) {
       await this.prisma.registration.updateMany({
         where: { applicantId: doc.applicantId },
@@ -193,7 +203,6 @@ export class AdminService {
       include: { registration: true },
     });
 
-    // Otomatis ubah status pendaftaran ke DIVERIFIKASI jika pembayaran VERIFIED
     if (status === PaymentStatus.VERIFIED && payment.registrationId) {
       await this.prisma.registration.update({
         where: { id: payment.registrationId },
@@ -204,7 +213,6 @@ export class AdminService {
     return payment;
   }
 
-  // Hapus data secara permanen dari database (Hard Delete)
   async permanentDeleteApplicant(id: string) {
     const applicant = await this.prisma.applicant.findUnique({ where: { id } });
     if (!applicant) {
@@ -216,9 +224,10 @@ export class AdminService {
     });
   }
 
-  // FUNGSI EXPORT CSV YANG BARU (Ganti dari ExcelJS)
-  async exportApplicantsToCsv(): Promise<string> {
+  // --- FUNGSI EXPORT CSV DENGAN FILTER GELOMBANG ---
+  async exportApplicantsToCsv(periodId?: string): Promise<string> {
     const applicants = await this.prisma.applicant.findMany({
+      where: periodId ? { registrations: { some: { periodId } } } : {},
       include: {
         user: { select: { email: true } },
         personalData: true,
@@ -230,7 +239,7 @@ export class AdminService {
       orderBy: { createdAt: 'desc' },
     });
 
-    let csv = '"No. Pendaftaran","Nama Lengkap","Email","No. WhatsApp","NIK","Jenis Kelamin","Tempat, Tgl Lahir","Alamat","Asal Sekolah","NPSN","Jurusan SMA/SMK","Pilihan Prodi PMB","Status Pendaftaran","Tanggal Daftar"\n';
+    let csv = '"No. Pendaftaran","Nama Lengkap","Email","No. WhatsApp","NIK","Jenis Kelamin","Tempat, Tgl Lahir","Alamat","Asal Sekolah","NPSN","Jurusan SMA/SMK","Pilihan Prodi PMB","Gelombang","Status Pendaftaran","Tanggal Daftar"\n';
 
     applicants.forEach((app) => {
       const reg = app.registrations[0];
@@ -249,10 +258,11 @@ export class AdminService {
       const npsn = e?.npsn || '-';
       const major = e?.major || '-';
       const program = reg?.studyProgram?.name || '-';
+      const periodName = reg?.period?.name || '-';
       const status = reg?.status || 'BELUM_LENGKAP';
       const date = new Date(app.createdAt).toLocaleDateString('id-ID');
 
-      csv += `"${regNo}","${name}","${email}","${phone}","${nik}","${gender}","${ttl}","${address}","${school}","${npsn}","${major}","${program}","${status}","${date}"\n`;
+      csv += `"${regNo}","${name}","${email}","${phone}","${nik}","${gender}","${ttl}","${address}","${school}","${npsn}","${major}","${program}","${periodName}","${status}","${date}"\n`;
     });
 
     return csv;

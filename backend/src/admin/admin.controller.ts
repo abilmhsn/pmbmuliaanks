@@ -23,8 +23,8 @@ export class AdminController {
   constructor(private readonly adminService: AdminService) { }
 
   @Get('stats')
-  async getDashboardStats() {
-    return this.adminService.getDashboardStats();
+  async getDashboardStats(@Query('periodId') periodId?: string) {
+    return this.adminService.getDashboardStats(periodId);
   }
 
   @Get('applicants')
@@ -32,8 +32,9 @@ export class AdminController {
     @Query('search') search?: string,
     @Query('status') status?: RegistrationStatus,
     @Query('studyProgramId') studyProgramId?: string,
+    @Query('periodId') periodId?: string,
   ) {
-    return this.adminService.getApplicants(search, status, studyProgramId);
+    return this.adminService.getApplicants(search, status, studyProgramId, periodId);
   }
 
   // ENDPOINT GET TRASH (harus di atas /:id agar tidak di-intercept)
@@ -46,6 +47,7 @@ export class AdminController {
   async getApplicantDetail(@Param('id') id: string) {
     return this.adminService.getApplicantDetail(id);
   }
+
   // ENDPOINT SOFT DELETE (Masuk ke Trash)
   @Delete('applicants/:id')
   async softDeleteApplicant(@Param('id') id: string) {
@@ -57,12 +59,12 @@ export class AdminController {
   async restoreApplicant(@Param('id') id: string) {
     return this.adminService.restoreApplicant(id);
   }
+
   // ENDPOINT HAPUS PERMANEN
   @Delete('applicants/:id/permanent')
   async permanentDeleteApplicant(@Param('id') id: string) {
     return this.adminService.permanentDeleteApplicant(id);
   }
-
 
   @Put('registration-status/:id')
   async updateRegistrationStatus(
@@ -100,10 +102,9 @@ export class AdminController {
     );
   }
 
-  // ENDPOINT EXPORT CSV
   @Get('export-csv')
-  async exportCsv(@Res() res: Response) {
-    const csvData = await this.adminService.exportApplicantsToCsv();
+  async exportCsv(@Res() res: Response, @Query('periodId') periodId?: string) {
+    const csvData = await this.adminService.exportApplicantsToCsv(periodId);
     res.setHeader('Content-Type', 'text/csv');
     res.setHeader(
       'Content-Disposition',

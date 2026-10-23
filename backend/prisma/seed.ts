@@ -19,14 +19,16 @@ async function main() {
   });
   console.log('Admin user seeded:', adminUser.email);
 
-  // 2. Create Default PMB Period
+  // 2. Create Default PMB Period Gelombang 1
   const activePeriod = await prisma.pmbPeriod.upsert({
     where: { id: 'period-2026' },
-    update: {},
+    update: {
+      name: 'PMB Gelombang 1', // 👈 Update nama jika id sudah ada di DB
+    },
     create: {
       id: 'period-2026',
       year: '2026/2027',
-      name: 'Penerimaan Mahasiswa Baru Gelombang I 2026/2027',
+      name: 'PMB Gelombang 1', // 👈 Ubah teks di sini
       startDate: new Date('2026-01-01'),
       endDate: new Date('2026-12-31'),
       isActive: true,
@@ -34,7 +36,7 @@ async function main() {
   });
   console.log('PMB Period seeded:', activePeriod.name);
 
-  // 3. Create Default Study Programs
+  // 3. Create Default Study Programs 
   const alcProgram = await prisma.studyProgram.upsert({
     where: { code: 'ALC' },
     update: {},

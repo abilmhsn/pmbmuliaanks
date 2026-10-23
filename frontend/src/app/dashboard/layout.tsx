@@ -51,7 +51,7 @@ export default function DashboardLayout({
           </div>
           <div>
             <span className="text-sm font-bold text-white block leading-tight">
-              MULIA ANGKASA AKADEMIK
+              MULIA ANGKASA AKADEMI
             </span>
             <span className="text-[10px] text-sky-400 font-semibold tracking-wider">
               Portal Calon Mahasiswa

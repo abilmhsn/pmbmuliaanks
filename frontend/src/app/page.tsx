@@ -99,12 +99,12 @@ export default function LandingPage() {
     <div className="min-h-screen flex flex-col bg-slate-50">
 
       {/* Header & Navbar - Glassy Floating Capsule Design (Fully Responsive) */}
-      <header className="sticky top-0 z-50 py-3 px-3 sm:px-6 lg:px-8 bg-white/40 backdrop-blur-md border-b border-white/20 shadow-sm transition-all">
+      <header className="sticky top-0 z-50 py-3 px-3 sm:px-6 lg:px-8 bg-white/0 backdrop-blur-md border-b border-white/20 shadow-sm transition-all">
         <div className="max-w-7xl mx-auto flex justify-between items-center">
 
           {/* Logo di Kiri (Responsif ukuran di mobile & desktop) */}
           <Link href="/" className="flex items-center space-x-2.5 group">
-            <div className="relative w-12 h-12 sm:w-12 sm:h-12 flex-shrink-0">
+            <div className="relative w-12 h-12 sm:w-15 sm:h-15 flex-shrink-0">
               <Image
                 src="/logo-mulia.png"
                 alt="Logo Mulia Angkasa"
@@ -114,7 +114,7 @@ export default function LandingPage() {
             </div>
             <div>
               <span className="text-xs sm:text-sm font-extrabold tracking-tight text-slate-900 block leading-tight">
-                MULIA ANGKASA AKADEMIK
+                MULIA ANGKASA AKADEMI
               </span>
               <span className="block text-[8px] sm:text-[9px] font-semibold text-sky-600 tracking-wider uppercase">
                 Aviation Training
@@ -313,7 +313,7 @@ export default function LandingPage() {
             {/* Visual Banner Card with Photo Slider */}
             <div className="lg:col-span-5 relative">
               <div
-                className="relative rounded-3xl overflow-hidden bg-slate-900/60 backdrop-blur-xl border border-white/10 p-6 shadow-2xl group transition-all"
+                className="relative rounded-3xl overflow-hidden bg-slate-100/0 backdrop-blur-xl border border-white/10 p-6 shadow-2xl group transition-all"
                 onMouseEnter={() => setIsAutoPlaying(false)}
                 onMouseLeave={() => setIsAutoPlaying(true)}
               >

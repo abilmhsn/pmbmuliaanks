@@ -8,11 +8,10 @@ import {
   Bell,
   Plus,
   Edit2,
-  CheckCircle2,
-  Sparkles,
   Trash2,
   X,
   Save,
+  CheckCircle2,
 } from 'lucide-react';
 
 export default function AdminMasterDataPage() {
@@ -57,7 +56,19 @@ export default function AdminMasterDataPage() {
     }
   };
 
-  // Open Modal Tambah Prodi
+  // Fungsi Aktifkan Gelombang (Mengisolasi data dashboard & pendaftaran)
+  const handleActivatePeriod = async (id: string, name: string) => {
+    if (!confirm(`Aktifkan ${name}? Statistik dashboard dan data pendaftar baru akan beralih khusus ke gelombang ini.`)) return;
+
+    try {
+      await api.put(`/pmb-periods/${id}/activate`).catch(() => api.put(`/pmb-periods/${id}`, { isActive: true }));
+      alert(`${name} berhasil diaktifkan! Data dashboard kini khusus untuk gelombang ini.`);
+      fetchMasterData();
+    } catch (err: any) {
+      alert(err.response?.data?.message || 'Gagal mengubah gelombang aktif');
+    }
+  };
+
   const handleOpenCreateProgram = () => {
     setEditingProgramId(null);
     setProgCode('');
@@ -68,7 +79,6 @@ export default function AdminMasterDataPage() {
     setIsProgramModalOpen(true);
   };
 
-  // Open Modal Edit Prodi
   const handleOpenEditProgram = (prog: any) => {
     setEditingProgramId(prog.id);
     setProgCode(prog.code || '');
@@ -79,7 +89,6 @@ export default function AdminMasterDataPage() {
     setIsProgramModalOpen(true);
   };
 
-  // Submit Simpan / Update Program Studi
   const handleSaveProgram = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
@@ -134,22 +143,13 @@ export default function AdminMasterDataPage() {
     }
   };
 
-  const handleTogglePeriodActive = async (id: string) => {
-    try {
-      await api.put(`/pmb-periods/${id}/activate`);
-      fetchMasterData();
-    } catch (err) {
-      console.error(err);
-    }
-  };
-
   return (
     <div className="space-y-8 max-w-7xl mx-auto">
       {/* Top Header */}
       <div className="bg-slate-900 p-6 rounded-2xl border border-slate-800">
         <h1 className="text-2xl font-extrabold text-white">Kelola Master Data & Informasi PMB</h1>
         <p className="text-xs text-slate-400 mt-1">
-          Pengaturan Program Studi, Periode Gelombang PMB, dan Pengumuman Pengguna.
+          Pengaturan Program Studi, Status Gelombang PMB (1 & 2), dan Pengumuman Pengguna.
         </p>
       </div>
 
@@ -160,7 +160,7 @@ export default function AdminMasterDataPage() {
           <div className="flex items-center justify-between border-b border-slate-800 pb-3">
             <div className="flex items-center gap-2">
               <BookOpen className="w-5 h-5 text-amber-400" />
-              <h3 className="text-lg font-bold text-white">Program Studi Kampus</h3>
+              <h3 className="text-base font-bold text-white">Program Studi</h3>
             </div>
             <button
               onClick={handleOpenCreateProgram}
@@ -200,32 +200,36 @@ export default function AdminMasterDataPage() {
           </div>
         </div>
 
-        {/* SECTION 2: PERIODE GELOMBANG PMB */}
+        {/* SECTION 2: PERIODE GELOMBANG PMB (HANYA 1 & 2) */}
         <div className="bg-slate-900 p-6 rounded-2xl border border-slate-800 space-y-4">
           <div className="flex items-center gap-2 border-b border-slate-800 pb-3">
             <Calendar className="w-5 h-5 text-sky-400" />
-            <h3 className="text-lg font-bold text-white">Periode Gelombang PMB</h3>
+            <h3 className="text-lg font-bold text-white">Periode Gelombang PMB (1 & 2)</h3>
           </div>
 
-          <div className="space-y-4">
-            {periods.map((per) => (
+          <p className="text-xs text-slate-400">
+            Pilih gelombang aktif. Data pendaftar, statistik dashboard, dan hasil export CSV akan terisolasi khusus sesuai gelombang yang diaktifkan.
+          </p>
+
+          <div className="space-y-4 pt-2">
+            {periods.slice(0, 2).map((per) => (
               <div key={per.id} className="p-4 bg-slate-950 rounded-xl border border-slate-800 flex justify-between items-center">
                 <div>
                   <h4 className="font-bold text-white text-sm">{per.name}</h4>
-                  <p className="text-xs text-slate-400 font-mono mt-0.5">T.A {per.academicYear || per.year}</p>
+                  <p className="text-xs text-slate-400 font-mono mt-0.5">T.A {per.year || per.academicYear || '2026/2027'}</p>
                 </div>
 
                 <div>
                   {per.isActive ? (
-                    <span className="px-2 py-1 bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-xs font-extrabold rounded-lg">
-                      AKTIF
+                    <span className="px-3 py-1.5 bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-xs font-extrabold rounded-lg flex items-center gap-1">
+                      <CheckCircle2 className="w-3.5 h-3.5" /> AKTIF
                     </span>
                   ) : (
                     <button
-                      onClick={() => handleTogglePeriodActive(per.id)}
-                      className="px-3 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold rounded-lg"
+                      onClick={() => handleActivatePeriod(per.id, per.name)}
+                      className="px-4 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold rounded-lg transition-all border border-slate-700"
                     >
-                      Aktifkan
+                      Aktifkan Gelombang Ini
                     </button>
                   )}
                 </div>
@@ -304,10 +308,10 @@ export default function AdminMasterDataPage() {
                 <div className="flex items-center gap-3">
                   <span
                     className={`px-2.5 py-0.5 rounded text-[10px] font-mono font-bold ${ann.type === 'URGENT'
-                        ? 'bg-rose-500/20 text-rose-400 border border-rose-500/30'
-                        : ann.type === 'SUCCESS'
-                          ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
-                          : 'bg-sky-500/20 text-sky-400 border border-sky-500/30'
+                      ? 'bg-rose-500/20 text-rose-400 border border-rose-500/30'
+                      : ann.type === 'SUCCESS'
+                        ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                        : 'bg-sky-500/20 text-sky-400 border border-sky-500/30'
                       }`}
                   >
                     {ann.type}

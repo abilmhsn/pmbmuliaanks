@@ -5,6 +5,9 @@ import { AuthProvider } from '@/context/AuthContext';
 export const metadata: Metadata = {
   title: 'PMB Kampus Mulia Angkasa - Penerimaan Mahasiswa Baru',
   description: 'Sistem Penerimaan Mahasiswa Baru Resmi Kampus Mulia Angkasa (Aviation & Ground Handling Specialist).',
+  icons: {
+    icon: '/logo-mulia.png',
+  },
 };
 
 export default function RootLayout({
@@ -30,3 +33,4 @@ export default function RootLayout({
     </html>
   );
 }
+

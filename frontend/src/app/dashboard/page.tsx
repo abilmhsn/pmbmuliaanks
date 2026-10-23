@@ -852,6 +852,8 @@ export default function StudentDashboard() {
                             <th className="p-3 whitespace-nowrap">Bukti File</th>
                             <th className="p-3 whitespace-nowrap">Status Verifikasi</th>
                           </tr>
+
+
                         </thead>
                         <tbody className="divide-y divide-slate-200 text-slate-700">
                           {user.applicant.registrations[0].payments.map((pay: any) => (
@@ -868,6 +870,9 @@ export default function StudentDashboard() {
                                   Lihat Bukti Transfer
                                 </a>
                               </td>
+
+
+
                               <td className="p-3 whitespace-nowrap">
                                 {pay.status === 'VERIFIED' ? (
                                   <span className="px-2.5 py-1 bg-emerald-100 text-emerald-800 rounded-full font-bold">
@@ -913,7 +918,7 @@ export default function StudentDashboard() {
                         <div className="text-xs text-slate-400">Bank Transfer:</div>
                         <div className="text-lg font-bold text-white">BANK NEGARA INDONESIA (BNI)</div>
                         <div className="text-2xl font-mono font-extrabold text-amber-300">182 0221 226</div>
-                        <div className="text-xs text-slate-300">a.n PMB Kampus Mulia Angkasa Akademik</div>
+                        <div className="text-xs text-slate-300">a.n PMB Kampus Mulia Angkasa Akademi</div>
                       </div>
                       <div className="text-xs text-slate-400 leading-relaxed">
                         Nominal Biaya Pendaftaran: <span className="font-bold text-white">Rp 3.500.000</span>.

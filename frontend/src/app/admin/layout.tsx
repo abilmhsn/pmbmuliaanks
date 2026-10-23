@@ -94,11 +94,10 @@ export default function AdminLayout({
             key={href}
             href={href}
             onClick={() => setSidebarOpen(false)}
-            className={`flex items-center gap-3 px-3.5 py-3 rounded-xl transition-all duration-200 active:scale-95 ${
-              pathname === href
-                ? 'bg-gradient-to-r from-amber-400 to-amber-500 text-slate-950 font-bold shadow-lg shadow-amber-500/20 translate-x-1'
-                : 'text-slate-400 hover:bg-slate-800/60 hover:text-white hover:translate-x-1'
-            }`}
+            className={`flex items-center gap-3 px-3.5 py-3 rounded-xl transition-all duration-200 active:scale-95 ${pathname === href
+              ? 'bg-gradient-to-r from-amber-400 to-amber-500 text-slate-950 font-bold shadow-lg shadow-amber-500/20 translate-x-1'
+              : 'text-slate-400 hover:bg-slate-800/60 hover:text-white hover:translate-x-1'
+              }`}
           >
             <Icon className="w-4 h-4 flex-shrink-0" />
             <span>{label}</span>
@@ -158,9 +157,8 @@ export default function AdminLayout({
 
         {/* Mobile: fixed drawer from left */}
         <aside
-          className={`fixed top-0 left-0 h-full w-72 bg-slate-900 text-white flex flex-col z-50 shadow-2xl transition-transform duration-300 ease-in-out md:hidden ${
-            sidebarOpen ? 'translate-x-0' : '-translate-x-full'
-          }`}
+          className={`fixed top-0 left-0 h-full w-72 bg-slate-900 text-white flex flex-col z-50 shadow-2xl transition-transform duration-300 ease-in-out md:hidden ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+            }`}
         >
           <SidebarContent />
         </aside>

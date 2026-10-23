@@ -89,7 +89,7 @@ export default function CetakBuktiPage() {
 
             <div>
               <h1 className="text-base font-black text-slate-900 tracking-tight">
-                KAMPUS MULIA ANGKASA AKADEMIK
+                KAMPUS MULIA ANGKASA AKADEMI
               </h1>
 
               <p className="text-xs font-bold text-sky-700 uppercase tracking-wider">
