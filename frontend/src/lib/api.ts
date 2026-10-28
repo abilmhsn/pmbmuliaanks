@@ -1,6 +1,10 @@
 import axios from 'axios';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+// Gunakan relative path '/api' di browser agar Next.js rewrite mem-proxy ke port 5000.
+// Memastikan aplikasi bisa diakses dari HP / internet tanpa terhalang CORS atau Mixed-Content HTTPS->HTTP.
+const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_URL ||
+  (typeof window !== 'undefined' ? '/api' : 'http://localhost:5000/api');
 
 export const api = axios.create({
   baseURL: API_BASE_URL,

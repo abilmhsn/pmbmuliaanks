@@ -101,10 +101,10 @@ export default function CetakBuktiPage() {
             </div>
           </div>
           <div className="text-right hidden sm:block">
-            <span className="px-3 py-1 bg-amber-100 text-amber-800 text-xs font-extrabold rounded-lg border border-amber-300 block">
+            <span className="px-3 py-1 bg-slate-900 text-white text-xs font-extrabold rounded-lg block">
               OFFICIAL SLIP
             </span>
-            <span className="text-[10px] text-slate-400 mt-1 block">T.A 2026/2027</span>
+            <span className="text-[10px] text-slate-400 mt-1 block"></span>
           </div>
         </div>
 

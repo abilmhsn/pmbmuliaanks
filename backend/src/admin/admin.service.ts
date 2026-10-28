@@ -44,6 +44,56 @@ export class AdminService {
 
     const totalStudyPrograms = await this.prisma.studyProgram.count();
 
+
+    // --- Tambahan untuk Aktivitas Terbaru ---
+    const recentApplicants = await this.prisma.applicant.findMany({
+      where: periodId ? { registrations: { some: { periodId } } } : {},
+      take: 5,
+      orderBy: { createdAt: 'desc' },
+      include: {
+        registrations: {
+          include: { studyProgram: true },
+        },
+      },
+    });
+
+    const recentActivity = recentApplicants.map((app) => ({
+      name: app.fullName,
+      program: app.registrations[0]?.studyProgram?.name || 'Aviation Program',
+      date: new Date(app.createdAt).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }),
+      status: app.registrations[0]?.status || 'PENDING',
+    }));
+
+    // --- Tambahan sederhana untuk Tren 7 Hari Terakhir ---
+    const trendDataMap: { [key: string]: number } = {};
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      const dateStr = d.toLocaleDateString('id-ID', { day: '2-digit', month: 'short' });
+      trendDataMap[dateStr] = 0;
+    }
+
+    // Ambil data 7 hari ke belakang untuk chart
+    const lastWeekApplicants = await this.prisma.applicant.findMany({
+      where: {
+        createdAt: { gte: sevenDaysAgo },
+        ...(periodId ? { registrations: { some: { periodId } } } : {}),
+      },
+      select: { createdAt: true },
+    });
+
+    lastWeekApplicants.forEach((app) => {
+      const dateStr = new Date(app.createdAt).toLocaleDateString('id-ID', { day: '2-digit', month: 'short' });
+      if (trendDataMap[dateStr] !== undefined) {
+        trendDataMap[dateStr] += 1;
+      }
+    });
+
+    const trend = Object.keys(trendDataMap).map((date) => ({
+      date,
+      count: trendDataMap[date],
+    }));
+
     return {
       totalApplicants,
       newApplicants,
@@ -52,6 +102,8 @@ export class AdminService {
       passed,
       reRegistered,
       totalStudyPrograms,
+      recentActivity,
+      trend,
     };
   }
 

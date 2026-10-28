@@ -1,5 +1,6 @@
 'use client';
 
+
 import React, { useState, useEffect } from 'react';
 import api from '@/lib/api';
 import {
@@ -14,24 +15,22 @@ import {
   Calendar,
 } from 'lucide-react';
 
+
+
 export default function AdminApplicantsPage() {
   const [applicants, setApplicants] = useState<any[]>([]);
   const [programs, setPrograms] = useState<any[]>([]);
   const [periods, setPeriods] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Tab State: 'ACTIVE' (Data Utama) atau 'TRASH' (Data Sampah)
   const [activeTab, setActiveTab] = useState<'ACTIVE' | 'TRASH'>('ACTIVE');
 
-  // Filters
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [programFilter, setProgramFilter] = useState('');
   const [periodFilter, setPeriodFilter] = useState('');
 
-  // Selected Detail Modal State
   const [selectedApplicant, setSelectedApplicant] = useState<any | null>(null);
-  const [modalLoading, setModalLoading] = useState(false);
   const [statusInput, setStatusInput] = useState('');
   const [notesInput, setNotesInput] = useState('');
 
@@ -138,7 +137,6 @@ export default function AdminApplicantsPage() {
 
   const handleOpenDetail = async (id: string) => {
     try {
-      setModalLoading(true);
       const res = await api.get(`/admin/applicants/${id}`);
       setSelectedApplicant(res.data);
       const reg = res.data.registrations?.[0];
@@ -148,8 +146,6 @@ export default function AdminApplicantsPage() {
       }
     } catch (err) {
       console.error(err);
-    } finally {
-      setModalLoading(false);
     }
   };
 
@@ -246,7 +242,6 @@ export default function AdminApplicantsPage() {
 
       {/* Tab Switcher & Filter Bar */}
       <div className="space-y-4">
-        {/* TAB SWITCHER & GELOMBANG RESPONSIVE */}
         <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4 border-b border-slate-800 pb-3">
           <div className="flex items-center gap-2 overflow-x-auto pb-1 lg:pb-0">
             <button
@@ -269,7 +264,6 @@ export default function AdminApplicantsPage() {
             </button>
           </div>
 
-          {/* PILIHAN GELOMBANG */}
           {activeTab === 'ACTIVE' && (
             <div className="flex items-center justify-between sm:justify-start gap-2 bg-slate-900 px-3 py-2 rounded-xl border border-slate-800">
               <div className="flex items-center gap-2">
@@ -283,7 +277,6 @@ export default function AdminApplicantsPage() {
               >
                 <option value="">Semua Gelombang</option>
                 {periods.slice(0, 2).map((p, idx) => {
-                  // Memastikan baris pertama pasti Gelombang 1 dan baris kedua pasti Gelombang 2
                   const waveName = idx === 0 ? 'PMB Gelombang 1' : 'PMB Gelombang 2';
                   return (
                     <option key={p.id} value={p.id}>
@@ -296,7 +289,6 @@ export default function AdminApplicantsPage() {
           )}
         </div>
 
-        {/* Filter Bar */}
         {activeTab === 'ACTIVE' && (
           <div className="bg-slate-900 p-4 rounded-2xl border border-slate-800 grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div className="relative">
@@ -345,7 +337,7 @@ export default function AdminApplicantsPage() {
         )}
       </div>
 
-      {/* Table Container dengan Scroll Horisontal Responsif */}
+      {/* Table Container */}
       <div className="bg-slate-900 rounded-2xl border border-slate-800 overflow-hidden shadow-xl">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs text-slate-300 min-w-[700px]">
@@ -450,11 +442,10 @@ export default function AdminApplicantsPage() {
         </div>
       </div>
 
-      {/* DETAIL MODAL RESPONSIVE */}
+      {/* DETAIL MODAL */}
       {selectedApplicant && (
         <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-2 sm:p-4 overflow-y-auto">
           <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-4xl w-full max-h-[90vh] flex flex-col overflow-hidden shadow-2xl">
-            {/* Modal Header */}
             <div className="p-4 sm:p-6 bg-slate-950 border-b border-slate-800 flex justify-between items-center">
               <div>
                 <span className="text-xs font-mono text-amber-400 font-bold">{selectedApplicant.registrationNumber}</span>
@@ -468,9 +459,7 @@ export default function AdminApplicantsPage() {
               </button>
             </div>
 
-            {/* Modal Body */}
             <div className="p-4 sm:p-6 overflow-y-auto space-y-6 text-xs text-slate-300">
-              {/* STATUS UPDATER SECTION */}
               <div className="p-4 bg-slate-950 rounded-xl border border-slate-800 space-y-3">
                 <h4 className="font-bold text-amber-400 text-sm">Ubah Status Pendaftaran & Catatan Admin</h4>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -509,7 +498,6 @@ export default function AdminApplicantsPage() {
                 </button>
               </div>
 
-              {/* DATA SUMMARY */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                 <div className="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-2">
                   <h4 className="font-bold text-sky-400 text-xs uppercase border-b border-slate-800 pb-2">
@@ -532,7 +520,6 @@ export default function AdminApplicantsPage() {
                 </div>
               </div>
 
-              {/* VERIFIKASI DOKUMEN */}
               <div className="space-y-3">
                 <h4 className="font-bold text-white text-xs uppercase border-b border-slate-800 pb-2">
                   Dokumen Terunggah
@@ -602,7 +589,6 @@ export default function AdminApplicantsPage() {
                 </div>
               </div>
 
-              {/* VERIFIKASI PEMBAYARAN */}
               <div className="space-y-3 pt-4 border-t border-slate-800">
                 <h4 className="font-bold text-white text-xs uppercase border-b border-slate-800 pb-2">
                   Bukti Pembayaran / Transfer

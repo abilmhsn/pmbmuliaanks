@@ -23,37 +23,6 @@ export default function AdminLayout({
   const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-slate-950 text-white flex items-center justify-center">
-        <div className="flex flex-col items-center space-y-4">
-          <div className="w-12 h-12 rounded-full border-4 border-amber-400 border-t-transparent animate-spin"></div>
-          <p className="text-sm font-semibold text-slate-300">Memuat Portal Administrator...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (!user || user.role !== 'ADMIN') {
-    return (
-      <div className="min-h-screen bg-slate-950 text-white flex flex-col items-center justify-center p-6 text-center">
-        <div className="w-16 h-16 bg-rose-500/20 text-rose-400 rounded-2xl flex items-center justify-center mb-4 border border-rose-500/30 shadow-lg">
-          <ShieldCheck className="w-8 h-8" />
-        </div>
-        <h2 className="text-xl font-bold text-white mb-2">Akses Terbatas Administrator</h2>
-        <p className="text-xs text-slate-400 max-w-sm mb-6 leading-relaxed">
-          Halaman ini khusus untuk Panitia & Administrator Kampus Mulia Angkasa.
-        </p>
-        <Link
-          href="/login"
-          className="px-6 py-2.5 bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-xs rounded-xl shadow-lg transition-all active:scale-95"
-        >
-          Login sebagai Admin
-        </Link>
-      </div>
-    );
-  }
-
   const navLinks = [
     { href: '/admin/dashboard', label: 'Dashboard Statistik', Icon: LayoutDashboard },
     { href: '/admin/applicants', label: 'Data Pendaftar', Icon: Users },
@@ -150,12 +119,10 @@ export default function AdminLayout({
         )}
 
         {/* ── Sidebar ── */}
-        {/* Desktop: sticky */}
         <aside className="hidden md:flex md:w-64 bg-slate-900/90 backdrop-blur-xl text-white flex-shrink-0 border-r border-slate-800/80 md:sticky md:top-0 md:h-screen flex-col z-30">
           <SidebarContent />
         </aside>
 
-        {/* Mobile: fixed drawer from left */}
         <aside
           className={`fixed top-0 left-0 h-full w-72 bg-slate-900 text-white flex flex-col z-50 shadow-2xl transition-transform duration-300 ease-in-out md:hidden ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'
             }`}
@@ -163,9 +130,34 @@ export default function AdminLayout({
           <SidebarContent />
         </aside>
 
-        {/* ── Main Content ── */}
+        {/* ── Main Content — Dirender konsisten tanpa early return di tingkat layout ── */}
         <main className="flex-1 p-4 sm:p-6 md:p-10 overflow-y-auto bg-slate-950 transition-all duration-300">
-          {children}
+          {isLoading ? (
+            <div className="min-h-[60vh] flex items-center justify-center">
+              <div className="flex flex-col items-center space-y-4">
+                <div className="w-12 h-12 rounded-full border-4 border-amber-400 border-t-transparent animate-spin"></div>
+                <p className="text-sm font-semibold text-slate-300">Memuat Portal Administrator...</p>
+              </div>
+            </div>
+          ) : !user || user.role !== 'ADMIN' ? (
+            <div className="min-h-[60vh] flex flex-col items-center justify-center p-6 text-center">
+              <div className="w-16 h-16 bg-rose-500/20 text-rose-400 rounded-2xl flex items-center justify-center mb-4 border border-rose-500/30 shadow-lg">
+                <ShieldCheck className="w-8 h-8" />
+              </div>
+              <h2 className="text-xl font-bold text-white mb-2">Akses Terbatas Administrator</h2>
+              <p className="text-xs text-slate-400 max-w-sm mb-6 leading-relaxed">
+                Halaman ini khusus untuk Panitia & Administrator Kampus Mulia Angkasa.
+              </p>
+              <Link
+                href="/login"
+                className="px-6 py-2.5 bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-xs rounded-xl shadow-lg transition-all active:scale-95"
+              >
+                Login sebagai Admin
+              </Link>
+            </div>
+          ) : (
+            children
+          )}
         </main>
       </div>
     </div>

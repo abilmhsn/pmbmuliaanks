@@ -1,5 +1,4 @@
 'use client';
-
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import api from '@/lib/api';
@@ -21,6 +20,8 @@ import {
   CreditCardCheck,
 } from 'lucide-react';
 import Link from 'next/link';
+
+
 
 export default function StudentDashboard() {
   const { user, refreshUser } = useAuth();
@@ -50,7 +51,7 @@ export default function StudentDashboard() {
     schoolName: '',
     npsn: '',
     major: 'IPA',
-    graduationYear: 2026,
+    graduationYear: 2027,
   });
 
   const [selectedProgramId, setSelectedProgramId] = useState('');
@@ -99,7 +100,7 @@ export default function StudentDashboard() {
           schoolName: e.schoolName || '',
           npsn: e.npsn || '',
           major: e.major || 'IPA',
-          graduationYear: e.graduationYear || 2026,
+          graduationYear: e.graduationYear || 2027,
         });
       }
 
@@ -257,10 +258,10 @@ export default function StudentDashboard() {
 
       {/* SECTION PENGUMUMAN / NOTIFIKASI COMPACT */}
       {announcements.length > 0 && (
-        <div className="bg-slate-900/90 border border-amber-500/30 rounded-2xl p-4 shadow-lg space-y-3">
+        <div className="bg-slate-900  border-amber-500 rounded-2xl p-4 shadow-lg space-y-3">
           {/* Header Ringkas */}
           <div className="flex items-center justify-between pb-2 border-b border-slate-800">
-            <div className="flex items-center gap-2 text-amber-400 font-bold text-xs tracking-wider">
+            <div className="flex items-center gap-2 text-white font-bold text-xs tracking-wider">
               <Bell className="w-4 h-4 animate-pulse" />
               <span>PENGUMUMAN PANITIA PMB</span>
             </div>
@@ -274,11 +275,11 @@ export default function StudentDashboard() {
             {announcements.map((item) => (
               <div
                 key={item.id}
-                className="bg-slate-950/70 hover:bg-slate-950 p-3 rounded-xl border border-slate-800/80 transition-all space-y-1"
+                className="bg-slate-900 hover:bg-slate-950 p-3 rounded-xl border border-slate-800/80 transition-all space-y-1"
               >
                 <div className="flex items-center justify-between gap-2">
                   <h4 className="font-semibold text-slate-100 text-xs flex items-center gap-2">
-                    <Info className="w-3.5 h-3.5 text-sky-400 flex-shrink-0" />
+                    <Info className="w-3.5 h-3.5 text-amber-400 flex-shrink-0" />
                     <span>{item.title}</span>
                   </h4>
                   <span className="text-[10px] text-slate-400 font-mono flex-shrink-0">
@@ -612,7 +613,7 @@ export default function StudentDashboard() {
                     min={1995}
                     max={2030}
                     value={educationForm.graduationYear}
-                    onChange={(e) => setEducationForm({ ...educationForm, graduationYear: parseInt(e.target.value) || 2026 })}
+                    onChange={(e) => setEducationForm({ ...educationForm, graduationYear: parseInt(e.target.value) || 2027 })}
                     className="w-full px-4 py-2.5 bg-white border border-slate-300 rounded-xl text-sm text-slate-900 focus:outline-none focus:border-sky-500"
                   />
                 </div>
