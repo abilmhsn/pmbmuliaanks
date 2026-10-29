@@ -130,7 +130,7 @@ export default function LoginPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-3 px-4 bg-sky-500 hover:bg-sky-400 text-white font-bold rounded-xl shadow-lg shadow-sky-500/20 hover:shadow-sky-500/30 transition-all flex items-center justify-center gap-2 text-sm disabled:opacity-50"
+                className="w-full py-3 px-4 bg-amber-400 hover:bg-slate-800 text-white font-bold rounded-xl shadow-lg shadow-amber -500/20 hover:shadow-sky-500/30 transition-all flex items-center justify-center gap-2 text-sm disabled:opacity-50"
               >
                 {loading ? 'Memproses...' : 'Masuk Portal'}
                 <ArrowRight className="w-4 h-4" />
@@ -140,11 +140,10 @@ export default function LoginPage() {
 
           {/* Quick Demo Accounts Info */}
           <div className="mt-6 pt-6 border-t border-slate-700/60 text-xs text-slate-400">
-            <p className="font-semibold text-slate-300 mb-2">Akun Demo Sistem:</p>
-            <div className="bg-slate-900/60 p-3 rounded-lg border border-slate-700/50 space-y-1 text-[11px] font-mono text-slate-300">
-              <p><span className="text-amber-400 font-bold">Admin:</span> admin@muliaangkasa.ac.id | admin123</p>
-              <p><span className="text-sky-400 font-bold">Mahasiswa:</span> (Daftar akun baru di atas)</p>
-            </div>
+
+
+
+
           </div>
         </div>
       </div>

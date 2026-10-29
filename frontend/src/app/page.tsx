@@ -75,7 +75,7 @@ export default function LandingPage() {
     },
     {
       q: 'Apakah ijazah atau SKL belum terbit tetap bisa mendaftar?',
-      a: 'Bisa! Bagi siswa kelas XII SMA/SMK/MA yang belum lulus/belum menerima ijazah, dapat menggunakan Surat Keterangan Lulus (SKL) sementara atau Rapor semester 1-5 terlebih dahulu.',
+      a: 'Bisa! Bagi siswa kelas XII SMA/SMK/MA yang belum lulus/belum menerima ijazah, dapat menyertakan KK dan KTP  sementara atau Rapor semester 1-5 terlebih dahulu.',
     },
     {
       q: 'Bagaimana sistem pembayaran biaya pendaftaran?',
@@ -190,7 +190,7 @@ export default function LandingPage() {
             loop
             muted
             playsInline
-            className="w-full h-full object-cover opacity-20"
+            className="w-full h-full object-cover opacity-40"
           >
             <source src="/bg-hero.mp4" type="video/mp4" />
           </video>
@@ -216,7 +216,7 @@ export default function LandingPage() {
                 </span>
               </h1>
 
-              <p className="text-base text-slate-100 max-w-2xl mx-auto font-normal leading-relaxed">
+              <p className="text-xs text-slate-50 max-w-2xl mx-auto font-normal leading-relaxed">
                 Kampus Mulia Angkasa Akademi membekali calon profesional bandara dan maskapai penerbangan dengan kurikulum berbasis standar internasional, lisensi keahlian resmi, dan garansi pendampingan kerja.
               </p>
 
@@ -530,7 +530,8 @@ export default function LandingPage() {
                   Catatan Penting:
                 </h4>
                 <p className="text-xs leading-relaxed">
-                  Bagi lulusan tahun ini yang belum memiliki ijazah resmi, dapat menyertakan Surat Keterangan Lulus (SKL) dari sekolah.
+                  Bagi lulusan tahun ini yang belum memiliki ijazah resmi, dapat menyertakan Surat Keterangan Lulus (SKL) dari sekolah,
+                  Bagi yang belum lulus bisa menyartakan KK dan KTP.
                 </p>
               </div>
             </div>
