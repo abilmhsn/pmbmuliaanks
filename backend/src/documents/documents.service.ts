@@ -1,15 +1,17 @@
+
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { DocumentType } from '@prisma/client';
 
 @Injectable()
 export class DocumentsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService) { }
 
   async uploadDocument(
     userId: string,
     type: DocumentType,
     file: Express.Multer.File,
+    filePath: string,
   ) {
     const applicant = await this.prisma.applicant.findUnique({
       where: { userId },
@@ -18,8 +20,6 @@ export class DocumentsService {
     if (!applicant) {
       throw new NotFoundException('Data pendaftar tidak ditemukan');
     }
-
-    const fileUrl = `/uploads/documents/${file.filename}`;
 
     const existingDoc = await this.prisma.document.findFirst({
       where: {
@@ -32,9 +32,10 @@ export class DocumentsService {
       return this.prisma.document.update({
         where: { id: existingDoc.id },
         data: {
-          fileUrl,
+          fileUrl: filePath,
           fileName: file.originalname,
           isVerified: false,
+          verifiedAt: null,
         },
       });
     }
@@ -43,7 +44,7 @@ export class DocumentsService {
       data: {
         applicantId: applicant.id,
         type,
-        fileUrl,
+        fileUrl: filePath,
         fileName: file.originalname,
       },
     });

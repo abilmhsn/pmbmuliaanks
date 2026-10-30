@@ -1,15 +1,17 @@
+
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class PaymentsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService) { }
 
   async submitPaymentProof(
     userId: string,
     amount: number,
     paymentType: string,
     file: Express.Multer.File,
+    filePath: string,
   ) {
     const applicant = await this.prisma.applicant.findUnique({
       where: { userId },
@@ -21,14 +23,13 @@ export class PaymentsService {
     }
 
     const registration = applicant.registrations[0];
-    const proofUrl = `/uploads/payments/${file.filename}`;
 
     return this.prisma.payment.create({
       data: {
         registrationId: registration.id,
         amount: Number(amount),
         paymentType: paymentType || 'Biaya Pendaftaran',
-        proofUrl,
+        proofUrl: filePath,
       },
     });
   }

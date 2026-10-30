@@ -1,3 +1,4 @@
+
 import {
   Controller,
   Post,
@@ -9,22 +10,19 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { diskStorage } from 'multer';
-import { extname, join } from 'path';
+import { memoryStorage } from 'multer';
 import { PaymentsService } from './payments.service';
+import { SupabaseStorageService } from '../storage/supabase-storage.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
-import * as fs from 'fs';
-
-const paymentDir = join(process.cwd(), 'uploads', 'payments');
-if (!fs.existsSync(paymentDir)) {
-  fs.mkdirSync(paymentDir, { recursive: true });
-}
 
 @UseGuards(JwtAuthGuard)
 @Controller('payments')
 export class PaymentsController {
-  constructor(private readonly paymentsService: PaymentsService) {}
+  constructor(
+    private readonly paymentsService: PaymentsService,
+    private readonly storageService: SupabaseStorageService,
+  ) { }
 
   @Get()
   async getMyPayments(@CurrentUser('id') userId: string) {
@@ -34,14 +32,7 @@ export class PaymentsController {
   @Post('upload')
   @UseInterceptors(
     FileInterceptor('proof', {
-      storage: diskStorage({
-        destination: paymentDir,
-        filename: (req, file, cb) => {
-          const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
-          const ext = extname(file.originalname);
-          cb(null, `payment-${uniqueSuffix}${ext}`);
-        },
-      }),
+      storage: memoryStorage(),
       limits: { fileSize: 5 * 1024 * 1024 },
     }),
   )
@@ -54,6 +45,16 @@ export class PaymentsController {
     if (!file) {
       throw new BadRequestException('Bukti transfer wajib diunggah');
     }
-    return this.paymentsService.submitPaymentProof(userId, amount, paymentType, file);
+
+    const filePath = await this.storageService.uploadFile(file, 'payments');
+
+
+    return this.paymentsService.submitPaymentProof(
+      userId,
+      amount,
+      paymentType,
+      file,
+      filePath,
+    );
   }
 }
