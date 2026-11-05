@@ -13,6 +13,16 @@ export class AuthService {
   ) {}
 
   async register(dto: RegisterDto) {
+    // Check if registration is open in system settings
+    const regOpenSetting = await this.prisma.systemSetting.findUnique({
+      where: { key: 'REGISTRATION_OPEN' },
+    });
+    if (regOpenSetting && regOpenSetting.value === 'false') {
+      throw new BadRequestException(
+        'Pendaftaran calon mahasiswa baru sedang ditutup sementara oleh panitia penerimaan.',
+      );
+    }
+
     // Check if email already exists
     const existingUser = await this.prisma.user.findUnique({
       where: { email: dto.email },

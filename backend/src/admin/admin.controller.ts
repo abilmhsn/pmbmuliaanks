@@ -14,6 +14,7 @@ import { AdminService } from './admin.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
+import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { Role, RegistrationStatus, PaymentStatus } from '@prisma/client';
 
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -50,31 +51,42 @@ export class AdminController {
 
   // ENDPOINT SOFT DELETE (Masuk ke Trash)
   @Delete('applicants/:id')
-  async softDeleteApplicant(@Param('id') id: string) {
-    return this.adminService.softDeleteApplicant(id);
+  async softDeleteApplicant(
+    @Param('id') id: string,
+    @CurrentUser() user: any,
+  ) {
+    return this.adminService.softDeleteApplicant(id, user);
   }
 
   // ENDPOINT RESTORE (Pulihkan dari Trash)
   @Put('applicants/:id/restore')
-  async restoreApplicant(@Param('id') id: string) {
-    return this.adminService.restoreApplicant(id);
+  async restoreApplicant(
+    @Param('id') id: string,
+    @CurrentUser() user: any,
+  ) {
+    return this.adminService.restoreApplicant(id, user);
   }
 
   // ENDPOINT HAPUS PERMANEN
   @Delete('applicants/:id/permanent')
-  async permanentDeleteApplicant(@Param('id') id: string) {
-    return this.adminService.permanentDeleteApplicant(id);
+  async permanentDeleteApplicant(
+    @Param('id') id: string,
+    @CurrentUser() user: any,
+  ) {
+    return this.adminService.permanentDeleteApplicant(id, user);
   }
 
   @Put('registration-status/:id')
   async updateRegistrationStatus(
     @Param('id') registrationId: string,
     @Body() body: { status: RegistrationStatus; notes?: string },
+    @CurrentUser() user: any,
   ) {
     return this.adminService.updateRegistrationStatus(
       registrationId,
       body.status,
       body.notes,
+      user,
     );
   }
 
@@ -82,11 +94,13 @@ export class AdminController {
   async verifyDocument(
     @Param('id') documentId: string,
     @Body() body: { isVerified: boolean; notes?: string },
+    @CurrentUser() user: any,
   ) {
     return this.adminService.verifyDocument(
       documentId,
       body.isVerified,
       body.notes,
+      user,
     );
   }
 
@@ -94,11 +108,13 @@ export class AdminController {
   async verifyPayment(
     @Param('id') paymentId: string,
     @Body() body: { status: PaymentStatus; notes?: string },
+    @CurrentUser() user: any,
   ) {
     return this.adminService.verifyPayment(
       paymentId,
       body.status,
       body.notes,
+      user,
     );
   }
 

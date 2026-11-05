@@ -10,6 +10,7 @@ import { DocumentsModule } from './documents/documents.module';
 import { PaymentsModule } from './payments/payments.module';
 import { AnnouncementsModule } from './announcements/announcements.module';
 import { AdminModule } from './admin/admin.module';
+import { SuperAdminModule } from './super-admin/super-admin.module';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { AdminModule } from './admin/admin.module';
     PaymentsModule,
     AnnouncementsModule,
     AdminModule,
+    SuperAdminModule,
   ],
 })
 export class AppModule { }

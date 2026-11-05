@@ -7,7 +7,7 @@ import { useRouter } from 'next/navigation';
 interface User {
   id: string;
   email: string;
-  role: 'ADMIN' | 'APPLICANT';
+  role: 'SUPER_ADMIN' | 'ADMIN' | 'APPLICANT';
   applicant?: {
     id: string;
     fullName: string;
@@ -67,7 +67,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setToken(jwtToken);
     setUser(userData);
 
-    if (userData.role === 'ADMIN') {
+    if (userData.role === 'SUPER_ADMIN') {
+      router.push('/super-admin/dashboard');
+    } else if (userData.role === 'ADMIN') {
       router.push('/admin/dashboard');
     } else {
       router.push('/dashboard');

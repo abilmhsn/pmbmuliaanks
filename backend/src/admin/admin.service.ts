@@ -175,16 +175,32 @@ export class AdminService {
   }
 
   // --- FUNGSI TRASH / SOFT DELETE ---
-  async softDeleteApplicant(id: string) {
+  async softDeleteApplicant(id: string, currentUser?: { id?: string; email?: string }) {
     const applicant = await this.prisma.applicant.findUnique({ where: { id } });
     if (!applicant) {
       throw new NotFoundException('Data pendaftar tidak ditemukan');
     }
 
-    return await this.prisma.applicant.update({
+    const updated = await this.prisma.applicant.update({
       where: { id },
       data: { deletedAt: new Date() },
     });
+
+    try {
+      await this.prisma.auditLog.create({
+        data: {
+          userId: currentUser?.id,
+          userEmail: currentUser?.email,
+          action: 'TRASH_APPLICANT',
+          target: `Pendaftar: ${applicant.fullName}`,
+          details: `Data pendaftar dipindahkan ke tempat sampah oleh ${currentUser?.email || 'Admin'}`,
+        },
+      });
+    } catch (e) {
+      console.error(e);
+    }
+
+    return updated;
   }
 
   async getTrashApplicants() {
@@ -204,26 +220,69 @@ export class AdminService {
     });
   }
 
-  async restoreApplicant(id: string) {
+  async restoreApplicant(id: string, currentUser?: { id?: string; email?: string }) {
     const applicant = await this.prisma.applicant.findUnique({ where: { id } });
     if (!applicant) {
       throw new NotFoundException('Data pendaftar tidak ditemukan');
     }
 
-    return await this.prisma.applicant.update({
+    const updated = await this.prisma.applicant.update({
       where: { id },
       data: { deletedAt: null },
     });
+
+    try {
+      await this.prisma.auditLog.create({
+        data: {
+          userId: currentUser?.id,
+          userEmail: currentUser?.email,
+          action: 'RESTORE_APPLICANT',
+          target: `Pendaftar: ${applicant.fullName}`,
+          details: `Data pendaftar dipulihkan dari tempat sampah oleh ${currentUser?.email || 'Admin'}`,
+        },
+      });
+    } catch (e) {
+      console.error(e);
+    }
+
+    return updated;
   }
 
-  async updateRegistrationStatus(registrationId: string, status: RegistrationStatus, notes?: string) {
-    return this.prisma.registration.update({
+  async updateRegistrationStatus(
+    registrationId: string,
+    status: RegistrationStatus,
+    notes?: string,
+    currentUser?: { id?: string; email?: string },
+  ) {
+    const reg = await this.prisma.registration.update({
       where: { id: registrationId },
       data: { status, notes },
+      include: { applicant: true },
     });
+
+    try {
+      await this.prisma.auditLog.create({
+        data: {
+          userId: currentUser?.id,
+          userEmail: currentUser?.email,
+          action: 'STATUS_UPDATE',
+          target: `Pendaftar: ${reg.applicant.fullName}`,
+          details: `Status pendaftaran diubah menjadi "${status}"${notes ? ` (Catatan: ${notes})` : ''} oleh ${currentUser?.email || 'Admin'}`,
+        },
+      });
+    } catch (e) {
+      console.error(e);
+    }
+
+    return reg;
   }
 
-  async verifyDocument(documentId: string, isVerified: boolean, notes?: string) {
+  async verifyDocument(
+    documentId: string,
+    isVerified: boolean,
+    notes?: string,
+    currentUser?: { id?: string; email?: string },
+  ) {
     const doc = await this.prisma.document.update({
       where: { id: documentId },
       data: {
@@ -241,10 +300,29 @@ export class AdminService {
       });
     }
 
+    try {
+      await this.prisma.auditLog.create({
+        data: {
+          userId: currentUser?.id,
+          userEmail: currentUser?.email,
+          action: 'VERIFY_DOCUMENT',
+          target: `Berkas: ${doc.fileName} (${doc.type}) - ${doc.applicant.fullName}`,
+          details: `Dokumen diverifikasi sebagai "${isVerified ? 'VALID' : 'BELUM VALID'}"${notes ? ` (Catatan: ${notes})` : ''} oleh ${currentUser?.email || 'Admin'}`,
+        },
+      });
+    } catch (e) {
+      console.error(e);
+    }
+
     return doc;
   }
 
-  async verifyPayment(paymentId: string, status: PaymentStatus, notes?: string) {
+  async verifyPayment(
+    paymentId: string,
+    status: PaymentStatus,
+    notes?: string,
+    currentUser?: { id?: string; email?: string },
+  ) {
     const payment = await this.prisma.payment.update({
       where: { id: paymentId },
       data: {
@@ -252,7 +330,7 @@ export class AdminService {
         notes,
         verifiedAt: status === PaymentStatus.VERIFIED ? new Date() : null,
       },
-      include: { registration: true },
+      include: { registration: { include: { applicant: true } } },
     });
 
     if (status === PaymentStatus.VERIFIED && payment.registrationId) {
@@ -262,18 +340,49 @@ export class AdminService {
       });
     }
 
+    try {
+      const applicantName = payment.registration?.applicant?.fullName || 'Pendaftar';
+      await this.prisma.auditLog.create({
+        data: {
+          userId: currentUser?.id,
+          userEmail: currentUser?.email,
+          action: 'VERIFY_PAYMENT',
+          target: `Pembayaran Rp ${payment.amount} - ${applicantName}`,
+          details: `Status pembayaran diverifikasi sebagai "${status}"${notes ? ` (Catatan: ${notes})` : ''} oleh ${currentUser?.email || 'Admin'}`,
+        },
+      });
+    } catch (e) {
+      console.error(e);
+    }
+
     return payment;
   }
 
-  async permanentDeleteApplicant(id: string) {
+  async permanentDeleteApplicant(id: string, currentUser?: { id?: string; email?: string }) {
     const applicant = await this.prisma.applicant.findUnique({ where: { id } });
     if (!applicant) {
       throw new NotFoundException('Data pendaftar tidak ditemukan');
     }
 
-    return await this.prisma.applicant.delete({
+    const deleted = await this.prisma.applicant.delete({
       where: { id },
     });
+
+    try {
+      await this.prisma.auditLog.create({
+        data: {
+          userId: currentUser?.id,
+          userEmail: currentUser?.email,
+          action: 'PERMANENT_DELETE_APPLICANT',
+          target: `Pendaftar: ${applicant.fullName}`,
+          details: `Data pendaftar dihapus secara permanen dari sistem oleh ${currentUser?.email || 'Admin'}`,
+        },
+      });
+    } catch (e) {
+      console.error(e);
+    }
+
+    return deleted;
   }
 
   // --- FUNGSI EXPORT CSV DENGAN FILTER GELOMBANG ---

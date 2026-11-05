@@ -16,6 +16,7 @@ model User {
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
   applicant Applicant?
+  auditLogs AuditLog[]
 }
 
 model Applicant {
@@ -129,7 +130,29 @@ model Announcement {
   publishedAt DateTime @default(now())
 }
 
+model AuditLog {
+  id        String   @id @default(uuid())
+  userId    String?
+  userEmail String?
+  action    String
+  target    String?
+  details   String?
+  ipAddress String?
+  createdAt DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+}
+
+model SystemSetting {
+  id          String   @id @default(uuid())
+  key         String   @unique
+  value       String
+  description String?
+  updatedAt   DateTime @updatedAt
+}
+
 enum Role {
+  SUPER_ADMIN
   ADMIN
   APPLICANT
 }

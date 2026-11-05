@@ -22,6 +22,11 @@ export class RolesGuard implements CanActivate {
       throw new ForbiddenException('Akses ditolak');
     }
 
+    // SUPER_ADMIN memiliki hak akses tertinggi ke seluruh fitur
+    if (user.role === Role.SUPER_ADMIN) {
+      return true;
+    }
+
     const hasRole = requiredRoles.includes(user.role);
     if (!hasRole) {
       throw new ForbiddenException('Anda tidak memiliki hak akses untuk fitur ini');

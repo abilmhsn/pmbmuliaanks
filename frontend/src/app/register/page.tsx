@@ -1,9 +1,10 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
-import { Plane, User, Mail, Phone, Lock, ArrowRight, ShieldCheck, CheckCircle2 } from 'lucide-react';
+import api from '@/lib/api';
+import { Plane, User, Mail, Phone, Lock, ArrowRight, ShieldCheck, CheckCircle2, AlertTriangle, MessageCircle } from 'lucide-react';
 import Image from 'next/image';
 
 export default function RegisterPage() {
@@ -17,6 +18,22 @@ export default function RegisterPage() {
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [isRegOpen, setIsRegOpen] = useState<boolean>(true);
+  const [helpPhone, setHelpPhone] = useState<string>('081255401558');
+
+  useEffect(() => {
+    api
+      .get('/super-admin/public/settings')
+      .then((res) => {
+        if (res.data?.REGISTRATION_OPEN === 'false') {
+          setIsRegOpen(false);
+        }
+        if (res.data?.HELP_DESK_PHONE) {
+          setHelpPhone(res.data.HELP_DESK_PHONE);
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -91,14 +108,45 @@ export default function RegisterPage() {
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md z-10 px-4">
         <div className="bg-slate-800/90 backdrop-blur-xl py-8 px-6 shadow-2xl rounded-2xl border border-slate-700 sm:px-10">
-          {error && (
-            <div className="mb-6 p-3.5 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs font-medium flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-rose-500"></span>
-              {error}
+          {!isRegOpen ? (
+            <div className="text-center py-4">
+              <div className="w-14 h-14 bg-amber-500/10 text-amber-400 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-amber-500/20">
+                <AlertTriangle className="w-7 h-7" />
+              </div>
+              <h3 className="text-lg font-bold text-white mb-2">Pendaftaran Sementara Ditutup</h3>
+              <p className="text-xs text-slate-400 mb-6 leading-relaxed">
+                Proses registrasi akun baru PMB Mulia Angkasa saat ini sedang dinonaktifkan oleh panitia.
+                Jika Anda telah memiliki akun sebelumnya, Anda tetap dapat masuk.
+              </p>
+              <div className="space-y-3">
+                <Link
+                  href="/login"
+                  className="w-full flex items-center justify-center gap-2 py-2.5 px-4 bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold rounded-xl text-xs transition-all shadow-lg active:scale-95"
+                >
+                  <span>Masuk ke Akun Terdaftar</span>
+                  <ArrowRight className="w-4 h-4" />
+                </Link>
+                <a
+                  href={`https://wa.me/${helpPhone.replace(/\D/g, '')}?text=Halo%20Panitia%20PMB%20Mulia%20Angkasa,%20saya%20ingin%20bertanya%20jadwal%20pendaftaran`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full flex items-center justify-center gap-2 py-2.5 px-4 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-bold rounded-xl text-xs transition-all"
+                >
+                  <MessageCircle className="w-4 h-4" />
+                  <span>Hubungi Panitia via WhatsApp</span>
+                </a>
+              </div>
             </div>
-          )}
+          ) : (
+            <>
+              {error && (
+                <div className="mb-6 p-3.5 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs font-medium flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-rose-500"></span>
+                  {error}
+                </div>
+              )}
 
-          <form className="space-y-4" onSubmit={handleSubmit}>
+              <form className="space-y-4" onSubmit={handleSubmit}>
             <div>
               <label className="block text-xs font-semibold text-slate-300 mb-1">
                 Nama Lengkap (Sesuai Ijazah)
@@ -188,6 +236,8 @@ export default function RegisterPage() {
               </button>
             </div>
           </form>
+          </>
+          )}
         </div>
       </div>
     </div>
