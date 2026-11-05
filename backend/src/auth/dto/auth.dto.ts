@@ -1,4 +1,4 @@
-import { IsEmail, IsNotEmpty, IsString, MinLength } from 'class-validator';
+import { IsEmail, IsNotEmpty, IsOptional, IsString, MinLength } from 'class-validator';
 
 export class RegisterDto {
   @IsNotEmpty({ message: 'Nama lengkap wajib diisi' })
@@ -9,7 +9,7 @@ export class RegisterDto {
   @IsEmail({}, { message: 'Format email tidak valid' })
   email: string;
 
-  @IsNotEmpty({ message: 'Nomor WhatsApp wajib diisi' })
+  @IsOptional({ message: 'Nomor WhatsApp wajib diisi' })
   @IsString()
   phone: string;
 

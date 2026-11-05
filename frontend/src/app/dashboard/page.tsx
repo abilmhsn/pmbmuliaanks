@@ -45,6 +45,7 @@ export default function StudentDashboard() {
     address: '',
     city: '',
     province: '',
+    phone: '', // 👈 Ditambahkan agar nomor WhatsApp bisa dikelola oleh state
   });
 
   const [educationForm, setEducationForm] = useState({
@@ -91,6 +92,7 @@ export default function StudentDashboard() {
           address: p.address || '',
           city: p.city || '',
           province: p.province || '',
+          phone: user.applicant.phone || '', // 👈 Mengambil data phone dari applicant
         });
       }
 
@@ -399,7 +401,7 @@ export default function StudentDashboard() {
                 type="button"
                 onClick={() => setActiveTab(tab.id as any)}
                 className={`px-4 py-3 text-xs font-bold flex items-center gap-2 rounded-xl whitespace-nowrap flex-shrink-0 transition-all ${activeTab === tab.id
-                  ? 'bg-sky-600 text-white shadow-md shadow-sky-600/30'
+                  ? 'bg-slate-800 text-white shadow-md shadow-sky-600/30'
                   : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                   }`}
               >
@@ -492,9 +494,11 @@ export default function StudentDashboard() {
                   </label>
                   <input
                     type="text"
-                    disabled
-                    value={user?.applicant?.phone || ''}
-                    className="w-full px-4 py-2.5 bg-slate-100 border border-slate-300 rounded-xl text-sm font-semibold text-slate-700 cursor-not-allowed"
+                    required
+                    placeholder="Contoh: 08123456789"
+                    value={personalForm.phone}
+                    onChange={(e) => setPersonalForm({ ...personalForm, phone: e.target.value })}
+                    className="w-full px-4 py-2.5 bg-white border border-slate-300 rounded-xl text-sm text-slate-900 focus:outline-none focus:border-sky-500"
                   />
                 </div>
 
@@ -545,7 +549,7 @@ export default function StudentDashboard() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="px-6 py-3 bg-sky-600 hover:bg-sky-700 text-white font-bold text-sm rounded-full shadow shadow-sky-600/30 flex items-center gap-2"
+                  className="px-6 py-3 bg-slate-800 hover:bg-slate-700 text-white font-bold text-sm rounded-full shadow shadow-sky-600/30 flex items-center gap-2"
                 >
                   {loading ? 'Menyimpan...' : 'Simpan & Lanjut Data Pendidikan'}
                   <ChevronRight className="w-4 h-4" />
@@ -666,12 +670,7 @@ export default function StudentDashboard() {
                       <p className="text-xs text-slate-600 leading-relaxed mb-4">{prog.description}</p>
                     </div>
 
-                    <div className="pt-4 border-t border-slate-200/80 flex justify-between items-center text-xs">
-                      <span className="text-slate-500">Estimasi Biaya:</span>
-                      <span className="font-bold text-slate-900 text-sm">
-                        Rp {prog.tuitionFee?.toLocaleString('id-ID')}
-                      </span>
-                    </div>
+
                   </div>
                 ))}
               </div>

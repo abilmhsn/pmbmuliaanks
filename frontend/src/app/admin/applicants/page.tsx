@@ -276,14 +276,14 @@ export default function AdminApplicantsPage() {
                 className="bg-slate-950 text-amber-400 font-bold px-3 py-1.5 rounded-lg border border-slate-700 text-xs focus:outline-none focus:border-amber-400 w-full sm:w-auto"
               >
                 <option value="">Semua Gelombang</option>
-                {periods.slice(0, 2).map((p, idx) => {
-                  const waveName = idx === 0 ? 'PMB Gelombang 1' : 'PMB Gelombang 2';
-                  return (
-                    <option key={p.id} value={p.id}>
-                      {waveName} {p.isActive ? '(AKTIF)' : ''}
-                    </option>
-                  );
-                })}
+                {periods.slice(0, 2).map((p) => (
+
+
+                  <option key={p.id} value={p.id}>
+                    {p.name} {p.isActive ? '(AKTIF)' : ''}
+                  </option>
+                )
+                )}
               </select>
             </div>
           )}

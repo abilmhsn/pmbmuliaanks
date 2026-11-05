@@ -363,10 +363,7 @@ export default function LandingPage() {
                 </div>
               </div>
               <div className="pt-6 border-t border-slate-200 flex items-center justify-between">
-                <div>
-                  <span className="text-xs text-slate-500 block">Biaya Pendidikan</span>
-                  <span className="text-lg font-bold text-slate-900">Rp 22.975.000</span>
-                </div>
+
                 <Link
                   href="/register"
                   className="px-5 py-2.5 bg-slate-950 hover:bg-slate-800 text-white text-sm font-semibold rounded-full shadow transition-colors flex items-center gap-1.5"
@@ -413,10 +410,7 @@ export default function LandingPage() {
                 </div>
               </div>
               <div className="pt-6 border-t border-slate-200 flex items-center justify-between">
-                <div>
-                  <span className="text-xs text-slate-500 block">Biaya Pendidikan</span>
-                  <span className="text-lg font-bold text-slate-900">Rp 22.975.000</span>
-                </div>
+
                 <Link
                   href="/register"
                   className="px-5 py-2.5 bg-amber-400 hover:bg-amber-300 text-slate-950 text-sm font-semibold rounded-full shadow transition-colors flex items-center gap-1.5"

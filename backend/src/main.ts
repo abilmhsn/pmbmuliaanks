@@ -9,7 +9,7 @@ async function bootstrap() {
 
   // Enable CORS for frontend Next.js application
   app.enableCors({
-    origin: '*',
+    origin: ['http://localhost:3000', 'https://pmb-mulia-angkasa.vercel.app'], // Sesuaikan domain frontend kamu
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
     credentials: true,
   });

@@ -69,8 +69,8 @@ export default function DashboardLayout({
           href="/dashboard"
           onClick={() => setSidebarOpen(false)}
           className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all ${pathname === '/dashboard'
-              ? 'bg-sky-600 text-white font-bold shadow-lg shadow-sky-600/30'
-              : 'text-slate-300 hover:bg-slate-800 hover:text-white'
+            ? 'bg-amber-500 text-white font-bold shadow-lg shadow-amber-600/30'
+            : 'text-slate-300 hover:bg-slate-800 hover:text-white'
             }`}
         >
           <LayoutDashboard className="w-4 h-4" />
@@ -81,8 +81,8 @@ export default function DashboardLayout({
           href="/dashboard/cetak-bukti"
           onClick={() => setSidebarOpen(false)}
           className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all ${pathname === '/dashboard/cetak-bukti'
-              ? 'bg-amber-500 text-slate-950 font-bold shadow-lg shadow-amber-500/30'
-              : 'text-amber-400 hover:bg-slate-800'
+            ? 'bg-amber-500 text-slate-950 font-bold shadow-lg shadow-amber-500/30'
+            : 'text-amber-400 hover:bg-slate-800'
             }`}
         >
           <Printer className="w-4 h-4" />

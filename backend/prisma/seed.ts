@@ -36,6 +36,23 @@ async function main() {
   });
   console.log('PMB Period seeded:', activePeriod.name);
 
+  // 3. Create Default PMB Period Gelombang 2 (TAMBAHKAN INI)
+  const waveTwoPeriod = await prisma.pmbPeriod.upsert({
+    where: { id: 'period-2027' },
+    update: {
+      name: 'PMB Gelombang 2',
+    },
+    create: {
+      id: 'period-2027-wave2',
+      year: '2026/2027',
+      name: 'PMB Gelombang 2',
+      startDate: new Date('2026-07-01'),
+      endDate: new Date('2026-12-31'),
+      isActive: false,
+    },
+  });
+  console.log('PMB Period seeded:', waveTwoPeriod.name);
+
   // 3. Create Default Study Programs 
   const alcProgram = await prisma.studyProgram.upsert({
     where: { code: 'ALC' },

@@ -1,31 +1,36 @@
-import { IsNotEmpty, IsString, IsDateString } from 'class-validator';
+import { IsNotEmpty, IsOptional, IsString, Length } from 'class-validator';
 
 export class PersonalDataDto {
-  @IsNotEmpty({ message: 'NIK wajib diisi' })
+  @IsNotEmpty()
   @IsString()
+  @Length(16, 16, { message: 'NIK harus tepat 16 digit' })
   nik: string;
 
-  @IsNotEmpty({ message: 'Tempat lahir wajib diisi' })
+  @IsNotEmpty()
   @IsString()
   birthPlace: string;
 
-  @IsNotEmpty({ message: 'Tanggal lahir wajib diisi' })
-  @IsDateString({}, { message: 'Format tanggal lahir tidak valid' })
+  @IsNotEmpty()
+  @IsString()
   birthDate: string;
 
-  @IsNotEmpty({ message: 'Jenis kelamin wajib diisi' })
+  @IsNotEmpty()
   @IsString()
   gender: string;
 
-  @IsNotEmpty({ message: 'Alamat lengkap wajib diisi' })
+  @IsOptional() // 👈 Tambahkan ini agar opsional / bisa disimpan
+  @IsString()
+  phone?: string;  // 👈 Tambahkan ini
+
+  @IsNotEmpty()
   @IsString()
   address: string;
 
-  @IsNotEmpty({ message: 'Kota/Kabupaten wajib diisi' })
+  @IsNotEmpty()
   @IsString()
   city: string;
 
-  @IsNotEmpty({ message: 'Provinsi wajib diisi' })
+  @IsNotEmpty()
   @IsString()
   province: string;
 }

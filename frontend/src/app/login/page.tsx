@@ -130,7 +130,7 @@ export default function LoginPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-3 px-4 bg-amber-400 hover:bg-slate-800 text-white font-bold rounded-xl shadow-lg shadow-amber -500/20 hover:shadow-sky-500/30 transition-all flex items-center justify-center gap-2 text-sm disabled:opacity-50"
+                className="w-full py-3 px-4 bg-amber-400 hover:bg-amber-300 text-white font-bold rounded-xl shadow-lg shadow-amber -500/20 hover:shadow-sky-500/30 transition-all flex items-center justify-center gap-2 text-sm disabled:opacity-50"
               >
                 {loading ? 'Memproses...' : 'Masuk Portal'}
                 <ArrowRight className="w-4 h-4" />

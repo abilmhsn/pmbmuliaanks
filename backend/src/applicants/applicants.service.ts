@@ -131,31 +131,68 @@ export class ApplicantsService {
       });
     }
 
+    // [TAMBAHAN 1] Cek prodi tujuan dan pastikan kuotanya mencukupi
+    const targetProgram = await this.prisma.studyProgram.findUnique({
+      where: { id: dto.studyProgramId },
+    });
+
+    if (!targetProgram) {
+      throw new NotFoundException('Program studi tidak ditemukan');
+    }
+
     const existingReg = await this.prisma.registration.findFirst({
       where: { applicantId: applicant.id },
     });
 
-    let registration;
-    if (existingReg) {
-      registration = await this.prisma.registration.update({
-        where: { id: existingReg.id },
-        data: {
-          studyProgramId: dto.studyProgramId,
-          periodId: activePeriod.id,
-        },
-        include: { studyProgram: true, period: true },
-      });
-    } else {
-      registration = await this.prisma.registration.create({
-        data: {
-          applicantId: applicant.id,
-          studyProgramId: dto.studyProgramId,
-          periodId: activePeriod.id,
-          status: RegistrationStatus.BELUM_LENGKAP,
-        },
-        include: { studyProgram: true, period: true },
-      });
-    }
+    // [TAMBAHAN 2] Gunakan transaksi database agar sinkron antara tabel registration dan studyProgram
+    const registration = await this.prisma.$transaction(async (tx) => {
+      // Jika mahasiswa mengganti pilihan dari prodi lama ke prodi baru, kembalikan kuota prodi lama
+      if (existingReg && existingReg.studyProgramId && existingReg.studyProgramId !== dto.studyProgramId) {
+        await tx.studyProgram.update({
+          where: { id: existingReg.studyProgramId },
+          data: { quota: { increment: 1 } },
+        });
+      }
+
+      // Jika pendaftaran baru, pastikan kuota masih ada (> 0)
+      if (!existingReg || !existingReg.studyProgramId) {
+        if (targetProgram.quota <= 0) {
+          throw new BadRequestException(`Mohon maaf, kuota untuk Program Studi ${targetProgram.name} sudah penuh.`);
+        }
+      }
+
+      // Kurangi kuota prodi yang dipilih (-1)
+      if (!existingReg || existingReg.studyProgramId !== dto.studyProgramId) {
+        await tx.studyProgram.update({
+          where: { id: dto.studyProgramId },
+          data: { quota: { decrement: 1 } },
+        });
+      }
+
+      let regResult;
+      if (existingReg) {
+        regResult = await tx.registration.update({
+          where: { id: existingReg.id },
+          data: {
+            studyProgramId: dto.studyProgramId,
+            periodId: activePeriod.id,
+          },
+          include: { studyProgram: true, period: true },
+        });
+      } else {
+        regResult = await tx.registration.create({
+          data: {
+            applicantId: applicant.id,
+            studyProgramId: dto.studyProgramId,
+            periodId: activePeriod.id,
+            status: RegistrationStatus.BELUM_LENGKAP,
+          },
+          include: { studyProgram: true, period: true },
+        });
+      }
+
+      return regResult;
+    });
 
     await this.checkAndUpdateStatus(applicant.id);
     return { message: 'Pilihan Program Studi berhasil disimpan', registration };
