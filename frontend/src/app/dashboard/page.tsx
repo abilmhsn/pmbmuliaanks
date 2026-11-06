@@ -20,6 +20,14 @@ import {
   CreditCardCheck,
 } from 'lucide-react';
 import Link from 'next/link';
+import CityAutocomplete from '@/components/CityAutocomplete';
+import SearchableSelect from '@/components/SearchableSelect';
+import {
+  PROVINCES,
+  getCitiesByProvince,
+  isValidProvince,
+  isValidCity,
+} from '@/data/indonesiaRegions';
 
 
 
@@ -60,6 +68,9 @@ export default function StudentDashboard() {
   const [selectedDocType, setSelectedDocType] = useState('FOTO');
   const [docFile, setDocFile] = useState<File | null>(null);
   const [paymentFile, setPaymentFile] = useState<File | null>(null);
+
+  // Daftar kota/kabupaten dinamis berdasarkan provinsi yang dipilih
+  const availableCities = getCitiesByProvince(personalForm.province);
 
 
 
@@ -152,6 +163,32 @@ export default function StudentDashboard() {
   const handleSavePersonal = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
+      if (!personalForm.birthPlace.trim()) {
+        setMessage({ type: 'error', text: 'Tempat lahir wajib diisi.' });
+        return;
+      }
+      if (!isValidProvince(personalForm.province)) {
+        setMessage({
+          type: 'error',
+          text: 'Silakan pilih Provinsi yang valid dari daftar pilihan.',
+        });
+        return;
+      }
+      if (!isValidCity(personalForm.city, personalForm.province)) {
+        setMessage({
+          type: 'error',
+          text: `Silakan pilih Kota/Kabupaten yang sesuai untuk Provinsi ${personalForm.province}.`,
+        });
+        return;
+      }
+      if (!personalForm.address.trim()) {
+        setMessage({
+          type: 'error',
+          text: 'Alamat lengkap tempat tinggal wajib diisi.',
+        });
+        return;
+      }
+
       setLoading(true);
       setMessage({ type: '', text: '' });
       await api.post('/applicants/personal-data', personalForm);
@@ -448,16 +485,16 @@ export default function StudentDashboard() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">
-                    Tempat Lahir
-                  </label>
-                  <input
-                    type="text"
+                  <CityAutocomplete
+                    id="birthPlace"
+                    label="Tempat Lahir"
                     required
-                    placeholder="Contoh: Jakarta"
+                    placeholder="Ketik kota/kabupaten lahir (misal: Cirebon)"
                     value={personalForm.birthPlace}
-                    onChange={(e) => setPersonalForm({ ...personalForm, birthPlace: e.target.value })}
-                    className="w-full px-4 py-2.5 bg-white border border-slate-300 rounded-xl text-sm text-slate-900 focus:outline-none focus:border-sky-500"
+                    onChange={(val) =>
+                      setPersonalForm({ ...personalForm, birthPlace: val })
+                    }
+                    helperText="Pilih nama kota atau kabupaten resmi dari rekomendasi pencarian"
                   />
                 </div>
 
@@ -509,38 +546,52 @@ export default function StudentDashboard() {
                   <textarea
                     rows={2}
                     required
-                    placeholder="Jl. Merdeka No. 12, RT 01/RW 02"
+                    placeholder="Masukkan nama jalan, nomor rumah, RT/RW, dusun, dan detail alamat lainnya."
                     value={personalForm.address}
                     onChange={(e) => setPersonalForm({ ...personalForm, address: e.target.value })}
-                    className="w-full px-4 py-2.5 bg-white border border-slate-300 rounded-xl text-sm text-slate-900 focus:outline-none focus:border-sky-500"
+                    className="w-full px-4 py-2.5 bg-white border border-slate-300 rounded-xl text-sm text-slate-900 focus:outline-none focus:border-sky-500 placeholder:text-slate-400"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">
-                    Kota / Kabupaten
-                  </label>
-                  <input
-                    type="text"
+                  <SearchableSelect
+                    id="province"
+                    label="Provinsi Tempat Tinggal"
                     required
-                    placeholder="Kota Bekasi"
-                    value={personalForm.city}
-                    onChange={(e) => setPersonalForm({ ...personalForm, city: e.target.value })}
-                    className="w-full px-4 py-2.5 bg-white border border-slate-300 rounded-xl text-sm text-slate-900 focus:outline-none focus:border-sky-500"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">
-                    Provinsi
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="Jawa Barat"
+                    placeholder="Pilih Provinsi..."
+                    searchPlaceholder="Cari provinsi (misal: Jawa Barat)..."
+                    options={PROVINCES}
                     value={personalForm.province}
-                    onChange={(e) => setPersonalForm({ ...personalForm, province: e.target.value })}
-                    className="w-full px-4 py-2.5 bg-white border border-slate-300 rounded-xl text-sm text-slate-900 focus:outline-none focus:border-sky-500"
+                    onChange={(val) => {
+                      setPersonalForm({
+                        ...personalForm,
+                        province: val,
+                        city: '', // Reset kota otomatis saat provinsi berubah
+                      });
+                    }}
+                    helperText="Cari dan pilih provinsi tempat tinggal saat ini"
+                  />
+                </div>
+
+                <div>
+                  <SearchableSelect
+                    id="city"
+                    label="Kota / Kabupaten Tempat Tinggal"
+                    required
+                    placeholder="Pilih Kota / Kabupaten..."
+                    searchPlaceholder="Cari kota / kabupaten..."
+                    options={availableCities}
+                    value={personalForm.city}
+                    onChange={(val) =>
+                      setPersonalForm({ ...personalForm, city: val })
+                    }
+                    disabled={!personalForm.province}
+                    disabledMessage="Pilih provinsi terlebih dahulu"
+                    helperText={
+                      personalForm.province
+                        ? `Daftar kota/kabupaten di ${personalForm.province}`
+                        : 'Pilih provinsi terlebih dahulu untuk melihat daftar wilayah'
+                    }
                   />
                 </div>
               </div>

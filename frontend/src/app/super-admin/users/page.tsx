@@ -192,16 +192,15 @@ export default function SuperAdminUsersPage() {
             { id: 'ALL', label: 'Semua Akun' },
             { id: 'SUPER_ADMIN', label: 'Super Admin' },
             { id: 'ADMIN', label: 'Admin Panitia' },
-            { id: 'APPLICANT', label: 'Mahasiswa / Pelamar' },
+            { id: 'APPLICANT', label: 'Mahasiswa ' },
           ].map((tab) => (
             <button
               key={tab.id}
               onClick={() => setSelectedRole(tab.id as any)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
-                selectedRole === tab.id
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${selectedRole === tab.id
                   ? 'bg-purple-600 text-white shadow-md shadow-purple-600/20'
                   : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
-              }`}
+                }`}
             >
               {tab.label}
             </button>
@@ -269,13 +268,12 @@ export default function SuperAdminUsersPage() {
                       <td className="py-3 px-4">
                         <div className="flex items-center gap-3">
                           <div
-                            className={`w-9 h-9 rounded-xl flex items-center justify-center font-bold text-xs flex-shrink-0 ${
-                              u.role === 'SUPER_ADMIN'
+                            className={`w-9 h-9 rounded-xl flex items-center justify-center font-bold text-xs flex-shrink-0 ${u.role === 'SUPER_ADMIN'
                                 ? 'bg-purple-500/20 text-purple-300 border border-purple-500/30'
                                 : u.role === 'ADMIN'
-                                ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
-                                : 'bg-sky-500/20 text-sky-300 border border-sky-500/30'
-                            }`}
+                                  ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
+                                  : 'bg-sky-500/20 text-sky-300 border border-sky-500/30'
+                              }`}
                           >
                             {u.role === 'SUPER_ADMIN' ? (
                               <Crown className="w-4 h-4" />
@@ -305,13 +303,12 @@ export default function SuperAdminUsersPage() {
                       {/* Role Badge */}
                       <td className="py-3 px-4">
                         <span
-                          className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase ${
-                            u.role === 'SUPER_ADMIN'
+                          className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase ${u.role === 'SUPER_ADMIN'
                               ? 'bg-purple-500/20 text-purple-300 border border-purple-500/40'
                               : u.role === 'ADMIN'
-                              ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
-                              : 'bg-sky-500/20 text-sky-300 border border-sky-500/40'
-                          }`}
+                                ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
+                                : 'bg-sky-500/20 text-sky-300 border border-sky-500/40'
+                            }`}
                         >
                           {u.role}
                         </span>
@@ -380,9 +377,8 @@ export default function SuperAdminUsersPage() {
                           <button
                             onClick={() => handleDeleteUser(u)}
                             disabled={isCurrent}
-                            className={`p-1.5 rounded-lg text-rose-400 hover:bg-rose-500/20 transition-colors ${
-                              isCurrent ? 'opacity-30 cursor-not-allowed' : ''
-                            }`}
+                            className={`p-1.5 rounded-lg text-rose-400 hover:bg-rose-500/20 transition-colors ${isCurrent ? 'opacity-30 cursor-not-allowed' : ''
+                              }`}
                             title={isCurrent ? 'Tidak dapat menghapus diri sendiri' : 'Hapus Akun'}
                           >
                             <Trash2 className="w-3.5 h-3.5" />
@@ -456,11 +452,10 @@ export default function SuperAdminUsersPage() {
                   <button
                     type="button"
                     onClick={() => setCreateForm({ ...createForm, role: 'ADMIN' })}
-                    className={`p-3 rounded-xl border text-left transition-all ${
-                      createForm.role === 'ADMIN'
+                    className={`p-3 rounded-xl border text-left transition-all ${createForm.role === 'ADMIN'
                         ? 'bg-amber-500/10 border-amber-500/40 text-amber-300'
                         : 'bg-slate-950 border-slate-800 text-slate-400'
-                    }`}
+                      }`}
                   >
                     <div className="font-bold text-xs">Admin Panitia</div>
                     <div className="text-[10px] mt-0.5 opacity-80">Verifikasi berkas & pendaftaran</div>
@@ -468,11 +463,10 @@ export default function SuperAdminUsersPage() {
                   <button
                     type="button"
                     onClick={() => setCreateForm({ ...createForm, role: 'SUPER_ADMIN' })}
-                    className={`p-3 rounded-xl border text-left transition-all ${
-                      createForm.role === 'SUPER_ADMIN'
+                    className={`p-3 rounded-xl border text-left transition-all ${createForm.role === 'SUPER_ADMIN'
                         ? 'bg-purple-500/10 border-purple-500/40 text-purple-300'
                         : 'bg-slate-950 border-slate-800 text-slate-400'
-                    }`}
+                      }`}
                   >
                     <div className="font-bold text-xs">Super Admin</div>
                     <div className="text-[10px] mt-0.5 opacity-80">Hak akses penuh ke semua fitur</div>
@@ -532,11 +526,10 @@ export default function SuperAdminUsersPage() {
                   key={opt.role}
                   type="button"
                   onClick={() => setNewRoleSelect(opt.role as any)}
-                  className={`w-full p-3.5 rounded-xl border text-left transition-all ${
-                    newRoleSelect === opt.role
+                  className={`w-full p-3.5 rounded-xl border text-left transition-all ${newRoleSelect === opt.role
                       ? 'bg-purple-600/10 border-purple-500 text-purple-200'
                       : 'bg-slate-950 border-slate-800 text-slate-400 hover:border-slate-700'
-                  }`}
+                    }`}
                 >
                   <div className="flex items-center justify-between">
                     <span className="font-bold text-xs text-white">{opt.title}</span>

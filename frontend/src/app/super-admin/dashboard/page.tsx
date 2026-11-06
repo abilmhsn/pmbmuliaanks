@@ -145,11 +145,10 @@ export default function SuperAdminDashboardPage() {
       <div className="bg-slate-900/90 border border-slate-800 p-5 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-4">
         <div className="flex items-center gap-4">
           <div
-            className={`w-12 h-12 rounded-2xl flex items-center justify-center font-bold shadow-lg ${
-              data?.isRegistrationOpen
+            className={`w-12 h-12 rounded-2xl flex items-center justify-center font-bold shadow-lg ${data?.isRegistrationOpen
                 ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 shadow-emerald-500/10'
                 : 'bg-rose-500/20 text-rose-400 border border-rose-500/30 shadow-rose-500/10'
-            }`}
+              }`}
           >
             {data?.isRegistrationOpen ? (
               <CheckCircle2 className="w-6 h-6" />
@@ -163,11 +162,10 @@ export default function SuperAdminDashboardPage() {
                 Status Portal PMB Publik:
               </span>
               <span
-                className={`text-xs font-black uppercase px-2 py-0.5 rounded-full ${
-                  data?.isRegistrationOpen
+                className={`text-xs font-black uppercase px-2 py-0.5 rounded-full ${data?.isRegistrationOpen
                     ? 'bg-emerald-400/10 text-emerald-300 border border-emerald-400/20'
                     : 'bg-rose-400/10 text-rose-300 border border-rose-400/20'
-                }`}
+                  }`}
               >
                 {data?.isRegistrationOpen ? 'Terbuka Untuk Umum' : 'Ditutup Sementara'}
               </span>
@@ -183,11 +181,10 @@ export default function SuperAdminDashboardPage() {
         <button
           onClick={handleToggleRegistration}
           disabled={togglingReg || loading}
-          className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 active:scale-95 disabled:opacity-50 whitespace-nowrap ${
-            data?.isRegistrationOpen
+          className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 active:scale-95 disabled:opacity-50 whitespace-nowrap ${data?.isRegistrationOpen
               ? 'bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/30'
               : 'bg-emerald-500 hover:bg-emerald-400 text-slate-950 shadow-lg shadow-emerald-500/20'
-          }`}
+            }`}
         >
           <Sliders className="w-3.5 h-3.5" />
           <span>{data?.isRegistrationOpen ? 'Tutup Pendaftaran' : 'Buka Pendaftaran'}</span>
@@ -320,13 +317,12 @@ export default function SuperAdminDashboardPage() {
                 {/* Progress bar */}
                 <div className="w-full h-2.5 bg-slate-800 rounded-full overflow-hidden">
                   <div
-                    className={`h-full rounded-full transition-all duration-500 ${
-                      prog.percentageFilled >= 90
+                    className={`h-full rounded-full transition-all duration-500 ${prog.percentageFilled >= 90
                         ? 'bg-rose-500'
                         : prog.percentageFilled >= 50
-                        ? 'bg-amber-400'
-                        : 'bg-gradient-to-r from-purple-500 to-indigo-500'
-                    }`}
+                          ? 'bg-amber-400'
+                          : 'bg-gradient-to-r from-purple-500 to-indigo-500'
+                      }`}
                     style={{ width: `${Math.min(100, prog.percentageFilled)}%` }}
                   />
                 </div>
@@ -394,7 +390,7 @@ export default function SuperAdminDashboardPage() {
                 <div className="flex items-center gap-2.5">
                   <Users className="w-4 h-4 text-sky-400" />
                   <div>
-                    <div className="text-xs font-bold text-sky-200">Akun Mahasiswa / Pelamar</div>
+                    <div className="text-xs font-bold text-sky-200">Akun Mahasiswa</div>
                     <div className="text-[10px] text-sky-300/70">Pengguna portal pendaftaran</div>
                   </div>
                 </div>
