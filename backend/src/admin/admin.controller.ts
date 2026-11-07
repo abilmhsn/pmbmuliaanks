@@ -128,4 +128,8 @@ export class AdminController {
     );
     return res.status(200).send(csvData);
   }
+  @Get('audit-logs')
+  async getAuditLogs() {
+    return this.adminService.getAuditLogs();
+  }
 }

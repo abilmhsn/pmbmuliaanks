@@ -4,59 +4,73 @@ import { RegistrationStatus, PaymentStatus } from '@prisma/client';
 
 @Injectable()
 export class AdminService {
-  constructor(private prisma: PrismaService) { }
+  constructor(private prisma: PrismaService) {
 
+  }
 
   async getDashboardStats(periodId?: string) {
     const registrationFilter = periodId ? { periodId } : {};
 
-    const totalApplicants = await this.prisma.applicant.count({
-      where: periodId ? { registrations: { some: { periodId } } } : {},
-    });
-
     const sevenDaysAgo = new Date();
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-    const newApplicants = await this.prisma.applicant.count({
-      where: {
-        createdAt: { gte: sevenDaysAgo },
-        ...(periodId ? { registrations: { some: { periodId } } } : {}),
-      },
-    });
 
-    const pendingVerification = await this.prisma.registration.count({
-      where: { status: RegistrationStatus.MENUNGGU_VERIFIKASI, ...registrationFilter },
-    });
-
-    const verified = await this.prisma.registration.count({
-      where: { status: RegistrationStatus.DIVERIFIKASI, ...registrationFilter },
-    });
-
-    const passed = await this.prisma.registration.count({
-      where: { status: RegistrationStatus.LULUS_SELEKSI, ...registrationFilter },
-    });
-
-    const reRegistered = await this.prisma.registration.count({
-      where: {
-        status: { in: [RegistrationStatus.DAFTAR_ULANG, RegistrationStatus.DITERIMA] },
-        ...registrationFilter,
-      },
-    });
-
-    const totalStudyPrograms = await this.prisma.studyProgram.count();
-
-
-    // --- Tambahan untuk Aktivitas Terbaru ---
-    const recentApplicants = await this.prisma.applicant.findMany({
-      where: periodId ? { registrations: { some: { periodId } } } : {},
-      take: 5,
-      orderBy: { createdAt: 'desc' },
-      include: {
-        registrations: {
-          include: { studyProgram: true },
+    // Eksekusi seluruh 9 query database sekaligus secara PARALEL
+    const [
+      totalApplicants,
+      newApplicants,
+      pendingVerification,
+      verified,
+      passed,
+      reRegistered,
+      totalStudyPrograms,
+      recentApplicants,
+      lastWeekApplicants,
+    ] = await Promise.all([
+      this.prisma.applicant.count({
+        where: periodId ? { registrations: { some: { periodId } } } : {},
+      }),
+      this.prisma.applicant.count({
+        where: {
+          createdAt: { gte: sevenDaysAgo },
+          ...(periodId ? { registrations: { some: { periodId } } } : {}),
         },
-      },
-    });
+      }),
+      this.prisma.registration.count({
+        where: { status: RegistrationStatus.MENUNGGU_VERIFIKASI, ...registrationFilter },
+      }),
+      this.prisma.registration.count({
+        where: { status: RegistrationStatus.DIVERIFIKASI, ...registrationFilter },
+      }),
+      this.prisma.registration.count({
+        where: { status: RegistrationStatus.LULUS_SELEKSI, ...registrationFilter },
+      }),
+      this.prisma.registration.count({
+        where: {
+          status: { in: [RegistrationStatus.DAFTAR_ULANG, RegistrationStatus.DITERIMA] },
+          ...registrationFilter,
+        },
+      }),
+      this.prisma.studyProgram.count(),
+      this.prisma.applicant.findMany({
+        where: periodId ? { registrations: { some: { periodId } } } : {},
+        take: 5,
+        orderBy: { createdAt: 'desc' },
+        include: {
+          registrations: {
+            include: { studyProgram: true },
+          },
+        },
+      }),
+      this.prisma.applicant.findMany({
+        where: {
+          createdAt: { gte: sevenDaysAgo },
+          ...(periodId ? { registrations: { some: { periodId } } } : {}),
+        },
+        select: { createdAt: true },
+      }),
+    ]);
 
+    // Format Aktivitas Terbaru
     const recentActivity = recentApplicants.map((app) => ({
       name: app.fullName,
       program: app.registrations[0]?.studyProgram?.name || 'Aviation Program',
@@ -64,7 +78,7 @@ export class AdminService {
       status: app.registrations[0]?.status || 'PENDING',
     }));
 
-    // --- Tambahan sederhana untuk Tren 7 Hari Terakhir ---
+    // Format Tren 7 Hari Terakhir
     const trendDataMap: { [key: string]: number } = {};
     for (let i = 6; i >= 0; i--) {
       const d = new Date();
@@ -72,15 +86,6 @@ export class AdminService {
       const dateStr = d.toLocaleDateString('id-ID', { day: '2-digit', month: 'short' });
       trendDataMap[dateStr] = 0;
     }
-
-    // Ambil data 7 hari ke belakang untuk chart
-    const lastWeekApplicants = await this.prisma.applicant.findMany({
-      where: {
-        createdAt: { gte: sevenDaysAgo },
-        ...(periodId ? { registrations: { some: { periodId } } } : {}),
-      },
-      select: { createdAt: true },
-    });
 
     lastWeekApplicants.forEach((app) => {
       const dateStr = new Date(app.createdAt).toLocaleDateString('id-ID', { day: '2-digit', month: 'short' });
@@ -398,6 +403,9 @@ export class AdminService {
         },
       },
       orderBy: { createdAt: 'desc' },
+
+
+
     });
 
     let csv = '"No. Pendaftaran","Nama Lengkap","Email","No. WhatsApp","NIK","Jenis Kelamin","Tempat, Tgl Lahir","Alamat","Asal Sekolah","NPSN","Jurusan SMA/SMK","Pilihan Prodi PMB","Gelombang","Status Pendaftaran","Tanggal Daftar"\n';
@@ -428,4 +436,12 @@ export class AdminService {
 
     return csv;
   }
+  // --- FUNGSI AMBIL LOG KERJA / AUDIT LOG ---
+  async getAuditLogs() {
+    return this.prisma.auditLog.findMany({
+      orderBy: { createdAt: 'desc' },
+      take: 100, // Mengambil 100 riwayat aktivitas kerja terbaru
+    });
+  }
+
 }

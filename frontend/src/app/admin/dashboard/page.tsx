@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import api from '@/lib/api';
 import {
   Users,
@@ -8,387 +8,461 @@ import {
   Clock,
   CheckCircle2,
   Award,
-  CreditCard,
+  UserCheck,
   FileSpreadsheet,
-  ArrowUpRight,
-  ShieldCheck,
+  Calendar,
   TrendingUp,
-  PieChart as PieIcon,
+  RefreshCw,
   Activity,
 } from 'lucide-react';
-import Link from 'next/link';
-import {
-  ResponsiveContainer,
-  AreaChart,
-  Area,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  PieChart,
-  Pie,
-  Cell,
-} from 'recharts';
+
+// Komponen SVG Geometric Pattern (Motif Geometris Footer Card)
+const GeometricMosaicFooter = ({ colors }: { colors: { bg: string; c1: string; c2: string; c3: string; c4: string } }) => {
+  return (
+    <div className="w-full h-12 overflow-hidden rounded-b-2xl border-t border-slate-200/60 mt-4">
+      <svg
+        viewBox="0 0 360 48"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+        className="w-full h-full object-cover"
+        preserveAspectRatio="none"
+      >
+        {/* Background Tile Strip */}
+        <rect width="360" height="48" fill={colors.bg} />
+
+        {/* Tile 1: Quarter Circle */}
+        <rect x="0" y="0" width="60" height="48" fill={colors.c1} />
+        <path d="M 0 48 A 48 48 0 0 1 48 0 L 0 0 Z" fill={colors.c4} />
+        <circle cx="20" cy="30" r="12" fill={colors.c2} />
+
+        {/* Tile 2: Solid Center Circle */}
+        <rect x="60" y="0" width="60" height="48" fill={colors.c2} />
+        <circle cx="90" cy="24" r="18" fill={colors.bg} />
+
+        {/* Tile 3: 4-Petal Flower Motif */}
+        <rect x="120" y="0" width="60" height="48" fill={colors.c1} />
+        <path
+          d="M 150 0 C 150 15, 135 24, 120 24 C 135 24, 150 33, 150 48 C 150 33, 165 24, 180 24 C 165 24, 150 15, 150 0 Z"
+          fill={colors.bg}
+        />
+
+        {/* Tile 4: Split Diagonals & Block */}
+        <rect x="180" y="0" width="60" height="48" fill={colors.c3} />
+        <polygon points="180,0 240,48 180,48" fill={colors.c4} />
+
+        {/* Tile 5: Triangular Split */}
+        <rect x="240" y="0" width="60" height="48" fill={colors.c2} />
+        <polygon points="240,48 300,0 300,48" fill={colors.c1} />
+        <polygon points="240,0 270,24 240,48" fill={colors.bg} />
+
+        {/* Tile 6: Mosaic Shapes */}
+        <rect x="300" y="0" width="60" height="48" fill={colors.c4} />
+        <polygon points="300,0 360,48 360,0" fill={colors.c2} />
+        <polygon points="330,24 360,48 300,48" fill={colors.c3} />
+      </svg>
+    </div>
+  );
+};
 
 export default function AdminDashboardPage() {
   const [stats, setStats] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-  const [timeFilter, setTimeFilter] = useState('7days');
+  const [periods, setPeriods] = useState<any[]>([]);
+  const [selectedPeriod, setSelectedPeriod] = useState<string>('');
+  const [loading, setLoading] = useState<boolean>(true);
 
-  useEffect(() => {
-    fetchStats();
-  }, []);
-
-  const fetchStats = async () => {
+  // Ambil daftar Gelombang PMB
+  const fetchPeriods = async () => {
     try {
-      setLoading(true);
-      const res = await api.get('/admin/stats');
-      setStats(res.data);
+      const res = await api.get('/pmb-periods');
+      const list = Array.isArray(res.data) ? res.data : [];
+      setPeriods(list);
+      const active = list.find((p: any) => p.isActive);
+      if (active) {
+        setSelectedPeriod(active.id);
+      }
     } catch (err) {
-      console.error(err);
-    } finally {
-      setLoading(false);
+      console.error('Gagal mengambil daftar gelombang:', err);
     }
   };
 
-  // Fungsi export CSV pakai fetch & token yang benar (Bebas Error 401)
+  // Ambil data Statistik dengan AbortController
+  const fetchStats = useCallback(async (signal?: AbortSignal) => {
+    setLoading(true);
+    try {
+      const url = selectedPeriod
+        ? `/admin/stats?periodId=${selectedPeriod}`
+        : '/admin/stats';
+      const res = await api.get(url, { signal });
+      setStats(res.data);
+    } catch (err: any) {
+      if (err.name !== 'CanceledError' && err.code !== 'ERR_CANCELED') {
+        console.error('Gagal mengambil statistik:', err);
+      }
+    } finally {
+      setLoading(false);
+    }
+  }, [selectedPeriod]);
+
+  useEffect(() => {
+    fetchPeriods();
+  }, []);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    fetchStats(controller.signal);
+    return () => controller.abort();
+  }, [fetchStats]);
+
+  // Handler Export CSV
   const handleExportCsv = async () => {
     try {
       const token = localStorage.getItem('pmb_token');
-
-      const response = await fetch('http://localhost:5000/api/admin/export-csv', {
+      const urlQuery = selectedPeriod ? `?periodId=${selectedPeriod}` : '';
+      const response = await fetch(`http://localhost:5000/api/admin/export-csv${urlQuery}`, {
         method: 'GET',
         headers: {
-          'Authorization': `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
         },
       });
 
-      if (response.status === 401) {
-        alert('Sesi Anda telah habis, silakan login ulang.');
-        return;
-      }
-
-      if (!response.ok) {
-        throw new Error('Gagal mendownload data CSV.');
-      }
+      if (!response.ok) throw new Error('Export CSV gagal');
 
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `Data_Pendaftar_PMB_${Date.now()}.csv`;
+      a.download = `Data_Pendaftar_PMB_Gelombang_${Date.now()}.csv`;
       document.body.appendChild(a);
       a.click();
       a.remove();
       window.URL.revokeObjectURL(url);
     } catch (error) {
       console.error('Error export:', error);
-      alert('Terjadi kesalahan saat mengexport data.');
+      alert('Gagal mengunduh file CSV.');
     }
   };
 
+  // Konfigurasi 6 Card Tanpa Top Pill (Warna Masing-Masing Tetap Presisi)
   const statCards = [
     {
-      title: 'Total Pendaftar',
-      value: stats?.totalApplicants || 0,
+      title: 'TOTAL PENDAFTARAN',
+      value: stats?.totalApplicants ?? 0,
+      desc: 'Seluruh akumulasi calon mahasiswa',
       icon: Users,
-      color: 'bg-sky-500/20 text-sky-400 border-sky-500/30',
+      badge: 'Basis Data',
+      iconBoxBg: 'bg-blue-100 text-blue-900 border border-blue-200',
+      pillDescBg: 'bg-blue-50/80 text-blue-950 border-blue-200',
+      pillBadgeBg: 'bg-blue-100/80 text-blue-900 border-blue-300 font-bold',
+      mosaicColors: {
+        bg: '#dbeafe',
+        c1: '#93c5fd',
+        c2: '#3b82f6',
+        c3: '#1d4ed8',
+        c4: '#1e3a8a',
+      },
     },
     {
-      title: 'Pendaftar Baru (7 Hari)',
-      value: stats?.newApplicants || 0,
+      title: 'PENDAFTAR BARU (7 HARI)',
+      value: stats?.newApplicants ?? 0,
+      desc: 'Registrasi minggu ini',
       icon: UserPlus,
-      color: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30',
+      badge: 'Tren Aktif',
+      iconBoxBg: 'bg-emerald-100 text-emerald-900 border border-emerald-200',
+      pillDescBg: 'bg-emerald-50/80 text-emerald-950 border-emerald-200',
+      pillBadgeBg: 'bg-emerald-100/80 text-emerald-900 border-emerald-300 font-bold',
+      mosaicColors: {
+        bg: '#d1fae5',
+        c1: '#6ee7b7',
+        c2: '#10b981',
+        c3: '#047857',
+        c4: '#064e3b',
+      },
     },
     {
-      title: 'Menunggu Verifikasi',
-      value: stats?.pendingVerification || 0,
+      title: 'MENUNGGU VERIFIKASI',
+      value: stats?.pendingVerification ?? 0,
+      desc: 'Berkas perlu diperiksa admin',
       icon: Clock,
-      color: 'bg-amber-500/20 text-amber-400 border-amber-500/30',
+      badge: 'Butuh Aksi',
+      iconBoxBg: 'bg-amber-100 text-amber-900 border border-amber-200',
+      pillDescBg: 'bg-amber-50/80 text-amber-950 border-amber-200',
+      pillBadgeBg: 'bg-amber-100/80 text-amber-900 border-amber-300 font-bold',
+      mosaicColors: {
+        bg: '#fef3c7',
+        c1: '#fcd34d',
+        c2: '#f59e0b',
+        c3: '#b45309',
+        c4: '#78350f',
+      },
     },
     {
-      title: 'Sudah Diverifikasi',
-      value: stats?.verified || 0,
+      title: 'SUDAH DIVERIFIKASI',
+      value: stats?.verified ?? 0,
+      desc: 'Berkas telah dinyatakan valid',
       icon: CheckCircle2,
-      color: 'bg-indigo-500/20 text-indigo-400 border-indigo-500/30',
+      badge: 'Terverifikasi',
+      iconBoxBg: 'bg-sky-100 text-sky-900 border border-sky-200',
+      pillDescBg: 'bg-sky-50/80 text-sky-950 border-sky-200',
+      pillBadgeBg: 'bg-sky-100/80 text-sky-900 border-sky-300 font-bold',
+      mosaicColors: {
+        bg: '#e0f2fe',
+        c1: '#7dd3fc',
+        c2: '#0ea5e9',
+        c3: '#0369a1',
+        c4: '#0c4a6e',
+      },
     },
     {
-      title: 'Lulus Seleksi',
-      value: stats?.passed || 0,
+      title: 'LULUS SELEKSI',
+      value: stats?.passed ?? 0,
+      desc: 'Lulus ujian & kualifikasi PMB',
       icon: Award,
-      color: 'bg-purple-500/20 text-purple-400 border-purple-500/30',
+      badge: 'Lulus Seleksi',
+      iconBoxBg: 'bg-purple-100 text-purple-900 border border-purple-200',
+      pillDescBg: 'bg-purple-50/80 text-purple-950 border-purple-200',
+      pillBadgeBg: 'bg-purple-100/80 text-purple-900 border-purple-300 font-bold',
+      mosaicColors: {
+        bg: '#f3e8ff',
+        c1: '#d8b4fe',
+        c2: '#a855f7',
+        c3: '#7e22ce',
+        c4: '#581c87',
+      },
     },
     {
-      title: 'Daftar Ulang',
-      value: stats?.reRegistered || 0,
-      icon: CreditCard,
-      color: 'bg-teal-500/20 text-teal-400 border-teal-500/30',
+      title: 'DAFTAR ULANG / DITERIMA',
+      value: stats?.reRegistered ?? 0,
+      desc: 'Mahasiswa resmi PMB',
+      icon: UserCheck,
+      badge: 'Resmi Diterima',
+      iconBoxBg: 'bg-teal-100 text-teal-900 border border-teal-200',
+      pillDescBg: 'bg-teal-50/80 text-teal-950 border-teal-200',
+      pillBadgeBg: 'bg-teal-100/80 text-teal-900 border-teal-300 font-bold',
+      mosaicColors: {
+        bg: '#ccfbf1',
+        c1: '#5eead4',
+        c2: '#14b8a6',
+        c3: '#0f766e',
+        c4: '#134e4a',
+      },
     },
   ];
 
-  // Data untuk Donut Chart Status berdasarkan statistik nyata
-  const statusDistributionData = [
-    { name: 'Menunggu Verifikasi', value: stats?.pendingVerification || 0, color: '#f59e0b' },
-    { name: 'Sudah Diverifikasi', value: stats?.verified || 0, color: '#6366f1' },
-    { name: 'Lulus Seleksi', value: stats?.passed || 0, color: '#4e0692ff' },
-    { name: 'Daftar Ulang', value: stats?.reRegistered || 0, color: '#14b8a6' },
-  ].filter(item => item.value > 0);
-
-  const trendData = stats?.trend || [];
-  const recentActivity = stats?.recentActivity || [];
-
   return (
-    <div className="space-y-8 max-w-7xl mx-auto pb-12">
-      {/* Top Bar */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-slate-900 p-6 rounded-2xl border border-slate-800">
+    <div className="space-y-6 max-w-7xl mx-auto px-2 sm:px-0">
+      {/* Header Banner */}
+      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 bg-slate-900 p-6 rounded-3xl border border-slate-800 shadow-xl">
         <div>
-          <div className="flex items-center gap-2 text-xs font-semibold text-amber-400 mb-1">
-            <ShieldCheck className="w-4 h-4" />
-            PANITIA PMB KAMPUS MULIA ANGKASA
+          <div className="flex items-center gap-2 mb-1.5">
+            <span className="px-2.5 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider bg-amber-400/10 text-amber-400 border border-amber-400/20">
+              PANITIA PMB KAMPUS MULIA ANGKASA
+            </span>
           </div>
-          <h1 className="text-2xl font-extrabold text-white tracking-tight">
-            Dashboard Statistik Administrator
-          </h1>
+          <h1 className="text-2xl font-extrabold text-white tracking-tight">Dashboard Statistik Administrator</h1>
           <p className="text-xs text-slate-400 mt-1">
-            Ringkasan statistik real-time pendaftaran calon mahasiswa baru T.A 2026/2027.
+            Ringkasan data real-time pendaftaran calon mahasiswa baru per-gelombang.
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
+        {/* Action Controls */}
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full lg:w-auto">
+          {/* Dropdown Filter Gelombang */}
+          <div className="flex items-center gap-2 bg-slate-950 px-3.5 py-2.5 rounded-2xl border border-slate-800">
+            <Calendar className="w-4 h-4 text-sky-400 shrink-0" />
+            <select
+              value={selectedPeriod}
+              onChange={(e) => setSelectedPeriod(e.target.value)}
+              className="bg-transparent text-amber-400 font-bold text-xs focus:outline-none cursor-pointer w-full"
+            >
+              <option value="" className="bg-slate-900 text-slate-200">Semua Gelombang</option>
+              {periods.map((p) => (
+                <option key={p.id} value={p.id} className="bg-slate-900 text-amber-400">
+                  {p.name} {p.isActive ? '(AKTIF)' : ''}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Tombol Export CSV */}
           <button
             onClick={handleExportCsv}
-            className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl shadow flex items-center gap-2 transition-all cursor-pointer"
+            className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-2xl shadow-lg shadow-emerald-600/20 flex items-center justify-center gap-2 transition-all active:scale-95"
           >
-            <FileSpreadsheet className="w-4 h-4" />
-            Export Data Pendaftar (.CSV)
+            <FileSpreadsheet className="w-4 h-4" /> Export CSV Gelombang
           </button>
         </div>
       </div>
 
-      {/* Konten Utama & Loading ditangani di dalam struktur, TANPA early return */}
-      {loading ? (
-        <div className="flex items-center justify-center min-h-[50vh] bg-slate-900/50 rounded-2xl border border-slate-800">
-          <div className="flex flex-col items-center space-y-3">
-            <div className="w-10 h-10 border-4 border-amber-400 border-t-transparent rounded-full animate-spin"></div>
-            <p className="text-xs text-slate-400 font-medium">Memuat statistik dashboard...</p>
-          </div>
-        </div>
-      ) : (
-        <>
-          {/* Grid Stat Cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {statCards.map((card, idx) => (
-              <div
-                key={idx}
-                className="bg-slate-900/90 p-6 rounded-2xl border border-slate-800 hover:border-slate-700 transition-all space-y-4"
+      {/* 6 CARD GRID - CLEAN & MINIMALIST (TANPA TOP PILL) */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+        {statCards.map((card, idx) => {
+          const Icon = card.icon;
+          return (
+            <div
+              key={idx}
+              className="bg-white rounded-3xl border border-slate-300/80 shadow-md hover:shadow-xl transition-all duration-300 pt-5 flex flex-col justify-between overflow-hidden"
+            >
+              <div className="px-5">
+                {/* Content Row: Title & Icon */}
+                <div className="flex items-start justify-between gap-2">
+                  <div>
+                    <span className="text-[11px] font-black text-slate-700 tracking-wider uppercase block">
+                      {card.title}
+                    </span>
+                    {/* Metric Value */}
+                    {loading ? (
+                      <div className="h-12 w-20 bg-slate-100 animate-pulse rounded-xl my-2" />
+                    ) : (
+                      <span className="text-5xl font-black text-slate-900 font-mono tracking-tight block my-2">
+                        {card.value.toLocaleString('id-ID')}
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Icon Container in Rounded Pill Box */}
+                  <div className={`p-4 rounded-2xl shadow-sm ${card.iconBoxBg}`}>
+                    <Icon className="w-7 h-7" />
+                  </div>
+                </div>
+
+                {/* Dual Pill Row (Kapsul Keterangan & Badge di Bawah) */}
+                <div className="flex items-center justify-between gap-2 mt-4">
+                  {/* Left Pill: Description */}
+                  <span className={`px-3.5 py-1.5 rounded-full text-[11px] font-semibold border truncate max-w-[65%] ${card.pillDescBg}`}>
+                    {card.desc}
+                  </span>
+
+                  {/* Right Pill: Badge Status */}
+                  <span className={`px-3.5 py-1.5 rounded-full text-[11px] border shrink-0 ${card.pillBadgeBg}`}>
+                    {card.badge}
+                  </span>
+                </div>
+              </div>
+
+              {/* Geometric Mosaic Pattern Bar (Batik Geometris di Dasar Card) */}
+              <GeometricMosaicFooter colors={card.mosaicColors} />
+            </div>
+          );
+        })}
+      </div>
+
+      {/* BOTTOM SECTION: Trend Chart & Activity */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+        {/* Tren 7 Hari Terakhir */}
+        <div className="lg:col-span-1 bg-slate-900 p-6 rounded-3xl border border-slate-800 shadow-xl flex flex-col justify-between">
+          <div>
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <TrendingUp className="w-4 h-4 text-emerald-400" />
+                <h3 className="text-sm font-bold text-white">Tren Pendaftaran (7 Hari)</h3>
+              </div>
+              <button
+                onClick={() => fetchStats()}
+                className="p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition-all"
+                title="Refresh Data"
               >
-                <div className="flex justify-between items-center">
-                  <span className="text-xs font-semibold text-slate-400">{card.title}</span>
-                  <div className={`p-3 rounded-xl border ${card.color}`}>
-                    <card.icon className="w-5 h-5" />
-                  </div>
-                </div>
-                <div className="text-3xl font-black text-white">{card.value}</div>
-              </div>
-            ))}
-          </div>
-
-          {/* Area Visualisasi Grafik */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-
-            {/* A. Grafik Tren Pendaftaran (Area Chart) */}
-            <div className="lg:col-span-8 bg-slate-900/90 border border-slate-800 p-6 rounded-2xl shadow-xl flex flex-col justify-between">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-                <div>
-                  <h2 className="text-lg font-bold text-white flex items-center gap-2">
-                    <TrendingUp className="w-5 h-5 text-amber-400" />
-                    Tren Pendaftaran Calon Mahasiswa
-                  </h2>
-                  <p className="text-xs text-slate-400 mt-0.5">Grafik jumlah pendaftar berdasarkan rentang waktu</p>
-                </div>
-
-                {/* Filter Waktu Sederhana */}
-                <div className="inline-flex bg-slate-950 p-1 rounded-xl border border-slate-800 text-xs">
-                  <button
-                    onClick={() => setTimeFilter('7days')}
-                    className={`px-3 py-1.5 rounded-lg font-medium transition-all ${timeFilter === '7days' ? 'bg-amber-500 text-slate-950 font-bold' : 'text-slate-400 hover:text-white'}`}
-                  >
-                    7 Hari Terakhir
-                  </button>
-                </div>
-              </div>
-
-              <div className="h-72 w-full">
-                {trendData.length > 0 ? (
-                  <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart data={trendData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                      <defs>
-                        <linearGradient id="colorPendaftar" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="#f59e0b" stopOpacity={0.4} />
-                          <stop offset="95%" stopColor="#f59e0b" stopOpacity={0} />
-                        </linearGradient>
-                      </defs>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
-                      <XAxis dataKey="date" stroke="#64748b" fontSize={12} tickLine={false} />
-                      <YAxis stroke="#64748b" fontSize={12} tickLine={false} />
-                      <Tooltip
-                        contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', borderRadius: '0.75rem', color: '#fff', fontSize: '12px' }}
-                      />
-                      <Area type="monotone" dataKey="count" stroke="#f59e0b" strokeWidth={3} fillOpacity={1} fill="url(#colorPendaftar)" name="Pendaftar" />
-                    </AreaChart>
-                  </ResponsiveContainer>
-                ) : (
-                  <div className="h-full flex flex-col items-center justify-center text-slate-500 text-xs">
-                    <Activity className="w-8 h-8 mb-2 opacity-40 text-amber-400" />
-                    Belum ada data tren yang cukup untuk ditampilkan.
-                  </div>
-                )}
-              </div>
+                <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
+              </button>
             </div>
 
-            {/* B. Grafik Distribusi Status Pendaftar (Donut Chart) */}
-            <div className="lg:col-span-4 bg-slate-900/90 border border-slate-800 p-6 rounded-2xl shadow-xl flex flex-col justify-between">
-              <div>
-                <h2 className="text-lg font-bold text-white flex items-center gap-2 mb-1">
-                  <PieIcon className="w-5 h-5 text-sky-400" />
-                  Distribusi Status
-                </h2>
-                <p className="text-xs text-slate-400">Proporsi status pendaftar saat ini</p>
+            {loading ? (
+              <div className="space-y-2 py-4">
+                {[1, 2, 3, 4].map((i) => (
+                  <div key={i} className="h-6 bg-slate-800 animate-pulse rounded-md" />
+                ))}
               </div>
-
-              <div className="h-56 w-full my-2 flex items-center justify-center">
-                {statusDistributionData.length > 0 ? (
-                  <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie
-                        data={statusDistributionData}
-                        cx="50%"
-                        cy="50%"
-                        innerRadius={55}
-                        outerRadius={80}
-                        paddingAngle={4}
-                        dataKey="value"
-                      >
-                        {statusDistributionData.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={entry.color} />
-                        ))}
-                      </Pie>
-                      <Tooltip
-                        contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', borderRadius: '0.75rem', color: '#fff', fontSize: '12px' }}
-                      />
-                    </PieChart>
-                  </ResponsiveContainer>
-                ) : (
-                  <div className="text-slate-500 text-xs text-center">Data status belum tersedia</div>
-                )}
-              </div>
-
-              {/* Legenda Status */}
-              <div className="space-y-1.5 pt-2 border-t border-slate-800">
-                {statusDistributionData.map((item, idx) => (
-                  <div key={idx} className="flex items-center justify-between text-xs">
-                    <div className="flex items-center gap-2">
-                      <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: item.color }}></span>
-                      <span className="text-slate-300">{item.name}</span>
+            ) : stats?.trend && stats.trend.length > 0 ? (
+              <div className="space-y-3">
+                {stats.trend.map((t: any, i: number) => (
+                  <div key={i} className="flex items-center justify-between text-xs">
+                    <span className="text-slate-400 font-medium">{t.date}</span>
+                    <div className="flex items-center gap-2 flex-1 mx-3">
+                      <div className="w-full bg-slate-950 h-2 rounded-full overflow-hidden border border-slate-800">
+                        <div
+                          className="bg-emerald-400 h-full rounded-full transition-all duration-500"
+                          style={{
+                            width: `${Math.min(
+                              100,
+                              (t.count / Math.max(...stats.trend.map((x: any) => x.count || 1))) * 100
+                            )}%`,
+                          }}
+                        />
+                      </div>
                     </div>
-                    <span className="font-bold text-white">{item.value}</span>
+                    <span className="font-bold text-white font-mono">{t.count}</span>
                   </div>
                 ))}
               </div>
-            </div>
-
+            ) : (
+              <p className="text-xs text-slate-500 py-6 text-center">Belum ada grafik tren minggu ini.</p>
+            )}
           </div>
 
-          {/* C. Ringkasan Aktivitas Terbaru */}
-          <div className="bg-slate-900/90 border border-slate-800 p-6 rounded-2xl shadow-xl">
-            <div className="flex items-center justify-between mb-6">
-              <div>
-                <h2 className="text-lg font-bold text-white flex items-center gap-2">
-                  <Activity className="w-5 h-5 text-emerald-400" />
-                  Aktivitas Pendaftaran Terbaru
-                </h2>
-                <p className="text-xs text-slate-400">Daftar calon mahasiswa yang baru saja mendaftar ke sistem</p>
-              </div>
+          <div className="pt-4 border-t border-slate-800/80 mt-4 flex items-center justify-between text-[11px] text-slate-400">
+            <span>Total Program Studi Aktif</span>
+            <span className="font-bold text-amber-400 font-mono">{stats?.totalStudyPrograms ?? 0} Prodi</span>
+          </div>
+        </div>
 
-              <Link
-                href="/admin/applicants"
-                className="inline-flex items-center gap-1 text-xs font-bold text-amber-400 hover:text-amber-300 transition-colors"
-              >
-                <span>Kelola Semua Pendaftar</span>
-                <ArrowUpRight className="w-4 h-4" />
-              </Link>
+        {/* Pendaftar Terbaru */}
+        <div className="lg:col-span-2 bg-slate-900 p-6 rounded-3xl border border-slate-800 shadow-xl">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <Activity className="w-4 h-4 text-sky-400" />
+              <h3 className="text-sm font-bold text-white">Aktivitas Pendaftaran Terbaru</h3>
             </div>
+            <span className="text-[11px] text-slate-400">5 Pendaftar Terakhir</span>
+          </div>
 
-            <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse text-xs">
-                <thead>
-                  <tr className="border-b border-slate-800 text-slate-400 font-semibold uppercase">
-                    <th className="py-3 px-4">Nama Calon Mahasiswa</th>
-                    <th className="py-3 px-4">Program Studi</th>
-                    <th className="py-3 px-4">Tanggal Daftar</th>
-                    <th className="py-3 px-4">Status</th>
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs text-slate-300">
+              <thead className="bg-slate-950 text-slate-400 font-bold uppercase text-[10px]">
+                <tr>
+                  <th className="p-3.5 rounded-l-xl">Nama Mahasiswa</th>
+                  <th className="p-3.5">Program Studi</th>
+                  <th className="p-3.5">Tanggal Daftar</th>
+                  <th className="p-3.5 text-right rounded-r-xl">Status</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-800/50">
+                {loading ? (
+                  <tr>
+                    <td colSpan={4} className="p-6 text-center text-slate-500">
+                      Memuat aktivitas terbaru...
+                    </td>
                   </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-800/60 text-slate-300">
-                  {recentActivity.length > 0 ? (
-                    recentActivity.map((item: any, idx: number) => (
-                      <tr key={idx} className="hover:bg-slate-800/40 transition-colors">
-                        <td className="py-3.5 px-4 font-bold text-white">{item.name}</td>
-                        <td className="py-3.5 px-4 text-slate-300">{item.program}</td>
-                        <td className="py-3.5 px-4 text-slate-400">{item.date}</td>
-                        <td className="py-3.5 px-4">
-                          <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-500/10 border border-amber-500/30 text-amber-400">
-                            {item.status}
-                          </span>
-                        </td>
-                      </tr>
-                    ))
-                  ) : (
-                    <tr>
-                      <td colSpan={4} className="py-8 text-center text-slate-500">
-                        Belum ada riwayat aktivitas pendaftaran baru yang tercatat.
+                ) : stats?.recentActivity && stats.recentActivity.length > 0 ? (
+                  stats.recentActivity.map((act: any, idx: number) => (
+                    <tr key={idx} className="hover:bg-slate-800/40 transition-colors">
+                      <td className="p-3.5 font-bold text-white">{act.name}</td>
+                      <td className="p-3.5 text-sky-400 font-medium">{act.program}</td>
+                      <td className="p-3.5 text-slate-400">{act.date}</td>
+                      <td className="p-3.5 text-right">
+                        <span
+                          className={`px-2.5 py-1 rounded-lg text-[10px] font-extrabold uppercase ${act.status === 'DITERIMA' || act.status === 'LULUS_SELEKSI'
+                              ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                              : act.status === 'DIVERIFIKASI'
+                                ? 'bg-sky-500/20 text-sky-400 border border-sky-500/30'
+                                : 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
+                            }`}
+                        >
+                          {act.status}
+                        </span>
                       </td>
                     </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={4} className="p-6 text-center text-slate-500">
+                      Belum ada pendaftaran terbaru.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
           </div>
-
-          {/* Quick Navigation Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
-            <Link
-              href="/admin/applicants"
-              className="bg-slate-900 p-6 rounded-2xl border border-slate-800 hover:border-amber-400/50 transition-all flex justify-between items-center group"
-            >
-              <div>
-                <h3 className="text-lg font-bold text-white group-hover:text-amber-400 transition-colors">
-                  Kelola & Verifikasi Pendaftar
-                </h3>
-                <p className="text-xs text-slate-400 mt-1">
-                  Lihat tabel data pendaftar, pencarian, verifikasi dokumen, dan ubah status pendaftaran.
-                </p>
-              </div>
-              <ArrowUpRight className="w-6 h-6 text-slate-500 group-hover:text-amber-400 group-hover:translate-x-0.5 transition-all flex-shrink-0" />
-            </Link>
-
-            <Link
-              href="/admin/master-data"
-              className="bg-slate-900 p-6 rounded-2xl border border-slate-800 hover:border-sky-400/50 transition-all flex justify-between items-center group"
-            >
-              <div>
-                <h3 className="text-lg font-bold text-white group-hover:text-sky-400 transition-colors">
-                  Kelola Master Data & Periode PMB
-                </h3>
-                <p className="text-xs text-slate-400 mt-1">
-                  Atur kuota program studi Air Lines Crew & AVSEC, periode PMB aktif, dan pengumuman.
-                </p>
-              </div>
-              <ArrowUpRight className="w-6 h-6 text-slate-500 group-hover:text-sky-400 group-hover:translate-x-0.5 transition-all flex-shrink-0" />
-            </Link>
-          </div>
-        </>
-      )}
+        </div>
+      </div>
     </div>
   );
 }

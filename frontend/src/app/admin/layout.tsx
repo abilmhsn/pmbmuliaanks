@@ -13,6 +13,7 @@ import {
   X,
   Crown,
   ArrowRight,
+  History,
 } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 
@@ -29,11 +30,12 @@ export default function AdminLayout({
     { href: '/admin/dashboard', label: 'Dashboard Statistik', Icon: LayoutDashboard },
     { href: '/admin/applicants', label: 'Data Pendaftar', Icon: Users },
     { href: '/admin/master-data', label: 'Kelola Master Data', Icon: BookOpen },
+    { href: '/admin/logs', label: 'Log Aktivitas Kerja', Icon: History },
   ];
 
   const SidebarContent = () => (
     <div className="flex flex-col h-full">
-      {/* Header */}
+      {/* Header Sidebar */}
       <div className="p-6 border-b border-slate-800/80 flex items-center justify-between">
         <div className="flex items-center space-x-3">
           <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-amber-500 to-amber-300 flex items-center justify-center shadow-lg shadow-amber-500/20">
@@ -106,7 +108,7 @@ export default function AdminLayout({
   );
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col selection:bg-amber-400 selection:text-slate-950">
+    <div className="min-h-screen bg-slate-100 text-slate-900 flex flex-col selection:bg-amber-400 selection:text-slate-950">
 
       {/* ── Mobile Top Bar ── */}
       <header className="md:hidden flex items-center gap-3 px-4 py-3 bg-slate-900 border-b border-slate-800 sticky top-0 z-40">
@@ -137,7 +139,7 @@ export default function AdminLayout({
         )}
 
         {/* ── Sidebar ── */}
-        <aside className="hidden md:flex md:w-64 bg-slate-900/90 backdrop-blur-xl text-white flex-shrink-0 border-r border-slate-800/80 md:sticky md:top-0 md:h-screen flex-col z-30">
+        <aside className="hidden md:flex md:w-64 bg-slate-900 backdrop-blur-xl text-white flex-shrink-0 border-r border-slate-800 md:sticky md:top-0 md:h-screen flex-col z-30">
           <SidebarContent />
         </aside>
 
@@ -148,27 +150,27 @@ export default function AdminLayout({
           <SidebarContent />
         </aside>
 
-        {/* ── Main Content — Dirender konsisten tanpa early return di tingkat layout ── */}
-        <main className="flex-1 p-4 sm:p-6 md:p-10 overflow-y-auto bg-slate-950 transition-all duration-300">
+        {/* ── Main Content — Latar Belakang Terang (bg-slate-50) ── */}
+        <main className="flex-1 p-4 sm:p-6 md:p-10 overflow-y-auto bg-slate-50 text-slate-900 transition-all duration-300">
           {isLoading ? (
             <div className="min-h-[60vh] flex items-center justify-center">
               <div className="flex flex-col items-center space-y-4">
-                <div className="w-12 h-12 rounded-full border-4 border-amber-400 border-t-transparent animate-spin"></div>
-                <p className="text-sm font-semibold text-slate-300">Memuat Portal Administrator...</p>
+                <div className="w-12 h-12 rounded-full border-4 border-amber-500 border-t-transparent animate-spin"></div>
+                <p className="text-sm font-semibold text-slate-600">Memuat Portal Administrator...</p>
               </div>
             </div>
           ) : !user || (user.role !== 'ADMIN' && user.role !== 'SUPER_ADMIN') ? (
             <div className="min-h-[60vh] flex flex-col items-center justify-center p-6 text-center">
-              <div className="w-16 h-16 bg-rose-500/20 text-rose-400 rounded-2xl flex items-center justify-center mb-4 border border-rose-500/30 shadow-lg">
+              <div className="w-16 h-16 bg-rose-100 text-rose-600 rounded-2xl flex items-center justify-center mb-4 border border-rose-200 shadow-sm">
                 <ShieldCheck className="w-8 h-8" />
               </div>
-              <h2 className="text-xl font-bold text-white mb-2">Akses Terbatas Administrator</h2>
-              <p className="text-xs text-slate-400 max-w-sm mb-6 leading-relaxed">
+              <h2 className="text-xl font-bold text-slate-900 mb-2">Akses Terbatas Administrator</h2>
+              <p className="text-xs text-slate-500 max-w-sm mb-6 leading-relaxed">
                 Halaman ini khusus untuk Panitia & Administrator Kampus Mulia Angkasa.
               </p>
               <Link
                 href="/login"
-                className="px-6 py-2.5 bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-xs rounded-xl shadow-lg transition-all active:scale-95"
+                className="px-6 py-2.5 bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-xs rounded-xl shadow-md transition-all active:scale-95"
               >
                 Login sebagai Admin
               </Link>

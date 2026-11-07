@@ -1,11 +1,9 @@
 'use client';
 
-
 import React, { useState, useEffect } from 'react';
 import api from '@/lib/api';
 import {
   Search,
-  Filter,
   Eye,
   Trash2,
   RotateCcw,
@@ -14,8 +12,6 @@ import {
   FileSpreadsheet,
   Calendar,
 } from 'lucide-react';
-
-
 
 export default function AdminApplicantsPage() {
   const [applicants, setApplicants] = useState<any[]>([]);
@@ -34,17 +30,50 @@ export default function AdminApplicantsPage() {
   const [statusInput, setStatusInput] = useState('');
   const [notesInput, setNotesInput] = useState('');
 
+  // Fetch Gelombang & Prodi saat pertama kali mount
   useEffect(() => {
     fetchPeriods();
     fetchPrograms();
   }, []);
 
+  // Fetch Applicants dengan AbortController untuk cegah Race Condition (Tabrakan Request)
   useEffect(() => {
-    if (activeTab === 'ACTIVE') {
-      fetchApplicants();
-    } else {
-      fetchTrashApplicants();
-    }
+    const controller = new AbortController();
+
+    const loadData = async () => {
+      setLoading(true);
+      try {
+        if (activeTab === 'ACTIVE') {
+          const res = await api.get('/admin/applicants', {
+            params: {
+              search: search || undefined,
+              status: statusFilter || undefined,
+              studyProgramId: programFilter || undefined,
+              periodId: periodFilter || undefined,
+            },
+            signal: controller.signal,
+          });
+          setApplicants(res.data);
+        } else {
+          const res = await api.get('/admin/applicants/trash', {
+            signal: controller.signal,
+          });
+          setApplicants(res.data);
+        }
+      } catch (err: any) {
+        if (err.name !== 'CanceledError' && err.code !== 'ERR_CANCELED') {
+          console.error(err);
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadData();
+
+    return () => {
+      controller.abort(); // Pembatalan otomatis jika filter berubah sebelum request selesai
+    };
   }, [search, statusFilter, programFilter, periodFilter, activeTab]);
 
   const fetchPeriods = async () => {
@@ -53,7 +82,7 @@ export default function AdminApplicantsPage() {
       const periodList = Array.isArray(res.data) ? res.data : [];
       setPeriods(periodList);
       const activePer = periodList.find((p: any) => p.isActive);
-      if (activePer && !periodFilter) {
+      if (activePer) {
         setPeriodFilter(activePer.id);
       }
     } catch (err) {
@@ -70,34 +99,24 @@ export default function AdminApplicantsPage() {
     }
   };
 
-  const fetchApplicants = async () => {
+  const reloadCurrentData = async () => {
     try {
-      setLoading(true);
-      const res = await api.get('/admin/applicants', {
-        params: {
-          search: search || undefined,
-          status: statusFilter || undefined,
-          studyProgramId: programFilter || undefined,
-          periodId: periodFilter || undefined,
-        },
-      });
-      setApplicants(res.data);
+      if (activeTab === 'ACTIVE') {
+        const res = await api.get('/admin/applicants', {
+          params: {
+            search: search || undefined,
+            status: statusFilter || undefined,
+            studyProgramId: programFilter || undefined,
+            periodId: periodFilter || undefined,
+          },
+        });
+        setApplicants(res.data);
+      } else {
+        const res = await api.get('/admin/applicants/trash');
+        setApplicants(res.data);
+      }
     } catch (err) {
       console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchTrashApplicants = async () => {
-    try {
-      setLoading(true);
-      const res = await api.get('/admin/applicants/trash');
-      setApplicants(res.data);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -105,7 +124,7 @@ export default function AdminApplicantsPage() {
     if (window.confirm(`Pindahkan "${name}" ke Trash?`)) {
       try {
         await api.delete(`/admin/applicants/${id}`);
-        fetchApplicants();
+        reloadCurrentData();
       } catch (err: any) {
         alert('Gagal menghapus data');
       }
@@ -116,7 +135,7 @@ export default function AdminApplicantsPage() {
     if (window.confirm(`HAPUS PERMANEN "${name}"? Data tidak dapat dikembalikan lagi!`)) {
       try {
         await api.delete(`/admin/applicants/${id}/permanent`);
-        fetchTrashApplicants();
+        reloadCurrentData();
       } catch (err: any) {
         alert('Gagal menghapus permanen');
       }
@@ -128,7 +147,7 @@ export default function AdminApplicantsPage() {
       try {
         await api.put(`/admin/applicants/${id}/restore`);
         alert('Data berhasil dipulihkan!');
-        fetchTrashApplicants();
+        reloadCurrentData();
       } catch (err: any) {
         alert(err.response?.data?.message || 'Gagal memulihkan data');
       }
@@ -163,7 +182,7 @@ export default function AdminApplicantsPage() {
       });
       alert('Status pendaftaran berhasil diperbarui!');
       handleOpenDetail(selectedApplicant.id);
-      fetchApplicants();
+      reloadCurrentData();
     } catch (err: any) {
       alert(err.response?.data?.message || 'Gagal memperbarui status');
     }
@@ -173,7 +192,7 @@ export default function AdminApplicantsPage() {
     try {
       await api.put(`/admin/verify-document/${docId}`, { isVerified });
       handleOpenDetail(selectedApplicant.id);
-      fetchApplicants();
+      reloadCurrentData();
     } catch (err: any) {
       alert(err.response?.data?.message || 'Gagal merubah verifikasi dokumen');
     }
@@ -183,7 +202,7 @@ export default function AdminApplicantsPage() {
     try {
       await api.put(`/admin/verify-payment/${paymentId}`, { status });
       handleOpenDetail(selectedApplicant.id);
-      fetchApplicants();
+      reloadCurrentData();
     } catch (err: any) {
       alert(err.response?.data?.message || 'Gagal merubah verifikasi pembayaran');
     }
@@ -276,14 +295,11 @@ export default function AdminApplicantsPage() {
                 className="bg-slate-950 text-amber-400 font-bold px-3 py-1.5 rounded-lg border border-slate-700 text-xs focus:outline-none focus:border-amber-400 w-full sm:w-auto"
               >
                 <option value="">Semua Gelombang</option>
-                {periods.slice(0, 2).map((p) => (
-
-
+                {periods.map((p) => (
                   <option key={p.id} value={p.id}>
                     {p.name} {p.isActive ? '(AKTIF)' : ''}
                   </option>
-                )
-                )}
+                ))}
               </select>
             </div>
           )}
