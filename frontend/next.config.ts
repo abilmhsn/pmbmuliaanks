@@ -16,7 +16,7 @@ const nextConfig: NextConfig = {
     return [
       {
         source: "/api/:path*",
-        destination: "http://localhost:5000/api/:path*",
+        destination: "https://pmbmuliaanks-d6zz.vercel.app/api/:path*",
       },
       {
         source: "/uploads/:path*",

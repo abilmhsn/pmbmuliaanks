@@ -86,10 +86,10 @@ export default function SuperAdminSettingsPage() {
   return (
     <div className="space-y-8 max-w-5xl mx-auto pb-12">
       {/* Top Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex p-4 bg-slate-900 rounded-xl flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-xl sm:text-2xl font-black text-white tracking-tight flex items-center gap-2.5">
-            <Settings className="w-6 h-6 text-purple-400" />
+
             <span>Pengaturan Kebijakan & Sistem PMB</span>
           </h1>
           <p className="text-xs text-slate-400 mt-1">
@@ -109,7 +109,7 @@ export default function SuperAdminSettingsPage() {
 
       <form onSubmit={handleSave} className="space-y-6">
         {/* SECTION 1: Status Pendaftaran PMB */}
-        <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-6">
+        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6">
           <div className="flex items-center gap-2.5 mb-2">
             <Power className="w-5 h-5 text-purple-400" />
             <h2 className="text-sm font-bold text-white uppercase tracking-wider">
@@ -124,11 +124,10 @@ export default function SuperAdminSettingsPage() {
             <button
               type="button"
               onClick={() => setForm({ ...form, REGISTRATION_OPEN: 'true' })}
-              className={`p-4 rounded-2xl border text-left transition-all ${
-                form.REGISTRATION_OPEN === 'true'
-                  ? 'bg-emerald-500/10 border-emerald-500/50 shadow-lg shadow-emerald-500/10'
-                  : 'bg-slate-950 border-slate-800 opacity-60 hover:opacity-100'
-              }`}
+              className={`p-4 rounded-2xl border text-left transition-all ${form.REGISTRATION_OPEN === 'true'
+                ? 'bg-emerald-500/10 border-emerald-500/50 shadow-lg shadow-emerald-500/10'
+                : 'bg-slate-950 border-slate-800 opacity-60 hover:opacity-100'
+                }`}
             >
               <div className="flex items-center justify-between">
                 <span className="font-bold text-xs text-emerald-400 flex items-center gap-2">
@@ -147,11 +146,10 @@ export default function SuperAdminSettingsPage() {
             <button
               type="button"
               onClick={() => setForm({ ...form, REGISTRATION_OPEN: 'false' })}
-              className={`p-4 rounded-2xl border text-left transition-all ${
-                form.REGISTRATION_OPEN === 'false'
-                  ? 'bg-rose-500/10 border-rose-500/50 shadow-lg shadow-rose-500/10'
-                  : 'bg-slate-950 border-slate-800 opacity-60 hover:opacity-100'
-              }`}
+              className={`p-4 rounded-2xl border text-left transition-all ${form.REGISTRATION_OPEN === 'false'
+                ? 'bg-rose-500/10 border-rose-500/50 shadow-lg shadow-rose-500/10'
+                : 'bg-slate-950 border-slate-800 opacity-60 hover:opacity-100'
+                }`}
             >
               <div className="flex items-center justify-between">
                 <span className="font-bold text-xs text-rose-400 flex items-center gap-2">

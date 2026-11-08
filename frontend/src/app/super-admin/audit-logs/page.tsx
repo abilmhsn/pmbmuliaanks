@@ -129,10 +129,9 @@ export default function SuperAdminAuditLogsPage() {
   return (
     <div className="space-y-6 max-w-7xl mx-auto pb-12">
       {/* Top Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex p-6 bg-slate-900 rounded-xl flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-xl sm:text-2xl font-black text-white tracking-tight flex items-center gap-2.5">
-            <Activity className="w-6 h-6 text-purple-400" />
             <span>Audit Log & Integritas Aktivitas Sistem</span>
           </h1>
           <p className="text-xs text-slate-400 mt-1">
@@ -143,7 +142,7 @@ export default function SuperAdminAuditLogsPage() {
 
         <button
           onClick={fetchLogs}
-          className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-xs font-bold transition-all w-fit"
+          className="flex items-center gap-2 px-3.5 py-2 rounded-2xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-xs font-bold transition-all w-fit"
         >
           <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin text-purple-400' : ''}`} />
           <span>Segarkan Log</span>
@@ -151,7 +150,7 @@ export default function SuperAdminAuditLogsPage() {
       </div>
 
       {/* Filter and Search Bar */}
-      <div className="bg-slate-900/90 border border-slate-800 p-4 rounded-2xl flex flex-col md:flex-row items-center justify-between gap-4">
+      <div className="bg-slate-900 border border-slate-800 p-4 rounded-2xl flex flex-col md:flex-row items-center justify-between gap-4">
         {/* Filter Action Dropdown */}
         <div className="flex items-center gap-2 w-full md:w-auto">
           <Filter className="w-4 h-4 text-purple-400 flex-shrink-0" />
@@ -188,7 +187,7 @@ export default function SuperAdminAuditLogsPage() {
       </div>
 
       {/* Logs Table / List */}
-      <div className="bg-slate-900/90 border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
+      <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
             <thead className="bg-slate-950/80 text-slate-400 font-bold uppercase tracking-wider text-[10px] border-b border-slate-800">

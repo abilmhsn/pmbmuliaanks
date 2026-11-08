@@ -95,13 +95,13 @@ export default function SuperAdminDashboardPage() {
   return (
     <div className="space-y-8 max-w-7xl mx-auto pb-12">
       {/* Executive Welcome & Period Filter */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-gradient-to-r from-purple-900/40 via-indigo-900/30 to-slate-900 p-6 rounded-3xl border border-purple-500/20 shadow-2xl">
+      <div className="flex flex-col bg-purple-900 lg:flex-row lg:items-center justify-between gap-4  from-slate-900 via-indigo-900/30 to-slate-900 p-6 rounded-3xl border border-slate-50 shadow-2xl">
         <div>
           <div className="flex items-center gap-2 mb-1.5">
-            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-purple-500/20 text-purple-300 border border-purple-500/40">
+            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-slate-900 text-white">
               Executive PMB Console
             </span>
-            <span className="text-xs text-slate-400">Kampus Mulia Angkasa</span>
+            <span className="text-xs text-slate-100">Kampus Mulia Angkasa Akademi</span>
           </div>
           <h1 className="text-2xl font-black text-white tracking-tight flex items-center gap-2">
             Ikhtisar Eksekutif Penerimaan Mahasiswa Baru
@@ -114,7 +114,7 @@ export default function SuperAdminDashboardPage() {
 
         <div className="flex flex-wrap items-center gap-3">
           {/* Filter Gelombang */}
-          <div className="bg-slate-900/90 border border-slate-700/80 rounded-2xl px-3 py-1.5 flex items-center gap-2">
+          <div className="bg-slate-900 rounded-2xl px-3 py-1.5 flex items-center gap-2">
             <span className="text-[11px] font-semibold text-slate-400">Gelombang:</span>
             <select
               value={selectedPeriod}
@@ -133,7 +133,7 @@ export default function SuperAdminDashboardPage() {
           {/* Quick Refresh */}
           <button
             onClick={fetchStats}
-            className="p-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition-colors"
+            className="p-2 rounded-xl bg-slate-900 hover:bg-slate-700 text-slate-100 hover:text-white transition-colors"
             title="Muat ulang data"
           >
             <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin text-purple-400' : ''}`} />
@@ -142,18 +142,18 @@ export default function SuperAdminDashboardPage() {
       </div>
 
       {/* Global Status Banner & Emergency Switch */}
-      <div className="bg-slate-900/90 border border-slate-800 p-5 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div className="bg-slate-900 border border-slate-800 p-5 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-4">
         <div className="flex items-center gap-4">
           <div
             className={`w-12 h-12 rounded-2xl flex items-center justify-center font-bold shadow-lg ${data?.isRegistrationOpen
-                ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 shadow-emerald-500/10'
-                : 'bg-rose-500/20 text-rose-400 border border-rose-500/30 shadow-rose-500/10'
+              ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 shadow-emerald-500/10'
+              : 'bg-rose-500/20 text-rose-400 border border-rose-500/30 shadow-rose-500/10'
               }`}
           >
             {data?.isRegistrationOpen ? (
-              <CheckCircle2 className="w-6 h-6" />
+              <CheckCircle2 className="w-5 h-5" />
             ) : (
-              <AlertTriangle className="w-6 h-6" />
+              <AlertTriangle className="w-5 h-5" />
             )}
           </div>
           <div>
@@ -163,8 +163,8 @@ export default function SuperAdminDashboardPage() {
               </span>
               <span
                 className={`text-xs font-black uppercase px-2 py-0.5 rounded-full ${data?.isRegistrationOpen
-                    ? 'bg-emerald-400/10 text-emerald-300 border border-emerald-400/20'
-                    : 'bg-rose-400/10 text-rose-300 border border-rose-400/20'
+                  ? 'bg-emerald-400/10 text-emerald-300 border border-emerald-400/20'
+                  : 'bg-rose-400/10 text-rose-300 border border-rose-400/20'
                   }`}
               >
                 {data?.isRegistrationOpen ? 'Terbuka Untuk Umum' : 'Ditutup Sementara'}
@@ -182,8 +182,8 @@ export default function SuperAdminDashboardPage() {
           onClick={handleToggleRegistration}
           disabled={togglingReg || loading}
           className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 active:scale-95 disabled:opacity-50 whitespace-nowrap ${data?.isRegistrationOpen
-              ? 'bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/30'
-              : 'bg-emerald-500 hover:bg-emerald-400 text-slate-950 shadow-lg shadow-emerald-500/20'
+            ? 'bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/30'
+            : 'bg-emerald-500 hover:bg-emerald-400 text-slate-950 shadow-lg shadow-emerald-500/20'
             }`}
         >
           <Sliders className="w-3.5 h-3.5" />
@@ -194,16 +194,16 @@ export default function SuperAdminDashboardPage() {
       {/* Financial Metrics Cards */}
       <div>
         <div className="flex items-center justify-between mb-3">
-          <h2 className="text-sm font-bold text-slate-300 uppercase tracking-wider flex items-center gap-2">
-            <DollarSign className="w-4 h-4 text-emerald-400" />
+          <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2">
+
             <span>Rekapitulasi Finansial & Penerimaan PMB</span>
           </h2>
-          <span className="text-[11px] text-slate-500">Otomatis dari verifikasi pembayaran</span>
+          <span className="text-[11px] text-slate-900">Otomatis dari verifikasi pembayaran</span>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {/* Card 1: Uang Formulir Masuk */}
-          <div className="bg-slate-900/90 border border-slate-800 p-5 rounded-2xl relative overflow-hidden group hover:border-emerald-500/40 transition-all">
+          <div className="bg-slate-900 border border-slate-800 p-5 rounded-2xl relative overflow-hidden group hover:border-emerald-500/40 transition-all">
             <div className="flex items-center justify-between">
               <span className="text-xs font-bold text-slate-400">Kas Masuk (Formulir)</span>
               <div className="w-8 h-8 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center">
@@ -219,7 +219,7 @@ export default function SuperAdminDashboardPage() {
           </div>
 
           {/* Card 2: Uang Formulir Tertunda */}
-          <div className="bg-slate-900/90 border border-slate-800 p-5 rounded-2xl relative overflow-hidden group hover:border-amber-500/40 transition-all">
+          <div className="bg-slate-900 border border-slate-800 p-5 rounded-2xl relative overflow-hidden group hover:border-amber-500/40 transition-all">
             <div className="flex items-center justify-between">
               <span className="text-xs font-bold text-slate-400">Tertunda (Menunggu)</span>
               <div className="w-8 h-8 rounded-xl bg-amber-500/10 text-amber-400 flex items-center justify-center">
@@ -235,7 +235,7 @@ export default function SuperAdminDashboardPage() {
           </div>
 
           {/* Card 3: Potensi SPP Mahasiswa Diterima */}
-          <div className="bg-slate-900/90 border border-slate-800 p-5 rounded-2xl relative overflow-hidden group hover:border-purple-500/40 transition-all">
+          <div className="bg-slate-900 border border-slate-800 p-5 rounded-2xl relative overflow-hidden group hover:border-purple-500/40 transition-all">
             <div className="flex items-center justify-between">
               <span className="text-xs font-bold text-slate-400">Potensi SPP Kuliah</span>
               <div className="w-8 h-8 rounded-xl bg-purple-500/10 text-purple-400 flex items-center justify-center">
@@ -251,7 +251,7 @@ export default function SuperAdminDashboardPage() {
           </div>
 
           {/* Card 4: Total Calon Mahasiswa */}
-          <div className="bg-slate-900/90 border border-slate-800 p-5 rounded-2xl relative overflow-hidden group hover:border-sky-500/40 transition-all">
+          <div className="bg-slate-900 border border-slate-800 p-5 rounded-2xl relative overflow-hidden group hover:border-sky-500/40 transition-all">
             <div className="flex items-center justify-between">
               <span className="text-xs font-bold text-slate-400">Total Pendaftar PMB</span>
               <div className="w-8 h-8 rounded-xl bg-sky-500/10 text-sky-400 flex items-center justify-center">
@@ -271,7 +271,7 @@ export default function SuperAdminDashboardPage() {
       {/* Program Studi Quota Fulfillment & User Demographics */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left 2 Cols: Kuota Prodi Penerbangan */}
-        <div className="lg:col-span-2 bg-slate-900/90 border border-slate-800 rounded-2xl p-6">
+        <div className="lg:col-span-2 bg-slate-900 border border-slate-800 rounded-2xl p-6">
           <div className="flex items-center justify-between mb-4">
             <div>
               <h3 className="text-sm font-bold text-white flex items-center gap-2">
@@ -315,13 +315,13 @@ export default function SuperAdminDashboardPage() {
                 </div>
 
                 {/* Progress bar */}
-                <div className="w-full h-2.5 bg-slate-800 rounded-full overflow-hidden">
+                <div className="w-full h-2.5 bg-slate-50 rounded-full overflow-hidden">
                   <div
                     className={`h-full rounded-full transition-all duration-500 ${prog.percentageFilled >= 90
-                        ? 'bg-rose-500'
-                        : prog.percentageFilled >= 50
-                          ? 'bg-amber-400'
-                          : 'bg-gradient-to-r from-purple-500 to-indigo-500'
+                      ? 'bg-rose-500'
+                      : prog.percentageFilled >= 50
+                        ? 'bg-amber-400'
+                        : 'bg-gradient-to-r from-purple-500 to-indigo-500'
                       }`}
                     style={{ width: `${Math.min(100, prog.percentageFilled)}%` }}
                   />
@@ -344,7 +344,7 @@ export default function SuperAdminDashboardPage() {
         </div>
 
         {/* Right Col: Ekosistem Pengguna Sistem */}
-        <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-6 flex flex-col justify-between">
+        <div className="bg-slate-900 border border-slate-50 rounded-2xl p-6 flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-sm font-bold text-white flex items-center gap-2">
@@ -416,7 +416,7 @@ export default function SuperAdminDashboardPage() {
       {/* Registration Funnel & Audit Logs */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Registration Funnel (Status Pendaftar) */}
-        <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-6">
+        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6">
           <h3 className="text-sm font-bold text-white mb-4 flex items-center gap-2">
             <TrendingUp className="w-4 h-4 text-purple-400" />
             <span>Status Corong Seleksi PMB</span>
@@ -455,7 +455,7 @@ export default function SuperAdminDashboardPage() {
         </div>
 
         {/* Audit Trail Preview (2 Cols) */}
-        <div className="lg:col-span-2 bg-slate-900/90 border border-slate-800 rounded-2xl p-6">
+        <div className="lg:col-span-2 bg-slate-900 border border-slate-800 rounded-2xl p-6">
           <div className="flex items-center justify-between mb-4">
             <div>
               <h3 className="text-sm font-bold text-white flex items-center gap-2">
@@ -466,6 +466,7 @@ export default function SuperAdminDashboardPage() {
                 Integritas tindakan: memantau verifikasi berkas, pembayaran, dan perubahan status
               </p>
             </div>
+
             <Link
               href="/super-admin/audit-logs"
               className="text-[11px] font-bold text-purple-400 hover:text-purple-300 flex items-center gap-1"

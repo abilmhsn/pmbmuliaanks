@@ -47,7 +47,7 @@ export default function AdminAuditLogsPage() {
                         </span>
                     </div>
                     <h1 className="text-2xl font-extrabold text-white tracking-tight flex items-center gap-2.5">
-                        <History className="w-6 h-6 text-sky-400" /> Log Kerja & Aktivitas Admin
+                        Log Kerja & Aktivitas Admin
                     </h1>
                     <p className="text-xs text-slate-400 mt-1">
                         Rekam jejak digital seluruh tindakan verifikasi, perubahan status, dan pengelolaan data oleh panitia admin.

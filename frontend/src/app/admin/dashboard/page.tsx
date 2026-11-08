@@ -147,17 +147,17 @@ export default function AdminDashboardPage() {
     {
       title: 'TOTAL PENDAFTARAN',
       value: stats?.totalApplicants ?? 0,
-      desc: 'Seluruh akumulasi calon mahasiswa',
+      desc: 'akumulasi calon mahasiswa',
       icon: Users,
       badge: 'Basis Data',
-      iconBoxBg: 'bg-blue-100 text-blue-900 border border-blue-200',
-      pillDescBg: 'bg-blue-50/80 text-blue-950 border-blue-200',
-      pillBadgeBg: 'bg-blue-100/80 text-blue-900 border-blue-300 font-bold',
+      iconBoxBg: 'bg-slate-900 text-blue-50 border border-slate-50',
+      pillDescBg: 'bg-slate-900 text-blue-50 border-slate-900',
+      pillBadgeBg: 'bg-slate-900 text-blue-50  font-bold',
       mosaicColors: {
-        bg: '#dbeafe',
+        bg: '#0f172a',
         c1: '#93c5fd',
         c2: '#3b82f6',
-        c3: '#1d4ed8',
+        c3: '#0c2635ff',
         c4: '#1e3a8a',
       },
     },
@@ -167,14 +167,14 @@ export default function AdminDashboardPage() {
       desc: 'Registrasi minggu ini',
       icon: UserPlus,
       badge: 'Tren Aktif',
-      iconBoxBg: 'bg-emerald-100 text-emerald-900 border border-emerald-200',
-      pillDescBg: 'bg-emerald-50/80 text-emerald-950 border-emerald-200',
-      pillBadgeBg: 'bg-emerald-100/80 text-emerald-900 border-emerald-300 font-bold',
+      iconBoxBg: 'bg-slate-900 text-emerald-50  ',
+      pillDescBg: 'bg-slate-900 text-emerald-50 ',
+      pillBadgeBg: 'bg-slate-900 text-emerald-50 font-bold',
       mosaicColors: {
-        bg: '#d1fae5',
+        bg: '#0f172a',
         c1: '#6ee7b7',
         c2: '#10b981',
-        c3: '#047857',
+        c3: '#0c2635ff',
         c4: '#064e3b',
       },
     },
@@ -184,14 +184,14 @@ export default function AdminDashboardPage() {
       desc: 'Berkas perlu diperiksa admin',
       icon: Clock,
       badge: 'Butuh Aksi',
-      iconBoxBg: 'bg-amber-100 text-amber-900 border border-amber-200',
-      pillDescBg: 'bg-amber-50/80 text-amber-950 border-amber-200',
-      pillBadgeBg: 'bg-amber-100/80 text-amber-900 border-amber-300 font-bold',
+      iconBoxBg: 'bg-slate-900 text-amber-50 ',
+      pillDescBg: 'bg-slate-900 text-amber-50 ',
+      pillBadgeBg: 'bg-slate-900 text-amber-50 font-bold',
       mosaicColors: {
-        bg: '#fef3c7',
+        bg: '#0f172a',
         c1: '#fcd34d',
         c2: '#f59e0b',
-        c3: '#b45309',
+        c3: '#0c2635ff',
         c4: '#78350f',
       },
     },
@@ -201,15 +201,15 @@ export default function AdminDashboardPage() {
       desc: 'Berkas telah dinyatakan valid',
       icon: CheckCircle2,
       badge: 'Terverifikasi',
-      iconBoxBg: 'bg-sky-100 text-sky-900 border border-sky-200',
-      pillDescBg: 'bg-sky-50/80 text-sky-950 border-sky-200',
-      pillBadgeBg: 'bg-sky-100/80 text-sky-900 border-sky-300 font-bold',
+      iconBoxBg: 'bg-slate-900 text-sky-50 ',
+      pillDescBg: 'bg-slate-900 text-sky-50 ',
+      pillBadgeBg: 'bg-slate-900 text-sky-50  font-bold',
       mosaicColors: {
-        bg: '#e0f2fe',
+        bg: '#0f172a',
         c1: '#7dd3fc',
-        c2: '#0ea5e9',
-        c3: '#0369a1',
-        c4: '#0c4a6e',
+        c2: '#0e4863ff',
+        c3: '#0c2635ff',
+        c4: '#0f172a',
       },
     },
     {
@@ -218,14 +218,14 @@ export default function AdminDashboardPage() {
       desc: 'Lulus ujian & kualifikasi PMB',
       icon: Award,
       badge: 'Lulus Seleksi',
-      iconBoxBg: 'bg-purple-100 text-purple-900 border border-purple-200',
-      pillDescBg: 'bg-purple-50/80 text-purple-950 border-purple-200',
-      pillBadgeBg: 'bg-purple-100/80 text-purple-900 border-purple-300 font-bold',
+      iconBoxBg: 'bg-slate-900 text-purple-50 ',
+      pillDescBg: 'bg-slate-900 text-purple-50 ',
+      pillBadgeBg: 'bg-slate-900 text-purple-50  font-bold',
       mosaicColors: {
-        bg: '#f3e8ff',
+        bg: '#0f172a',
         c1: '#d8b4fe',
         c2: '#a855f7',
-        c3: '#7e22ce',
+        c3: '#0c2635ff',
         c4: '#581c87',
       },
     },
@@ -235,14 +235,14 @@ export default function AdminDashboardPage() {
       desc: 'Mahasiswa resmi PMB',
       icon: UserCheck,
       badge: 'Resmi Diterima',
-      iconBoxBg: 'bg-teal-100 text-teal-900 border border-teal-200',
-      pillDescBg: 'bg-teal-50/80 text-teal-950 border-teal-200',
-      pillBadgeBg: 'bg-teal-100/80 text-teal-900 border-teal-300 font-bold',
+      iconBoxBg: 'bg-slate-900 text-teal-50 border border-teal-50',
+      pillDescBg: 'bg-slate-900 text-teal-50 border-teal-50',
+      pillBadgeBg: 'bg-slate-900 text-teal-50  font-bold',
       mosaicColors: {
-        bg: '#ccfbf1',
+        bg: '#0f172a',
         c1: '#5eead4',
         c2: '#14b8a6',
-        c3: '#0f766e',
+        c3: '#0c2635ff',
         c4: '#134e4a',
       },
     },
@@ -300,7 +300,7 @@ export default function AdminDashboardPage() {
           return (
             <div
               key={idx}
-              className="bg-white rounded-3xl border border-slate-300/80 shadow-md hover:shadow-xl transition-all duration-300 pt-5 flex flex-col justify-between overflow-hidden"
+              className="bg-white rounded-3xl border border-slate-300/80 shadow-md hover:shadow-2xl hover:-translate-y-3 transition-all duration-300 pt-5 flex flex-col justify-between overflow-hidden"
             >
               <div className="px-5">
                 {/* Content Row: Title & Icon */}
@@ -440,10 +440,10 @@ export default function AdminDashboardPage() {
                       <td className="p-3.5 text-right">
                         <span
                           className={`px-2.5 py-1 rounded-lg text-[10px] font-extrabold uppercase ${act.status === 'DITERIMA' || act.status === 'LULUS_SELEKSI'
-                              ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
-                              : act.status === 'DIVERIFIKASI'
-                                ? 'bg-sky-500/20 text-sky-400 border border-sky-500/30'
-                                : 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
+                            ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                            : act.status === 'DIVERIFIKASI'
+                              ? 'bg-sky-500/20 text-sky-400 border border-sky-500/30'
+                              : 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
                             }`}
                         >
                           {act.status}
