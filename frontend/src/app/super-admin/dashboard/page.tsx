@@ -95,10 +95,10 @@ export default function SuperAdminDashboardPage() {
   return (
     <div className="space-y-8 max-w-7xl mx-auto pb-12">
       {/* Executive Welcome & Period Filter */}
-      <div className="flex flex-col bg-purple-900 lg:flex-row lg:items-center justify-between gap-4  from-slate-900 via-indigo-900/30 to-slate-900 p-6 rounded-3xl border border-slate-50 shadow-2xl">
+      <div className="flex flex-col bg-slate-900 lg:flex-row lg:items-center justify-between gap-4  from-slate-900 via-indigo-900/30 to-slate-900 p-6 rounded-3xl border border-slate-50 shadow-2xl">
         <div>
           <div className="flex items-center gap-2 mb-1.5">
-            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-slate-900 text-white">
+            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-purple-800 text-white">
               Executive PMB Console
             </span>
             <span className="text-xs text-slate-100">Kampus Mulia Angkasa Akademi</span>
@@ -114,7 +114,7 @@ export default function SuperAdminDashboardPage() {
 
         <div className="flex flex-wrap items-center gap-3">
           {/* Filter Gelombang */}
-          <div className="bg-slate-900 rounded-2xl px-3 py-1.5 flex items-center gap-2">
+          <div className="bg-purple-900 rounded-2xl px-3 py-1.5 flex items-center gap-1">
             <span className="text-[11px] font-semibold text-slate-400">Gelombang:</span>
             <select
               value={selectedPeriod}
@@ -133,7 +133,7 @@ export default function SuperAdminDashboardPage() {
           {/* Quick Refresh */}
           <button
             onClick={fetchStats}
-            className="p-2 rounded-xl bg-slate-900 hover:bg-slate-700 text-slate-100 hover:text-white transition-colors"
+            className="p-2 rounded-xl bg-purple-900 hover:bg-slate-700 text-slate-100 hover:text-white transition-colors"
             title="Muat ulang data"
           >
             <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin text-purple-400' : ''}`} />
@@ -237,7 +237,7 @@ export default function SuperAdminDashboardPage() {
           {/* Card 3: Potensi SPP Mahasiswa Diterima */}
           <div className="bg-slate-900 border border-slate-800 p-5 rounded-2xl relative overflow-hidden group hover:border-purple-500/40 transition-all">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-slate-400">Potensi SPP Kuliah</span>
+              <span className="text-xs font-bold text-slate-400">Potensi SPP Akademi</span>
               <div className="w-8 h-8 rounded-xl bg-purple-500/10 text-purple-400 flex items-center justify-center">
                 <GraduationCap className="w-4 h-4" />
               </div>
@@ -360,25 +360,25 @@ export default function SuperAdminDashboardPage() {
             </div>
 
             <div className="space-y-3">
-              <div className="p-3.5 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-between">
+              <div className="p-3.5 rounded-xl bg-purple-50 border border-purple-500/20 flex items-center justify-between">
                 <div className="flex items-center gap-2.5">
-                  <Crown className="w-4 h-4 text-purple-400" />
+                  <Crown className="w-4 h-4 text-purple-800" />
                   <div>
-                    <div className="text-xs font-bold text-purple-200">Super Administrator</div>
-                    <div className="text-[10px] text-purple-300/70">Pimpinan & Administrator Sistem</div>
+                    <div className="text-xs font-bold text-purple-800">Super Administrator</div>
+                    <div className="text-[10px] text-purple-800">Pimpinan & Administrator Sistem</div>
                   </div>
                 </div>
-                <span className="text-lg font-black text-purple-300">
+                <span className="text-lg font-black text-purple-800">
                   {data?.userDemographic?.superAdminCount || 0}
                 </span>
               </div>
 
-              <div className="p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-between">
+              <div className="p-3.5 rounded-xl bg-white border border-amber-50 flex items-center justify-between">
                 <div className="flex items-center gap-2.5">
-                  <ShieldCheck className="w-4 h-4 text-amber-400" />
+                  <ShieldCheck className="w-4 h-4 text-amber-500" />
                   <div>
-                    <div className="text-xs font-bold text-amber-200">Admin Panitia PMB</div>
-                    <div className="text-[10px] text-amber-300/70">Verifikator berkas & pembayaran</div>
+                    <div className="text-xs font-bold text-amber-500">Admin Panitia PMB</div>
+                    <div className="text-[10px] text-amber-300">Verifikator berkas & pembayaran</div>
                   </div>
                 </div>
                 <span className="text-lg font-black text-amber-300">
@@ -386,12 +386,12 @@ export default function SuperAdminDashboardPage() {
                 </span>
               </div>
 
-              <div className="p-3.5 rounded-xl bg-sky-500/10 border border-sky-500/20 flex items-center justify-between">
+              <div className="p-3.5 rounded-xl bg-white border border-sky-500 flex items-center justify-between">
                 <div className="flex items-center gap-2.5">
                   <Users className="w-4 h-4 text-sky-400" />
                   <div>
-                    <div className="text-xs font-bold text-sky-200">Akun Mahasiswa</div>
-                    <div className="text-[10px] text-sky-300/70">Pengguna portal pendaftaran</div>
+                    <div className="text-xs font-bold text-sky-500">Akun Mahasiswa</div>
+                    <div className="text-[10px] text-sky-400">Pengguna portal pendaftaran</div>
                   </div>
                 </div>
                 <span className="text-lg font-black text-sky-300">

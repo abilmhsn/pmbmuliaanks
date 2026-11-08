@@ -6,15 +6,25 @@ export class PmbPeriodsService {
   constructor(private prisma: PrismaService) { }
 
   async getActive() {
-    return this.prisma.pmbPeriod.findFirst({
-      where: { isActive: true },
-    });
+    try {
+      return await this.prisma.pmbPeriod.findFirst({
+        where: { isActive: true },
+      });
+    } catch (err: any) {
+      console.warn('Warning: Failed to fetch active PMB period from DB:', err?.message || err);
+      return null;
+    }
   }
 
   async getAll() {
-    return this.prisma.pmbPeriod.findMany({
-      orderBy: { startDate: 'desc' },
-    });
+    try {
+      return await this.prisma.pmbPeriod.findMany({
+        orderBy: { startDate: 'desc' },
+      });
+    } catch (err: any) {
+      console.warn('Warning: Failed to fetch PMB periods from DB:', err?.message || err);
+      return [];
+    }
   }
 
   async create(data: { year: string; name: string; startDate: Date; endDate: Date; isActive?: boolean }) {

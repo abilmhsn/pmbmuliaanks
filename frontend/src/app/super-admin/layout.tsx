@@ -56,14 +56,14 @@ export default function SuperAdminLayout({
   const SidebarContent = () => (
     <div className="flex flex-col h-full bg-slate-900 border-r border-slate-800/80">
       {/* Brand Header */}
-      <div className="p-6 border-b border-slate-800 flex items-center justify-between">
+      <div className="p-4 border-b border-slate-800 flex items-center justify-between">
         <div className="flex items-center space-x-3">
           <div className="w-10 h-10 rounded-2xl from-purple-600 via-indigo-500 to-amber-400 flex items-center justify-center shadow-lg ">
             <Crown className="w-5 h-5 text-white" />
           </div>
 
           <div>
-            <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-1">
               <span className="text-xs font-black tracking-widest text-white uppercase">
                 SUPER ADMIN
               </span>
@@ -107,7 +107,7 @@ export default function SuperAdminLayout({
               href={href}
               onClick={() => setSidebarOpen(false)}
               className={`flex items-start gap-3 px-3.5 py-2.5 rounded-xl transition-all duration-200 active:scale-95 ${isActive
-                ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-bold shadow-lg shadow-purple-600/20 translate-x-1'
+                ? 'bg-gradient-to-r bg-purple-900 text-white font-bold shadow-lg shadow-purple-600/20 translate-x-1'
                 : 'text-slate-400 hover:bg-slate-800/70 hover:text-white hover:translate-x-1'
                 }`}
             >

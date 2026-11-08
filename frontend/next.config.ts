@@ -1,5 +1,9 @@
 import type { NextConfig } from "next";
 
+const backendBase =
+  process.env.BACKEND_INTERNAL_URL ||
+  (process.env.NEXT_PUBLIC_API_URL ? process.env.NEXT_PUBLIC_API_URL.replace(/\/api\/?$/, '') : "http://localhost:5000");
+
 const nextConfig: NextConfig = {
   /* config options here */
   cacheComponents: true,
@@ -16,11 +20,11 @@ const nextConfig: NextConfig = {
     return [
       {
         source: "/api/:path*",
-        destination: "https://pmbmuliaanks-d6zz.vercel.app/api/:path*",
+        destination: `${backendBase}/api/:path*`,
       },
       {
         source: "/uploads/:path*",
-        destination: "http://localhost:5000/uploads/:path*",
+        destination: `${backendBase}/uploads/:path*`,
       },
     ];
   },

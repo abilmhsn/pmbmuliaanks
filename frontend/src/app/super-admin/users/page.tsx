@@ -164,10 +164,10 @@ export default function SuperAdminUsersPage() {
   return (
     <div className="space-y-6 max-w-7xl mx-auto pb-12">
       {/* Top Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex p-4 rounded-2xl bg-slate-900 flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-xl sm:text-2xl font-black text-white tracking-tight flex items-center gap-2.5">
-            <Users className="w-6 h-6 text-purple-400" />
+
             <span>Manajemen Tim & Hak Akses Pengguna</span>
           </h1>
           <p className="text-xs text-slate-400 mt-1">
@@ -185,7 +185,7 @@ export default function SuperAdminUsersPage() {
       </div>
 
       {/* Filter and Search Bar */}
-      <div className="bg-slate-900/90 border border-slate-800 p-4 rounded-2xl flex flex-col md:flex-row items-center justify-between gap-4">
+      <div className="bg-slate-900 border border-slate-800 p-4 rounded-2xl flex flex-col md:flex-row items-center justify-between gap-4">
         {/* Role Tabs */}
         <div className="flex flex-wrap items-center gap-1.5 p-1 bg-slate-950/80 rounded-xl border border-slate-800 w-full md:w-auto">
           {[
@@ -198,8 +198,8 @@ export default function SuperAdminUsersPage() {
               key={tab.id}
               onClick={() => setSelectedRole(tab.id as any)}
               className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${selectedRole === tab.id
-                  ? 'bg-purple-600 text-white shadow-md shadow-purple-600/20'
-                  : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
+                ? 'bg-purple-600 text-white shadow-md shadow-purple-600/20'
+                : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
                 }`}
             >
               {tab.label}
@@ -230,7 +230,7 @@ export default function SuperAdminUsersPage() {
       </div>
 
       {/* Users Table */}
-      <div className="bg-slate-900/90 border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
+      <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
             <thead className="bg-slate-950/80 text-slate-400 font-bold uppercase tracking-wider text-[10px] border-b border-slate-800">
@@ -269,10 +269,10 @@ export default function SuperAdminUsersPage() {
                         <div className="flex items-center gap-3">
                           <div
                             className={`w-9 h-9 rounded-xl flex items-center justify-center font-bold text-xs flex-shrink-0 ${u.role === 'SUPER_ADMIN'
-                                ? 'bg-purple-500/20 text-purple-300 border border-purple-500/30'
-                                : u.role === 'ADMIN'
-                                  ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
-                                  : 'bg-sky-500/20 text-sky-300 border border-sky-500/30'
+                              ? 'bg-purple-500/20 text-purple-300 border border-purple-500/30'
+                              : u.role === 'ADMIN'
+                                ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
+                                : 'bg-sky-500/20 text-sky-300 border border-sky-500/30'
                               }`}
                           >
                             {u.role === 'SUPER_ADMIN' ? (
@@ -304,10 +304,10 @@ export default function SuperAdminUsersPage() {
                       <td className="py-3 px-4">
                         <span
                           className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase ${u.role === 'SUPER_ADMIN'
-                              ? 'bg-purple-500/20 text-purple-300 border border-purple-500/40'
-                              : u.role === 'ADMIN'
-                                ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
-                                : 'bg-sky-500/20 text-sky-300 border border-sky-500/40'
+                            ? 'bg-purple-500/20 text-purple-300 border border-purple-500/40'
+                            : u.role === 'ADMIN'
+                              ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
+                              : 'bg-sky-500/20 text-sky-300 border border-sky-500/40'
                             }`}
                         >
                           {u.role}
@@ -453,8 +453,8 @@ export default function SuperAdminUsersPage() {
                     type="button"
                     onClick={() => setCreateForm({ ...createForm, role: 'ADMIN' })}
                     className={`p-3 rounded-xl border text-left transition-all ${createForm.role === 'ADMIN'
-                        ? 'bg-amber-500/10 border-amber-500/40 text-amber-300'
-                        : 'bg-slate-950 border-slate-800 text-slate-400'
+                      ? 'bg-amber-500/10 border-amber-500/40 text-amber-300'
+                      : 'bg-slate-950 border-slate-800 text-slate-400'
                       }`}
                   >
                     <div className="font-bold text-xs">Admin Panitia</div>
@@ -464,8 +464,8 @@ export default function SuperAdminUsersPage() {
                     type="button"
                     onClick={() => setCreateForm({ ...createForm, role: 'SUPER_ADMIN' })}
                     className={`p-3 rounded-xl border text-left transition-all ${createForm.role === 'SUPER_ADMIN'
-                        ? 'bg-purple-500/10 border-purple-500/40 text-purple-300'
-                        : 'bg-slate-950 border-slate-800 text-slate-400'
+                      ? 'bg-purple-500/10 border-purple-500/40 text-purple-300'
+                      : 'bg-slate-950 border-slate-800 text-slate-400'
                       }`}
                   >
                     <div className="font-bold text-xs">Super Admin</div>
@@ -527,8 +527,8 @@ export default function SuperAdminUsersPage() {
                   type="button"
                   onClick={() => setNewRoleSelect(opt.role as any)}
                   className={`w-full p-3.5 rounded-xl border text-left transition-all ${newRoleSelect === opt.role
-                      ? 'bg-purple-600/10 border-purple-500 text-purple-200'
-                      : 'bg-slate-950 border-slate-800 text-slate-400 hover:border-slate-700'
+                    ? 'bg-purple-600/10 border-purple-500 text-purple-200'
+                    : 'bg-slate-950 border-slate-800 text-slate-400 hover:border-slate-700'
                     }`}
                 >
                   <div className="flex items-center justify-between">

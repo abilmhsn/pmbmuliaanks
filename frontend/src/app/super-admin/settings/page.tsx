@@ -86,7 +86,7 @@ export default function SuperAdminSettingsPage() {
   return (
     <div className="space-y-8 max-w-5xl mx-auto pb-12">
       {/* Top Header */}
-      <div className="flex p-4 bg-slate-900 rounded-xl flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex p-6 bg-slate-900 rounded-xl flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-xl sm:text-2xl font-black text-white tracking-tight flex items-center gap-2.5">
 
@@ -168,7 +168,7 @@ export default function SuperAdminSettingsPage() {
         </div>
 
         {/* SECTION 2: Rekening & Biaya Pendaftaran */}
-        <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-6">
+        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6">
           <div className="flex items-center gap-2.5 mb-2">
             <CreditCard className="w-5 h-5 text-emerald-400" />
             <h2 className="text-sm font-bold text-white uppercase tracking-wider">
@@ -229,7 +229,7 @@ export default function SuperAdminSettingsPage() {
               </label>
               <input
                 type="text"
-                placeholder="Yayasan Mulia Angkasa Akademi"
+                placeholder="Mulia Angkasa Akademi"
                 value={form.PAYMENT_ACCOUNT_HOLDER}
                 onChange={(e) => setForm({ ...form, PAYMENT_ACCOUNT_HOLDER: e.target.value })}
                 className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-700 rounded-xl text-xs text-white focus:outline-none focus:border-emerald-500"
@@ -239,7 +239,7 @@ export default function SuperAdminSettingsPage() {
         </div>
 
         {/* SECTION 3: Komunikasi & Helpdesk */}
-        <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-6">
+        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6">
           <div className="flex items-center gap-2.5 mb-2">
             <Phone className="w-5 h-5 text-indigo-400" />
             <h2 className="text-sm font-bold text-white uppercase tracking-wider">
@@ -290,7 +290,7 @@ export default function SuperAdminSettingsPage() {
           <button
             type="submit"
             disabled={saving}
-            className="flex items-center gap-2 px-6 py-3 rounded-2xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold text-xs shadow-lg shadow-purple-600/20 active:scale-95 disabled:opacity-50 transition-all"
+            className="flex items-center gap-2 px-6 py-3 rounded-2xl bg-purple-900  hover-slate-800 text-white font-bold text-xs shadow-lg shadow-purple-600/20 active:scale-95 disabled:opacity-50 transition-all"
           >
             <Save className="w-4 h-4" />
             <span>{saving ? 'Menyimpan Perubahan...' : 'Simpan Semua Pengaturan'}</span>
@@ -299,7 +299,7 @@ export default function SuperAdminSettingsPage() {
       </form>
 
       {/* SECTION 4: Pemeliharaan Darurat / Maintenance (Danger Zone) */}
-      <div className="bg-rose-950/20 border border-rose-500/30 rounded-2xl p-6">
+      <div className="bg-slate-900 border border-rose-500/30 rounded-2xl p-6">
         <div className="flex items-center gap-2.5 mb-2">
           <AlertTriangle className="w-5 h-5 text-rose-400" />
           <h2 className="text-sm font-bold text-rose-300 uppercase tracking-wider">

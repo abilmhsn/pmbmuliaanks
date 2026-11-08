@@ -678,7 +678,7 @@ export default function StudentDashboard() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="px-6 py-3 bg-sky-600 hover:bg-sky-700 text-white font-bold text-sm rounded-full shadow shadow-sky-600/30 flex items-center gap-2"
+                  className="px-6 py-3 bg-slate-900 hover:bg-slate-800 text-white font-bold text-sm rounded-full shadow shadow-sky-600/30 flex items-center gap-2"
                 >
                   {loading ? 'Menyimpan...' : 'Simpan & Lanjut Pilihan Prodi'}
                   <ChevronRight className="w-4 h-4" />
@@ -730,7 +730,7 @@ export default function StudentDashboard() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="px-6 py-3 bg-sky-600 hover:bg-sky-700 text-white font-bold text-sm rounded-full shadow shadow-sky-600/30 flex items-center gap-2"
+                  className="px-6 py-3 bg-slate-900 hover:bg-slate-800 text-white font-bold text-sm rounded-full shadow shadow-sky-600/30 flex items-center gap-2"
                 >
                   {loading ? 'Menyimpan...' : 'Simpan & Lanjut Upload Dokumen'}
                   <ChevronRight className="w-4 h-4" />

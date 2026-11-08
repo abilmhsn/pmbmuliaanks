@@ -53,19 +53,28 @@ export default function LandingPage() {
   }, [isAutoPlaying]);
 
   useEffect(() => {
+    let isMounted = true;
     const fetchData = async () => {
       try {
-        const [progRes, annRes] = await Promise.all([
+        const [progRes, annRes] = await Promise.allSettled([
           api.get('/study-programs'),
           api.get('/announcements'),
         ]);
-        setPrograms(progRes.data);
-        setAnnouncements(annRes.data);
+        if (!isMounted) return;
+        if (progRes.status === 'fulfilled' && progRes.value?.data) {
+          setPrograms(progRes.value.data);
+        }
+        if (annRes.status === 'fulfilled' && annRes.value?.data) {
+          setAnnouncements(annRes.value.data);
+        }
       } catch (err) {
-        console.error('Error fetching public landing data:', err);
+        console.warn('Error fetching public landing data:', err);
       }
     };
     fetchData();
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   const faqs = [
