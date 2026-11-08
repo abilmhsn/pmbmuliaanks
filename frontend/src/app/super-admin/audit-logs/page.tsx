@@ -128,14 +128,14 @@ export default function SuperAdminAuditLogsPage() {
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto pb-12">
-
       {/* Top Header */}
-      <div className="flex p-6 bg-slate-900 rounded-xl flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 sm:p-6 bg-slate-900 rounded-2xl border border-slate-800 shadow-xl">
         <div>
           <h1 className="text-xl sm:text-2xl font-black text-white tracking-tight flex items-center gap-2.5">
+            <Activity className="w-6 h-6 text-purple-400 flex-shrink-0" />
             <span>Audit Log & Integritas Aktivitas Sistem</span>
           </h1>
-          <p className="text-xs text-slate-400 mt-1">
+          <p className="text-xs text-slate-400 mt-1 leading-relaxed">
             Rekam jejak setiap aksi krusial: verifikasi berkas, validasi pembayaran pendaftaran,
             perubahan kelulusan, dan pengelolaan akun.
           </p>
@@ -143,7 +143,7 @@ export default function SuperAdminAuditLogsPage() {
 
         <button
           onClick={fetchLogs}
-          className="flex items-center gap-2 px-3.5 py-2 rounded-2xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-xs font-bold transition-all w-fit"
+          className="w-full sm:w-auto justify-center flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-xs font-bold transition-all whitespace-nowrap"
         >
           <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin text-purple-400' : ''}`} />
           <span>Segarkan Log</span>
@@ -151,7 +151,7 @@ export default function SuperAdminAuditLogsPage() {
       </div>
 
       {/* Filter and Search Bar */}
-      <div className="bg-slate-900 border border-slate-800 p-4 rounded-2xl flex flex-col md:flex-row items-center justify-between gap-4">
+      <div className="bg-slate-900 border border-slate-800 p-3 sm:p-4 rounded-2xl flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 sm:gap-4">
         {/* Filter Action Dropdown */}
         <div className="flex items-center gap-2 w-full md:w-auto">
           <Filter className="w-4 h-4 text-purple-400 flex-shrink-0" />
@@ -189,7 +189,8 @@ export default function SuperAdminAuditLogsPage() {
 
       {/* Logs Table / List */}
       <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
-        <div className="overflow-x-auto">
+        {/* Desktop Table View */}
+        <div className="hidden md:block overflow-x-auto">
           <table className="w-full text-left text-xs">
             <thead className="bg-slate-950/80 text-slate-400 font-bold uppercase tracking-wider text-[10px] border-b border-slate-800">
               <tr>
@@ -277,6 +278,59 @@ export default function SuperAdminAuditLogsPage() {
               )}
             </tbody>
           </table>
+        </div>
+
+        {/* Mobile Cards View */}
+        <div className="md:hidden divide-y divide-slate-800/60">
+          {loading ? (
+            <div className="py-12 text-center text-slate-500">
+              <div className="flex flex-col items-center gap-2">
+                <div className="w-6 h-6 border-2 border-purple-500 border-t-transparent rounded-full animate-spin" />
+                <span className="text-xs">Memuat riwayat audit...</span>
+              </div>
+            </div>
+          ) : filteredLogs.length === 0 ? (
+            <div className="py-12 text-center text-xs text-slate-500">
+              Tidak ada catatan aktivitas audit yang sesuai.
+            </div>
+          ) : (
+            filteredLogs.map((log) => {
+              const badge = getActionBadge(log.action);
+              const Icon = badge.icon;
+              return (
+                <div key={log.id} className="p-4 space-y-2.5">
+                  <div className="flex items-start justify-between gap-2">
+                    <span
+                      className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold border ${badge.className}`}
+                    >
+                      <Icon className="w-3 h-3" />
+                      <span>{badge.label}</span>
+                    </span>
+                    <span className="text-[10px] text-slate-400 text-right flex-shrink-0">
+                      {new Date(log.createdAt).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}, {new Date(log.createdAt).toLocaleDateString('id-ID', { day: '2-digit', month: 'short' })}
+                    </span>
+                  </div>
+
+                  {log.target && (
+                    <div className="text-xs font-semibold text-white">
+                      Target: <span className="text-purple-300">{log.target}</span>
+                    </div>
+                  )}
+
+                  {log.details && (
+                    <p className="text-[11px] text-slate-300 bg-slate-950/60 p-2.5 rounded-xl border border-slate-800/80 leading-relaxed">
+                      {log.details}
+                    </p>
+                  )}
+
+                  <div className="text-[10px] text-slate-400 flex items-center justify-between pt-1">
+                    <span>Oleh: <strong className="text-slate-200">{log.userEmail || 'Sistem'}</strong></span>
+                    <span className="px-1.5 py-0.5 rounded bg-slate-800 text-slate-300 font-semibold">{log.user?.role || 'SYSTEM'}</span>
+                  </div>
+                </div>
+              );
+            })
+          )}
         </div>
       </div>
     </div>

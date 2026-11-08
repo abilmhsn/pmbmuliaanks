@@ -198,14 +198,14 @@ export default function SuperAdminLayout({
 
         {/* Mobile Drawer */}
         <aside
-          className={`fixed top-0 left-0 h-full w-72 bg-slate-900 text-white flex flex-col z-50 shadow-2xl transition-transform duration-300 ease-in-out md:hidden ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+          className={`fixed top-0 left-0 h-full w-72 max-w-[85vw] bg-slate-900 text-white flex flex-col z-50 shadow-2xl transition-transform duration-300 ease-in-out md:hidden ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'
             }`}
         >
           <SidebarContent />
         </aside>
 
         {/* Content View */}
-        <main className="flex-1 p-4 sm:p-6 md:p-8 overflow-y-auto bg-slate-50">
+        <main className="flex-1 w-full min-w-0 p-3 sm:p-5 md:p-8 overflow-y-auto overflow-x-hidden bg-slate-50">
           {isLoading ? (
             <div className="min-h-[60vh] flex items-center justify-center">
               <div className="flex flex-col items-center space-y-4">

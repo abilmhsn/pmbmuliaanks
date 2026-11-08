@@ -93,33 +93,33 @@ export default function SuperAdminDashboardPage() {
   };
 
   return (
-    <div className="space-y-8 max-w-7xl mx-auto pb-12">
+    <div className="space-y-6 sm:space-y-8 max-w-7xl mx-auto pb-12">
       {/* Executive Welcome & Period Filter */}
-      <div className="flex flex-col bg-slate-900 lg:flex-row lg:items-center justify-between gap-4  from-slate-900 via-indigo-900/30 to-slate-900 p-6 rounded-3xl border border-slate-50 shadow-2xl">
+      <div className="flex flex-col bg-slate-900 lg:flex-row lg:items-center justify-between gap-4 p-4 sm:p-6 rounded-2xl sm:rounded-3xl border border-slate-800 shadow-2xl">
         <div>
-          <div className="flex items-center gap-2 mb-1.5">
+          <div className="flex flex-wrap items-center gap-2 mb-1.5">
             <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-purple-800 text-white">
               Executive PMB Console
             </span>
-            <span className="text-xs text-slate-100">Kampus Mulia Angkasa Akademi</span>
+            <span className="text-xs text-slate-300">Kampus Mulia Angkasa Akademi</span>
           </div>
-          <h1 className="text-2xl font-black text-white tracking-tight flex items-center gap-2">
+          <h1 className="text-xl sm:text-2xl font-black text-white tracking-tight flex items-center gap-2">
             Ikhtisar Eksekutif Penerimaan Mahasiswa Baru
           </h1>
-          <p className="text-xs text-slate-300 mt-1 max-w-2xl">
+          <p className="text-xs text-slate-300 mt-1 max-w-2xl leading-relaxed">
             Pantau rekapitulasi finansial pendaftaran, capaian kuota program studi penerbangan,
             integritas verifikasi panitia, dan kontrol kebijakan global sistem PMB.
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="flex items-center gap-2.5 w-full sm:w-auto">
           {/* Filter Gelombang */}
-          <div className="bg-purple-900 rounded-2xl px-3 py-1.5 flex items-center gap-1">
-            <span className="text-[11px] font-semibold text-slate-400">Gelombang:</span>
+          <div className="bg-purple-900 rounded-2xl px-3 py-2 flex items-center gap-1.5 flex-1 sm:flex-none min-w-0">
+            <span className="text-[11px] font-semibold text-purple-200 whitespace-nowrap">Gelombang:</span>
             <select
               value={selectedPeriod}
               onChange={(e) => setSelectedPeriod(e.target.value)}
-              className="bg-transparent text-xs font-bold text-white focus:outline-none cursor-pointer"
+              className="bg-transparent text-xs font-bold text-white focus:outline-none cursor-pointer w-full sm:w-auto truncate"
             >
               <option value="" className="bg-slate-900 text-white">Semua Gelombang</option>
               {periods.map((p) => (
@@ -133,7 +133,7 @@ export default function SuperAdminDashboardPage() {
           {/* Quick Refresh */}
           <button
             onClick={fetchStats}
-            className="p-2 rounded-xl bg-purple-900 hover:bg-slate-700 text-slate-100 hover:text-white transition-colors"
+            className="p-2.5 rounded-xl bg-purple-900 hover:bg-slate-700 text-slate-100 hover:text-white transition-colors flex-shrink-0"
             title="Muat ulang data"
           >
             <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin text-purple-400' : ''}`} />
@@ -142,10 +142,10 @@ export default function SuperAdminDashboardPage() {
       </div>
 
       {/* Global Status Banner & Emergency Switch */}
-      <div className="bg-slate-900 border border-slate-800 p-5 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-4">
-        <div className="flex items-center gap-4">
+      <div className="bg-slate-900 border border-slate-800 p-4 sm:p-5 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex items-start sm:items-center gap-3 sm:gap-4">
           <div
-            className={`w-12 h-12 rounded-2xl flex items-center justify-center font-bold shadow-lg ${data?.isRegistrationOpen
+            className={`w-11 h-11 sm:w-12 sm:h-12 rounded-2xl flex items-center justify-center font-bold shadow-lg flex-shrink-0 ${data?.isRegistrationOpen
               ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 shadow-emerald-500/10'
               : 'bg-rose-500/20 text-rose-400 border border-rose-500/30 shadow-rose-500/10'
               }`}
@@ -156,8 +156,8 @@ export default function SuperAdminDashboardPage() {
               <AlertTriangle className="w-5 h-5" />
             )}
           </div>
-          <div>
-            <div className="flex items-center gap-2">
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-center gap-2">
               <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">
                 Status Portal PMB Publik:
               </span>
@@ -170,7 +170,7 @@ export default function SuperAdminDashboardPage() {
                 {data?.isRegistrationOpen ? 'Terbuka Untuk Umum' : 'Ditutup Sementara'}
               </span>
             </div>
-            <p className="text-xs text-slate-400 mt-0.5">
+            <p className="text-xs text-slate-400 mt-1 leading-relaxed">
               {data?.isRegistrationOpen
                 ? 'Calon mahasiswa dapat melakukan registrasi akun baru dan memilih program studi.'
                 : 'Pendaftaran akun baru dinonaktifkan sementara. Calon mahasiswa yang sudah memiliki akun tetap dapat login.'}
@@ -181,7 +181,7 @@ export default function SuperAdminDashboardPage() {
         <button
           onClick={handleToggleRegistration}
           disabled={togglingReg || loading}
-          className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 active:scale-95 disabled:opacity-50 whitespace-nowrap ${data?.isRegistrationOpen
+          className={`w-full sm:w-auto justify-center px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 active:scale-95 disabled:opacity-50 whitespace-nowrap flex-shrink-0 ${data?.isRegistrationOpen
             ? 'bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/30'
             : 'bg-emerald-500 hover:bg-emerald-400 text-slate-950 shadow-lg shadow-emerald-500/20'
             }`}
@@ -193,24 +193,23 @@ export default function SuperAdminDashboardPage() {
 
       {/* Financial Metrics Cards */}
       <div>
-        <div className="flex items-center justify-between mb-3">
+        <div className="flex flex-wrap items-center justify-between gap-1 mb-3">
           <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2">
-
             <span>Rekapitulasi Finansial & Penerimaan PMB</span>
           </h2>
-          <span className="text-[11px] text-slate-900">Otomatis dari verifikasi pembayaran</span>
+          <span className="text-[11px] text-slate-500">Otomatis dari verifikasi pembayaran</span>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
           {/* Card 1: Uang Formulir Masuk */}
-          <div className="bg-slate-900 border border-slate-800 p-5 rounded-2xl relative overflow-hidden group hover:border-emerald-500/40 transition-all">
+          <div className="bg-slate-900 border border-slate-800 p-4 sm:p-5 rounded-2xl relative overflow-hidden group hover:border-emerald-500/40 transition-all">
             <div className="flex items-center justify-between">
               <span className="text-xs font-bold text-slate-400">Kas Masuk (Formulir)</span>
               <div className="w-8 h-8 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center">
                 <CheckCircle2 className="w-4 h-4" />
               </div>
             </div>
-            <div className="mt-3 text-xl font-black text-emerald-400">
+            <div className="mt-3 text-lg sm:text-xl font-black text-emerald-400 break-words">
               {formatRupiah(data?.financialMetrics?.verifiedAmount)}
             </div>
             <p className="text-[11px] text-slate-500 mt-1">
@@ -219,14 +218,14 @@ export default function SuperAdminDashboardPage() {
           </div>
 
           {/* Card 2: Uang Formulir Tertunda */}
-          <div className="bg-slate-900 border border-slate-800 p-5 rounded-2xl relative overflow-hidden group hover:border-amber-500/40 transition-all">
+          <div className="bg-slate-900 border border-slate-800 p-4 sm:p-5 rounded-2xl relative overflow-hidden group hover:border-amber-500/40 transition-all">
             <div className="flex items-center justify-between">
               <span className="text-xs font-bold text-slate-400">Tertunda (Menunggu)</span>
               <div className="w-8 h-8 rounded-xl bg-amber-500/10 text-amber-400 flex items-center justify-center">
                 <Clock className="w-4 h-4" />
               </div>
             </div>
-            <div className="mt-3 text-xl font-black text-amber-300">
+            <div className="mt-3 text-lg sm:text-xl font-black text-amber-300 break-words">
               {formatRupiah(data?.financialMetrics?.pendingAmount)}
             </div>
             <p className="text-[11px] text-slate-500 mt-1">
@@ -235,14 +234,14 @@ export default function SuperAdminDashboardPage() {
           </div>
 
           {/* Card 3: Potensi SPP Mahasiswa Diterima */}
-          <div className="bg-slate-900 border border-slate-800 p-5 rounded-2xl relative overflow-hidden group hover:border-purple-500/40 transition-all">
+          <div className="bg-slate-900 border border-slate-800 p-4 sm:p-5 rounded-2xl relative overflow-hidden group hover:border-purple-500/40 transition-all">
             <div className="flex items-center justify-between">
               <span className="text-xs font-bold text-slate-400">Potensi SPP Akademi</span>
               <div className="w-8 h-8 rounded-xl bg-purple-500/10 text-purple-400 flex items-center justify-center">
                 <GraduationCap className="w-4 h-4" />
               </div>
             </div>
-            <div className="mt-3 text-xl font-black text-purple-300">
+            <div className="mt-3 text-lg sm:text-xl font-black text-purple-300 break-words">
               {formatRupiah(data?.financialMetrics?.totalPotentialTuition)}
             </div>
             <p className="text-[11px] text-slate-500 mt-1">
@@ -251,14 +250,14 @@ export default function SuperAdminDashboardPage() {
           </div>
 
           {/* Card 4: Total Calon Mahasiswa */}
-          <div className="bg-slate-900 border border-slate-800 p-5 rounded-2xl relative overflow-hidden group hover:border-sky-500/40 transition-all">
+          <div className="bg-slate-900 border border-slate-800 p-4 sm:p-5 rounded-2xl relative overflow-hidden group hover:border-sky-500/40 transition-all">
             <div className="flex items-center justify-between">
               <span className="text-xs font-bold text-slate-400">Total Pendaftar PMB</span>
               <div className="w-8 h-8 rounded-xl bg-sky-500/10 text-sky-400 flex items-center justify-center">
                 <Users className="w-4 h-4" />
               </div>
             </div>
-            <div className="mt-3 text-2xl font-black text-sky-400">
+            <div className="mt-3 text-xl sm:text-2xl font-black text-sky-400">
               {data?.applicantMetrics?.totalApplicants || 0}
             </div>
             <p className="text-[11px] text-slate-500 mt-1">
@@ -271,8 +270,8 @@ export default function SuperAdminDashboardPage() {
       {/* Program Studi Quota Fulfillment & User Demographics */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left 2 Cols: Kuota Prodi Penerbangan */}
-        <div className="lg:col-span-2 bg-slate-900 border border-slate-800 rounded-2xl p-6">
-          <div className="flex items-center justify-between mb-4">
+        <div className="lg:col-span-2 bg-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-6">
+          <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
             <div>
               <h3 className="text-sm font-bold text-white flex items-center gap-2">
                 <Building className="w-4 h-4 text-purple-400" />
@@ -291,31 +290,31 @@ export default function SuperAdminDashboardPage() {
             </Link>
           </div>
 
-          <div className="space-y-5">
+          <div className="space-y-4 sm:space-y-5">
             {data?.programFulfillment?.map((prog: any) => (
               <div
                 key={prog.id}
-                className="p-4 rounded-xl bg-slate-800/40 border border-slate-800 hover:border-slate-700 transition-all"
+                className="p-3.5 sm:p-4 rounded-xl bg-slate-800/40 border border-slate-800 hover:border-slate-700 transition-all"
               >
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2.5">
-                  <div>
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 sm:gap-2 mb-2.5">
+                  <div className="min-w-0">
                     <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 mr-2">
                       {prog.code}
                     </span>
                     <span className="text-xs font-bold text-slate-100">{prog.name}</span>
                   </div>
-                  <div className="text-right">
+                  <div className="text-left sm:text-right flex items-center sm:justify-end gap-1.5">
                     <span className="text-xs font-extrabold text-white">
                       {prog.acceptedCount} / {prog.quota} Siswa
                     </span>
-                    <span className="text-[11px] text-purple-400 font-bold ml-2">
+                    <span className="text-[11px] text-purple-400 font-bold">
                       ({prog.percentageFilled}%)
                     </span>
                   </div>
                 </div>
 
                 {/* Progress bar */}
-                <div className="w-full h-2.5 bg-slate-50 rounded-full overflow-hidden">
+                <div className="w-full h-2.5 bg-slate-800 rounded-full overflow-hidden">
                   <div
                     className={`h-full rounded-full transition-all duration-500 ${prog.percentageFilled >= 90
                       ? 'bg-rose-500'
@@ -327,14 +326,14 @@ export default function SuperAdminDashboardPage() {
                   />
                 </div>
 
-                <div className="flex flex-wrap items-center justify-between text-[11px] text-slate-400 mt-2.5 pt-2 border-t border-slate-800/60">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-1.5 sm:gap-2 text-[11px] text-slate-400 mt-2.5 pt-2 border-t border-slate-800/60">
                   <div>
-                    Total Peminat Mendaftar: <span className="font-bold text-slate-200">{prog.totalRegistered}</span>
+                    Peminat: <span className="font-bold text-slate-200">{prog.totalRegistered}</span>
                   </div>
                   <div>
-                    Lulus Seleksi: <span className="font-bold text-emerald-400">{prog.passedCount}</span>
+                    Lulus: <span className="font-bold text-emerald-400">{prog.passedCount}</span>
                   </div>
-                  <div>
+                  <div className="sm:text-right">
                     SPP: <span className="font-bold text-slate-200">{formatRupiah(prog.tuitionFee)}</span>
                   </div>
                 </div>
@@ -344,7 +343,7 @@ export default function SuperAdminDashboardPage() {
         </div>
 
         {/* Right Col: Ekosistem Pengguna Sistem */}
-        <div className="bg-slate-900 border border-slate-50 rounded-2xl p-6 flex flex-col justify-between">
+        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-6 flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-sm font-bold text-white flex items-center gap-2">
@@ -360,25 +359,25 @@ export default function SuperAdminDashboardPage() {
             </div>
 
             <div className="space-y-3">
-              <div className="p-3.5 rounded-xl bg-purple-50 border border-purple-500/20 flex items-center justify-between">
+              <div className="p-3.5 rounded-xl bg-purple-950/40 border border-purple-500/20 flex items-center justify-between">
                 <div className="flex items-center gap-2.5">
-                  <Crown className="w-4 h-4 text-purple-800" />
+                  <Crown className="w-4 h-4 text-purple-400" />
                   <div>
-                    <div className="text-xs font-bold text-purple-800">Super Administrator</div>
-                    <div className="text-[10px] text-purple-800">Pimpinan & Administrator Sistem</div>
+                    <div className="text-xs font-bold text-purple-300">Super Administrator</div>
+                    <div className="text-[10px] text-purple-200/70">Pimpinan & Administrator Sistem</div>
                   </div>
                 </div>
-                <span className="text-lg font-black text-purple-800">
+                <span className="text-lg font-black text-purple-300">
                   {data?.userDemographic?.superAdminCount || 0}
                 </span>
               </div>
 
-              <div className="p-3.5 rounded-xl bg-white border border-amber-50 flex items-center justify-between">
+              <div className="p-3.5 rounded-xl bg-amber-950/40 border border-amber-500/20 flex items-center justify-between">
                 <div className="flex items-center gap-2.5">
-                  <ShieldCheck className="w-4 h-4 text-amber-500" />
+                  <ShieldCheck className="w-4 h-4 text-amber-400" />
                   <div>
-                    <div className="text-xs font-bold text-amber-500">Admin Panitia PMB</div>
-                    <div className="text-[10px] text-amber-300">Verifikator berkas & pembayaran</div>
+                    <div className="text-xs font-bold text-amber-300">Admin Panitia PMB</div>
+                    <div className="text-[10px] text-amber-200/70">Verifikator berkas & pembayaran</div>
                   </div>
                 </div>
                 <span className="text-lg font-black text-amber-300">
@@ -386,12 +385,12 @@ export default function SuperAdminDashboardPage() {
                 </span>
               </div>
 
-              <div className="p-3.5 rounded-xl bg-white border border-sky-500 flex items-center justify-between">
+              <div className="p-3.5 rounded-xl bg-sky-950/40 border border-sky-500/20 flex items-center justify-between">
                 <div className="flex items-center gap-2.5">
                   <Users className="w-4 h-4 text-sky-400" />
                   <div>
-                    <div className="text-xs font-bold text-sky-500">Akun Mahasiswa</div>
-                    <div className="text-[10px] text-sky-400">Pengguna portal pendaftaran</div>
+                    <div className="text-xs font-bold text-sky-300">Akun Mahasiswa</div>
+                    <div className="text-[10px] text-sky-200/70">Pengguna portal pendaftaran</div>
                   </div>
                 </div>
                 <span className="text-lg font-black text-sky-300">
@@ -416,7 +415,7 @@ export default function SuperAdminDashboardPage() {
       {/* Registration Funnel & Audit Logs */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Registration Funnel (Status Pendaftar) */}
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6">
+        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-6">
           <h3 className="text-sm font-bold text-white mb-4 flex items-center gap-2">
             <TrendingUp className="w-4 h-4 text-purple-400" />
             <span>Status Corong Seleksi PMB</span>
@@ -455,7 +454,7 @@ export default function SuperAdminDashboardPage() {
         </div>
 
         {/* Audit Trail Preview (2 Cols) */}
-        <div className="lg:col-span-2 bg-slate-900 border border-slate-800 rounded-2xl p-6">
+        <div className="lg:col-span-2 bg-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-6">
           <div className="flex items-center justify-between mb-4">
             <div>
               <h3 className="text-sm font-bold text-white flex items-center gap-2">

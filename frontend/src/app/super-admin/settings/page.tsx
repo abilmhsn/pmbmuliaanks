@@ -84,15 +84,15 @@ export default function SuperAdminSettingsPage() {
   };
 
   return (
-    <div className="space-y-8 max-w-5xl mx-auto pb-12">
+    <div className="space-y-6 sm:space-y-8 max-w-5xl mx-auto pb-12">
       {/* Top Header */}
-      <div className="flex p-6 bg-slate-900 rounded-xl flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 sm:p-6 bg-slate-900 rounded-2xl border border-slate-800 shadow-xl">
         <div>
           <h1 className="text-xl sm:text-2xl font-black text-white tracking-tight flex items-center gap-2.5">
-
+            <Settings className="w-6 h-6 text-purple-400 flex-shrink-0" />
             <span>Pengaturan Kebijakan & Sistem PMB</span>
           </h1>
-          <p className="text-xs text-slate-400 mt-1">
+          <p className="text-xs text-slate-400 mt-1 leading-relaxed">
             Konfigurasi pusat: aktivasi registrasi publik, rekening resmi kampus, biaya formulir,
             dan nomor layanan bantuan.
           </p>
@@ -100,7 +100,7 @@ export default function SuperAdminSettingsPage() {
 
         <button
           onClick={fetchSettings}
-          className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-xs font-bold transition-all w-fit"
+          className="w-full sm:w-auto justify-center flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-xs font-bold transition-all whitespace-nowrap"
         >
           <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin text-purple-400' : ''}`} />
           <span>Muat Ulang</span>
@@ -290,7 +290,7 @@ export default function SuperAdminSettingsPage() {
           <button
             type="submit"
             disabled={saving}
-            className="flex items-center gap-2 px-6 py-3 rounded-2xl bg-purple-900  hover-slate-800 text-white font-bold text-xs shadow-lg shadow-purple-600/20 active:scale-95 disabled:opacity-50 transition-all"
+            className="w-full sm:w-auto justify-center flex items-center gap-2 px-6 py-3 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs shadow-lg shadow-purple-600/20 active:scale-95 disabled:opacity-50 transition-all"
           >
             <Save className="w-4 h-4" />
             <span>{saving ? 'Menyimpan Perubahan...' : 'Simpan Semua Pengaturan'}</span>
@@ -299,14 +299,14 @@ export default function SuperAdminSettingsPage() {
       </form>
 
       {/* SECTION 4: Pemeliharaan Darurat / Maintenance (Danger Zone) */}
-      <div className="bg-slate-900 border border-rose-500/30 rounded-2xl p-6">
+      <div className="bg-slate-900 border border-rose-500/30 rounded-2xl p-4 sm:p-6">
         <div className="flex items-center gap-2.5 mb-2">
-          <AlertTriangle className="w-5 h-5 text-rose-400" />
+          <AlertTriangle className="w-5 h-5 text-rose-400 flex-shrink-0" />
           <h2 className="text-sm font-bold text-rose-300 uppercase tracking-wider">
             Zona Pemeliharaan & Data Cleanup
           </h2>
         </div>
-        <p className="text-xs text-slate-400 mb-4 max-w-2xl">
+        <p className="text-xs text-slate-400 mb-4 max-w-2xl leading-relaxed">
           Tindakan ini menghapus data sampah pendaftar secara menyeluruh dari database dan media penyimpanan berkas.
         </p>
 
@@ -321,7 +321,7 @@ export default function SuperAdminSettingsPage() {
             type="button"
             onClick={handlePurgeTrash}
             disabled={purging}
-            className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs shadow-md shadow-rose-600/20 active:scale-95 disabled:opacity-50 whitespace-nowrap transition-all"
+            className="w-full sm:w-auto justify-center flex items-center gap-2 px-4 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs shadow-md shadow-rose-600/20 active:scale-95 disabled:opacity-50 whitespace-nowrap transition-all"
           >
             <Trash2 className="w-4 h-4" />
             <span>{purging ? 'Membersihkan...' : 'Kosongkan Semua Sampah'}</span>
