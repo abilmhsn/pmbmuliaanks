@@ -194,74 +194,75 @@ export default function SuperAdminDashboardPage() {
       {/* Financial Metrics Cards */}
       <div>
         <div className="flex flex-wrap items-center justify-between gap-1 mb-3">
-          <h2 className="text-sm font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2">
+          <h2 className="text-xs sm:text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
+            <DollarSign className="w-4 h-4 text-emerald-400" />
             <span>Rekapitulasi Finansial & Penerimaan PMB</span>
           </h2>
-          <span className="text-[11px] text-slate-500">Otomatis dari verifikasi pembayaran</span>
+          <span className="text-[10px] sm:text-[11px] text-slate-400">Otomatis dari verifikasi pembayaran</span>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4">
           {/* Card 1: Uang Formulir Masuk */}
-          <div className="bg-slate-900 border border-slate-800 p-4 sm:p-5 rounded-2xl relative overflow-hidden group hover:border-emerald-500/40 transition-all">
+          <div className="bg-slate-900 border border-slate-800 p-3.5 sm:p-5 rounded-2xl relative overflow-hidden group hover:border-emerald-500/40 transition-all flex flex-col justify-between">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-slate-400">Kas Masuk (Formulir)</span>
-              <div className="w-8 h-8 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center">
-                <CheckCircle2 className="w-4 h-4" />
+              <span className="text-[11px] sm:text-xs font-bold text-slate-400 truncate">Kas Formulir</span>
+              <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center flex-shrink-0">
+                <CheckCircle2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               </div>
             </div>
-            <div className="mt-3 text-lg sm:text-xl font-black text-emerald-400 break-words">
+            <div className="mt-2.5 sm:mt-3 text-sm sm:text-xl font-black text-emerald-400 truncate">
               {formatRupiah(data?.financialMetrics?.verifiedAmount)}
             </div>
-            <p className="text-[11px] text-slate-500 mt-1">
-              Dari <span className="font-bold text-slate-300">{data?.financialMetrics?.verifiedCount || 0}</span> pembayaran diverifikasi
+            <p className="text-[10px] sm:text-[11px] text-slate-500 mt-1 truncate">
+              <span className="font-bold text-slate-300">{data?.financialMetrics?.verifiedCount || 0}</span> lunas
             </p>
           </div>
 
           {/* Card 2: Uang Formulir Tertunda */}
-          <div className="bg-slate-900 border border-slate-800 p-4 sm:p-5 rounded-2xl relative overflow-hidden group hover:border-amber-500/40 transition-all">
+          <div className="bg-slate-900 border border-slate-800 p-3.5 sm:p-5 rounded-2xl relative overflow-hidden group hover:border-amber-500/40 transition-all flex flex-col justify-between">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-slate-400">Tertunda (Menunggu)</span>
-              <div className="w-8 h-8 rounded-xl bg-amber-500/10 text-amber-400 flex items-center justify-center">
-                <Clock className="w-4 h-4" />
+              <span className="text-[11px] sm:text-xs font-bold text-slate-400 truncate">Tertunda</span>
+              <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-amber-500/10 text-amber-400 flex items-center justify-center flex-shrink-0">
+                <Clock className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               </div>
             </div>
-            <div className="mt-3 text-lg sm:text-xl font-black text-amber-300 break-words">
+            <div className="mt-2.5 sm:mt-3 text-sm sm:text-xl font-black text-amber-300 truncate">
               {formatRupiah(data?.financialMetrics?.pendingAmount)}
             </div>
-            <p className="text-[11px] text-slate-500 mt-1">
-              <span className="font-bold text-amber-300">{data?.financialMetrics?.pendingCount || 0}</span> bukti transfer belum divalidasi
+            <p className="text-[10px] sm:text-[11px] text-slate-500 mt-1 truncate">
+              <span className="font-bold text-amber-300">{data?.financialMetrics?.pendingCount || 0}</span> transfer pending
             </p>
           </div>
 
           {/* Card 3: Potensi SPP Mahasiswa Diterima */}
-          <div className="bg-slate-900 border border-slate-800 p-4 sm:p-5 rounded-2xl relative overflow-hidden group hover:border-purple-500/40 transition-all">
+          <div className="bg-slate-900 border border-slate-800 p-3.5 sm:p-5 rounded-2xl relative overflow-hidden group hover:border-purple-500/40 transition-all flex flex-col justify-between">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-slate-400">Potensi SPP Akademi</span>
-              <div className="w-8 h-8 rounded-xl bg-purple-500/10 text-purple-400 flex items-center justify-center">
-                <GraduationCap className="w-4 h-4" />
+              <span className="text-[11px] sm:text-xs font-bold text-slate-400 truncate">Potensi SPP</span>
+              <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-purple-500/10 text-purple-400 flex items-center justify-center flex-shrink-0">
+                <GraduationCap className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               </div>
             </div>
-            <div className="mt-3 text-lg sm:text-xl font-black text-purple-300 break-words">
+            <div className="mt-2.5 sm:mt-3 text-sm sm:text-xl font-black text-purple-300 truncate">
               {formatRupiah(data?.financialMetrics?.totalPotentialTuition)}
             </div>
-            <p className="text-[11px] text-slate-500 mt-1">
-              Estimasi mahasiswa diterima & daftar ulang
+            <p className="text-[10px] sm:text-[11px] text-slate-500 mt-1 truncate">
+              Estimasi daftar ulang
             </p>
           </div>
 
           {/* Card 4: Total Calon Mahasiswa */}
-          <div className="bg-slate-900 border border-slate-800 p-4 sm:p-5 rounded-2xl relative overflow-hidden group hover:border-sky-500/40 transition-all">
+          <div className="bg-slate-900 border border-slate-800 p-3.5 sm:p-5 rounded-2xl relative overflow-hidden group hover:border-sky-500/40 transition-all flex flex-col justify-between">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-slate-400">Total Pendaftar PMB</span>
-              <div className="w-8 h-8 rounded-xl bg-sky-500/10 text-sky-400 flex items-center justify-center">
-                <Users className="w-4 h-4" />
+              <span className="text-[11px] sm:text-xs font-bold text-slate-400 truncate">Pendaftar</span>
+              <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-sky-500/10 text-sky-400 flex items-center justify-center flex-shrink-0">
+                <Users className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               </div>
             </div>
-            <div className="mt-3 text-xl sm:text-2xl font-black text-sky-400">
+            <div className="mt-2.5 sm:mt-3 text-base sm:text-2xl font-black text-sky-400">
               {data?.applicantMetrics?.totalApplicants || 0}
             </div>
-            <p className="text-[11px] text-slate-500 mt-1">
-              Calon mahasiswa aktif di database
+            <p className="text-[10px] sm:text-[11px] text-slate-500 mt-1 truncate">
+              Akun aktif di sistem
             </p>
           </div>
         </div>
@@ -326,15 +327,18 @@ export default function SuperAdminDashboardPage() {
                   />
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-1.5 sm:gap-2 text-[11px] text-slate-400 mt-2.5 pt-2 border-t border-slate-800/60">
-                  <div>
-                    Peminat: <span className="font-bold text-slate-200">{prog.totalRegistered}</span>
+                <div className="grid grid-cols-3 gap-1.5 sm:gap-2 text-[10px] sm:text-[11px] text-slate-400 mt-2.5 pt-2 border-t border-slate-800/60 text-center sm:text-left">
+                  <div className="bg-slate-900/60 p-1.5 rounded-lg border border-slate-800 sm:bg-transparent sm:p-0 sm:border-0">
+                    <span className="block text-[9px] sm:inline sm:text-[11px] text-slate-500 sm:text-slate-400">Peminat: </span>
+                    <span className="font-bold text-slate-200">{prog.totalRegistered}</span>
                   </div>
-                  <div>
-                    Lulus: <span className="font-bold text-emerald-400">{prog.passedCount}</span>
+                  <div className="bg-slate-900/60 p-1.5 rounded-lg border border-slate-800 sm:bg-transparent sm:p-0 sm:border-0">
+                    <span className="block text-[9px] sm:inline sm:text-[11px] text-slate-500 sm:text-slate-400">Lulus: </span>
+                    <span className="font-bold text-emerald-400">{prog.passedCount}</span>
                   </div>
-                  <div className="sm:text-right">
-                    SPP: <span className="font-bold text-slate-200">{formatRupiah(prog.tuitionFee)}</span>
+                  <div className="bg-slate-900/60 p-1.5 rounded-lg border border-slate-800 sm:bg-transparent sm:p-0 sm:border-0 sm:text-right">
+                    <span className="block text-[9px] sm:inline sm:text-[11px] text-slate-500 sm:text-slate-400">SPP: </span>
+                    <span className="font-bold text-slate-200 truncate">{formatRupiah(prog.tuitionFee)}</span>
                   </div>
                 </div>
               </div>

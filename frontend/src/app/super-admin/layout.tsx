@@ -155,29 +155,33 @@ export default function SuperAdminLayout({
   );
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-100 flex flex-col selection:bg-purple-500 selection:text-white">
+    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col selection:bg-purple-500 selection:text-white">
       {/* Mobile Top Bar */}
-      <header className="md:hidden flex items-center justify-between px-4 py-3 bg-slate-900 border-b border-slate-800 sticky top-0 z-40">
-        <div className="flex items-center gap-3">
+      <header className="md:hidden flex items-center justify-between px-4 py-3 bg-slate-900/95 backdrop-blur-md border-b border-slate-800 sticky top-0 z-40">
+        <div className="flex items-center gap-2.5">
           <button
             onClick={() => setSidebarOpen(true)}
-            className="p-2 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800 transition-colors"
+            className="p-2 rounded-xl text-slate-300 hover:text-white hover:bg-slate-800 transition-colors"
             aria-label="Buka navigasi"
           >
             <Menu className="w-5 h-5" />
           </button>
           <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg bg-gradient-to-tr from-purple-600 to-indigo-500 flex items-center justify-center">
+            <div className="w-7 h-7 rounded-lg bg-gradient-to-tr from-purple-600 via-indigo-500 to-amber-400 flex items-center justify-center shadow-md shadow-purple-500/20">
               <Crown className="w-4 h-4 text-white" />
             </div>
-            <span className="text-xs font-black text-white tracking-wider">SUPER ADMIN</span>
+            <div>
+              <span className="text-xs font-black text-white tracking-wider block leading-none">SUPER ADMIN</span>
+              <span className="text-[9px] text-purple-300/80 font-medium leading-none">Mulia Angkasa PMB</span>
+            </div>
           </div>
         </div>
         <Link
           href="/admin/dashboard"
-          className="px-2.5 py-1 text-[11px] font-bold rounded-lg bg-amber-400/10 text-amber-300 border border-amber-400/20"
+          className="px-2.5 py-1 text-[11px] font-bold rounded-lg bg-amber-400/10 text-amber-300 border border-amber-400/20 flex items-center gap-1 active:scale-95 transition-all"
         >
-          Panel Panitia
+          <ShieldCheck className="w-3.5 h-3.5" />
+          <span>Panitia</span>
         </Link>
       </header>
 
@@ -205,7 +209,7 @@ export default function SuperAdminLayout({
         </aside>
 
         {/* Content View */}
-        <main className="flex-1 w-full min-w-0 p-3 sm:p-5 md:p-8 overflow-y-auto overflow-x-hidden bg-slate-50">
+        <main className="flex-1 w-full min-w-0 p-3.5 sm:p-5 md:p-8 pb-24 md:pb-8 overflow-y-auto overflow-x-hidden bg-slate-950">
           {isLoading ? (
             <div className="min-h-[60vh] flex items-center justify-center">
               <div className="flex flex-col items-center space-y-4">
@@ -243,6 +247,32 @@ export default function SuperAdminLayout({
           )}
         </main>
       </div>
+
+      {/* Mobile Bottom Navigation Bar */}
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-slate-900/95 backdrop-blur-xl border-t border-slate-800/90 flex items-center justify-around px-2 py-2 shadow-2xl">
+        {navLinks.map(({ href, label, Icon }) => {
+          const isActive = pathname === href;
+          const shortLabel =
+            href.includes('dashboard') ? 'Ikhtisar' :
+            href.includes('users') ? 'Tim & Akun' :
+            href.includes('audit-logs') ? 'Audit Log' : 'Pengaturan';
+          return (
+            <Link
+              key={href}
+              href={href}
+              className={`flex flex-col items-center justify-center flex-1 py-1 rounded-xl transition-all ${isActive
+                ? 'text-purple-300 font-extrabold'
+                : 'text-slate-400 hover:text-slate-200 font-medium'
+                }`}
+            >
+              <div className={`p-1.5 rounded-xl transition-all ${isActive ? 'bg-purple-600/20 text-purple-300 border border-purple-500/30 shadow-sm' : ''}`}>
+                <Icon className={`w-4 h-4 ${isActive ? 'text-purple-300' : 'text-slate-400'}`} />
+              </div>
+              <span className="text-[10px] mt-1 tracking-tight truncate max-w-[70px]">{shortLabel}</span>
+            </Link>
+          );
+        })}
+      </nav>
     </div>
   );
 }
