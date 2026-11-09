@@ -255,8 +255,8 @@ export default function LandingPage() {
                   <div className="text-xs text-slate-400 mt-1">Mitra Maskapai & Bandara</div>
                 </div>
                 <div className="col-span-2 sm:col-span-1">
-                  <div className="text-2xl lg:text-3xl font-bold text-amber-400">Lisensi Resmi</div>
-                  <div className="text-xs text-slate-400 mt-1">Personel Bandara Certified</div>
+                  <div className="text-2xl lg:text-3xl font-bold text-amber-400">Sertifikat Resmi</div>
+                  <div className="text-xs text-slate-400 mt-1">approval dirjen perhubungan udara</div>
                 </div>
               </div>
             </motion.div>
@@ -355,15 +355,15 @@ export default function LandingPage() {
                 <div className="space-y-2.5 mb-8">
                   <div className="flex items-center gap-2.5 text-sm text-slate-700">
                     <CheckCircle2 className="w-4 h-4 text-slate-950 flex-shrink-0" />
-                    <span>Lisensi lembaga</span>
+                    <span>Sertifikat lembaga</span>
                   </div>
                   <div className="flex items-center gap-2.5 text-sm text-slate-700">
                     <CheckCircle2 className="w-4 h-4 text-slate-950 flex-shrink-0" />
-                    <span>Lisensi Awareness</span>
+                    <span>Sertifikat Awareness</span>
                   </div>
                   <div className="flex items-center gap-2.5 text-sm text-slate-700">
                     <CheckCircle2 className="w-4 h-4 text-slate-950 flex-shrink-0" />
-                    <span>Lisensi Beuty Class</span>
+                    <span>Sertifikat Beuty Class</span>
                   </div>
                   <div className="flex items-center gap-2.5 text-sm text-slate-700">
                     <CheckCircle2 className="w-4 h-4 text-slate-950 flex-shrink-0" />
@@ -402,15 +402,15 @@ export default function LandingPage() {
                 <div className="space-y-2.5 mb-8">
                   <div className="flex items-center gap-2.5 text-sm text-slate-700">
                     <CheckCircle2 className="w-4 h-4 text-amber-600 flex-shrink-0" />
-                    <span>Lisensi Lembaga</span>
+                    <span>Sertifikat Lembaga</span>
                   </div>
                   <div className="flex items-center gap-2.5 text-sm text-slate-700">
                     <CheckCircle2 className="w-4 h-4 text-amber-600 flex-shrink-0" />
-                    <span>Lisensi AVSEC</span>
+                    <span>Sertifikat AVSEC</span>
                   </div>
                   <div className="flex items-center gap-2.5 text-sm text-slate-700">
                     <CheckCircle2 className="w-4 h-4 text-amber-600 flex-shrink-0" />
-                    <span>Lisensi Beuty Class</span>
+                    <span>Sertifikat Beuty Class</span>
                   </div>
                   <div className="flex items-center gap-2.5 text-sm text-slate-700">
                     <CheckCircle2 className="w-4 h-4 text-amber-600 flex-shrink-0" />

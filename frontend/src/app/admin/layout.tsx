@@ -36,16 +36,20 @@ export default function AdminLayout({
   const SidebarContent = () => (
     <div className="flex flex-col h-full">
       {/* Header Sidebar */}
-      <div className="p-6 border-b border-slate-800/80 flex items-center justify-between">
+      <div className="p-4 border-b border-slate-800/80 flex items-center justify-between">
         <div className="flex items-center space-x-3">
-          <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-amber-500 to-amber-300 flex items-center justify-center shadow-lg shadow-amber-500/20">
-            <ShieldCheck className="w-6 h-6 text-slate-950" />
+          <div className="w-12 h-12 relative flex items-center justify-center shrink-0">
+            <img
+              src="/logo-mulia.png" // 👈 Sesuaikan dengan nama file logo kamu di dalam folder public
+              alt="Logo Admin Panel"
+              className="w-full h-full object-contain rounded-xl"
+            />
           </div>
           <div>
             <span className="text-sm font-extrabold tracking-wider text-white block leading-tight">
               ADMIN PANEL
             </span>
-            <span className="text-[10px] text-amber-400 font-semibold tracking-wide">
+            <span className="text-[10px] text-amber-50 font-semibold tracking-wide">
               PMB Mulia Angkasa
             </span>
           </div>
