@@ -13,6 +13,17 @@ import {
   Calendar,
 } from 'lucide-react';
 
+// URL Public Storage Supabase dengan Nama Bucket: pmb-documents
+const SUPABASE_STORAGE_URL =
+  'https://apuvscjcdkpoevuacnzm.supabase.co/storage/v1/object/public/pmb-documents';
+
+// Helper fungsi untuk mengubah path relatif ("documents/xxx.png" / "payments/xxx.png") jadi HTTPS Link Aktif
+const getFileUrl = (path?: string) => {
+  if (!path || path === '-' || path.trim() === '') return '#';
+  if (path.startsWith('http://') || path.startsWith('https://')) return path;
+  return `${SUPABASE_STORAGE_URL}/${path.replace(/^\//, '')}`;
+};
+
 export default function AdminApplicantsPage() {
   const [applicants, setApplicants] = useState<any[]>([]);
   const [programs, setPrograms] = useState<any[]>([]);
@@ -36,7 +47,7 @@ export default function AdminApplicantsPage() {
     fetchPrograms();
   }, []);
 
-  // Fetch Applicants dengan AbortController untuk cegah Race Condition (Tabrakan Request)
+  // Fetch Applicants dengan AbortController
   useEffect(() => {
     const controller = new AbortController();
 
@@ -72,7 +83,7 @@ export default function AdminApplicantsPage() {
     loadData();
 
     return () => {
-      controller.abort(); // Pembatalan otomatis jika filter berubah sebelum request selesai
+      controller.abort();
     };
   }, [search, statusFilter, programFilter, periodFilter, activeTab]);
 
@@ -208,27 +219,15 @@ export default function AdminApplicantsPage() {
     }
   };
 
+  // Export CSV menggunakan instance Axios api agar sesuai Base URL backend & token auth
   const handleExportCsv = async () => {
     try {
-      const token = localStorage.getItem('pmb_token');
       const urlQuery = periodFilter ? `?periodId=${periodFilter}` : '';
-      const response = await fetch(`http://localhost:5000/api/admin/export-csv${urlQuery}`, {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
+      const response = await api.get(`/admin/export-csv${urlQuery}`, {
+        responseType: 'blob',
       });
 
-      if (response.status === 401) {
-        alert('Sesi Anda telah habis, silakan login ulang.');
-        return;
-      }
-
-      if (!response.ok) {
-        throw new Error('Gagal mendownload data CSV.');
-      }
-
-      const blob = await response.blob();
+      const blob = new Blob([response.data], { type: 'text/csv' });
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
@@ -557,7 +556,7 @@ export default function AdminApplicantsPage() {
                             <td className="p-3 font-bold text-white">{doc.type}</td>
                             <td className="p-3">
                               <a
-                                href={`http://localhost:5000${doc.fileUrl}`}
+                                href={getFileUrl(doc.fileUrl)}
                                 target="_blank"
                                 rel="noreferrer"
                                 className="text-sky-400 hover:underline truncate block max-w-[150px]"
@@ -628,7 +627,7 @@ export default function AdminApplicantsPage() {
                             <td className="p-3 font-mono text-amber-400">Rp {pay.amount?.toLocaleString('id-ID')}</td>
                             <td className="p-3">
                               <a
-                                href={`http://localhost:5000${pay.proofUrl}`}
+                                href={getFileUrl(pay.proofUrl)}
                                 target="_blank"
                                 rel="noreferrer"
                                 className="text-sky-400 hover:underline font-semibold"

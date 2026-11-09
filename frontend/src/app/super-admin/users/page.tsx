@@ -187,7 +187,7 @@ export default function SuperAdminUsersPage() {
       {/* Filter and Search Bar */}
       <div className="bg-slate-900 border border-slate-800 p-3 sm:p-4 rounded-2xl flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 sm:gap-4">
         {/* Role Tabs */}
-        <div className="flex items-center gap-1.5 p-1 bg-slate-950/80 rounded-xl border border-slate-800 w-full md:w-auto overflow-x-auto no-scrollbar">
+        <div className="grid grid-cols-2 sm:flex sm:flex-wrap items-center gap-1.5 p-1 bg-slate-950/80 rounded-xl border border-slate-800 w-full md:w-auto">
           {[
             { id: 'ALL', label: 'Semua Akun' },
             { id: 'SUPER_ADMIN', label: 'Super Admin' },
@@ -197,7 +197,7 @@ export default function SuperAdminUsersPage() {
             <button
               key={tab.id}
               onClick={() => setSelectedRole(tab.id as any)}
-              className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap flex-shrink-0 ${selectedRole === tab.id
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all text-center ${selectedRole === tab.id
                 ? 'bg-purple-600 text-white shadow-md shadow-purple-600/20'
                 : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
                 }`}

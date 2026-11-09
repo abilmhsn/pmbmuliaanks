@@ -4,9 +4,7 @@ import { RegistrationStatus, PaymentStatus } from '@prisma/client';
 
 @Injectable()
 export class AdminService {
-  constructor(private prisma: PrismaService) {
-
-  }
+  constructor(private prisma: PrismaService) { }
 
   async getDashboardStats(periodId?: string) {
     const registrationFilter = periodId ? { periodId } : {};
@@ -390,30 +388,48 @@ export class AdminService {
     return deleted;
   }
 
-  // --- FUNGSI EXPORT CSV DENGAN FILTER GELOMBANG ---
+  // --- FUNGSI EXPORT CSV DENGAN LINK URL UTUH (AUTO-CLICKABLE) ---
   async exportApplicantsToCsv(periodId?: string): Promise<string> {
+    // URL Public Storage Supabase dengan Nama Bucket: pmb-documents
+    const SUPABASE_STORAGE_PUBLIC_URL =
+      'https://apuvscjcdkpoevuacnzm.supabase.co/storage/v1/object/public/pmb-documents';
+
+    // Helper untuk menyusun URL HTTPS aktif
+    const formatUrl = (path?: string) => {
+      if (!path || path === '-' || path.trim() === '') return '-';
+      if (path.startsWith('http://') || path.startsWith('https://')) return path;
+      return `${SUPABASE_STORAGE_PUBLIC_URL}/${path.replace(/^\//, '')}`;
+    };
+
     const applicants = await this.prisma.applicant.findMany({
       where: periodId ? { registrations: { some: { periodId } } } : {},
       include: {
         user: { select: { email: true } },
         personalData: true,
         educationData: true,
+        documents: true,
         registrations: {
-          include: { studyProgram: true, period: true },
+          include: {
+            studyProgram: true,
+            period: true,
+            payments: {
+              orderBy: { createdAt: 'desc' },
+            },
+          },
         },
       },
       orderBy: { createdAt: 'desc' },
-
-
-
     });
 
-    let csv = '"No. Pendaftaran","Nama Lengkap","Email","No. WhatsApp","NIK","Jenis Kelamin","Tempat, Tgl Lahir","Alamat","Asal Sekolah","NPSN","Jurusan SMA/SMK","Pilihan Prodi PMB","Gelombang","Status Pendaftaran","Tanggal Daftar"\n';
+    let csv =
+      '"No. Pendaftaran","Nama Lengkap","Email","No. WhatsApp","NIK","Jenis Kelamin","Tempat, Tgl Lahir","Alamat","Asal Sekolah","NPSN","Jurusan SMA/SMK","Pilihan Prodi PMB","Gelombang","Status Pendaftaran","Status Pembayaran","Nominal Bayar","URL Bukti Pembayaran","URL Pasfoto","URL KTP","URL Ijazah","URL Transkrip","Tanggal Daftar"\n';
 
     applicants.forEach((app) => {
       const reg = app.registrations[0];
       const p = app.personalData;
       const e = app.educationData;
+      const docs = app.documents || [];
+      const latestPayment = reg?.payments?.[0];
 
       const regNo = app.registrationNumber || '-';
       const name = app.fullName || '-';
@@ -421,27 +437,42 @@ export class AdminService {
       const phone = app.phone || '-';
       const nik = p?.nik || '-';
       const gender = p?.gender || '-';
-      const ttl = p ? `${p.birthPlace}, ${new Date(p.birthDate).toLocaleDateString('id-ID')}` : '-';
-      const address = p ? `${p.address}, ${p.city}, ${p.province}`.replace(/,/g, ' ') : '-';
+      const ttl = p
+        ? `${p.birthPlace}, ${new Date(p.birthDate).toLocaleDateString('id-ID')}`
+        : '-';
+      const address = p
+        ? `${p.address}, ${p.city}, ${p.province}`.replace(/,/g, ' ')
+        : '-';
       const school = e?.schoolName || '-';
       const npsn = e?.npsn || '-';
       const major = e?.major || '-';
       const program = reg?.studyProgram?.name || '-';
       const periodName = reg?.period?.name || '-';
       const status = reg?.status || 'BELUM_LENGKAP';
+
+      const paymentStatus = latestPayment?.status || 'BELUM_BAYAR';
+      const paymentAmount = latestPayment?.amount
+        ? `Rp ${latestPayment.amount.toLocaleString('id-ID')}`
+        : '0';
+
+      // Menggabungkan Bucket pmb-documents dengan path folder/file
+      const proofUrl = formatUrl(latestPayment?.proofUrl);
+      const fotoUrl = formatUrl(docs.find((d) => d.type === 'FOTO')?.fileUrl);
+      const ktpUrl = formatUrl(docs.find((d) => d.type === 'KTP')?.fileUrl);
+      const ijazahUrl = formatUrl(docs.find((d) => d.type === 'IJAZAH')?.fileUrl);
+      const transkripUrl = formatUrl(docs.find((d) => d.type === 'TRANSKRIP')?.fileUrl);
+
       const date = new Date(app.createdAt).toLocaleDateString('id-ID');
 
-      csv += `"${regNo}","${name}","${email}","${phone}","${nik}","${gender}","${ttl}","${address}","${school}","${npsn}","${major}","${program}","${periodName}","${status}","${date}"\n`;
+      csv += `"${regNo}","${name}","${email}","${phone}","${nik}","${gender}","${ttl}","${address}","${school}","${npsn}","${major}","${program}","${periodName}","${status}","${paymentStatus}","${paymentAmount}","${proofUrl}","${fotoUrl}","${ktpUrl}","${ijazahUrl}","${transkripUrl}","${date}"\n`;
     });
 
     return csv;
   }
-  // --- FUNGSI AMBIL LOG KERJA / AUDIT LOG ---
   async getAuditLogs() {
     return this.prisma.auditLog.findMany({
       orderBy: { createdAt: 'desc' },
-      take: 100, // Mengambil 100 riwayat aktivitas kerja terbaru
+      take: 100,
     });
   }
-
 }
