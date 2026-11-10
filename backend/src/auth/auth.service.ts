@@ -10,7 +10,7 @@ export class AuthService {
   constructor(
     private prisma: PrismaService,
     private jwtService: JwtService,
-  ) {}
+  ) { }
 
   async register(dto: RegisterDto) {
     // Check if registration is open in system settings
@@ -35,9 +35,9 @@ export class AuthService {
     // Hash password with bcrypt
     const hashedPassword = await bcrypt.hash(dto.password, 10);
 
-    // Generate unique registration number PMB-2026-XXXX
+    // Generate unique registration number PMB-2027-XXXX
     const randomNum = Math.floor(1000 + Math.random() * 9000);
-    const regNumber = `PMB-2026-${randomNum}`;
+    const regNumber = `PMB-2027-${randomNum}`;
 
     // Create user & applicant in a transaction
     const user = await this.prisma.user.create({

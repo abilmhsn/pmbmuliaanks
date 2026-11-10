@@ -32,7 +32,7 @@ export default function RegisterPage() {
           setHelpPhone(res.data.HELP_DESK_PHONE);
         }
       })
-      .catch(() => {});
+      .catch(() => { });
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -91,7 +91,7 @@ export default function RegisterPage() {
             </span>
 
             <span className="block text-[10px] font-semibold text-sky-400 tracking-wider uppercase">
-              Portal PMB 2026/2027
+              Portal PMB 2027/2028
             </span>
           </div>
         </Link>
@@ -147,96 +147,96 @@ export default function RegisterPage() {
               )}
 
               <form className="space-y-4" onSubmit={handleSubmit}>
-            <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1">
-                Nama Lengkap (Sesuai Ijazah)
-              </label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
-                  <User className="w-4 h-4" />
+                <div>
+                  <label className="block text-xs font-semibold text-slate-300 mb-1">
+                    Nama Lengkap (Sesuai Ijazah)
+                  </label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                      <User className="w-4 h-4" />
+                    </div>
+                    <input
+                      type="text"
+                      required
+                      placeholder="Contoh: Muhammad Rizky"
+                      value={formData.fullName}
+                      onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
+                      className="w-full pl-9 pr-4 py-2.5 bg-slate-900/80 border border-slate-700 rounded-xl text-sm text-white placeholder-slate-500 focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500"
+                    />
+                  </div>
                 </div>
-                <input
-                  type="text"
-                  required
-                  placeholder="Contoh: Muhammad Rizky"
-                  value={formData.fullName}
-                  onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
-                  className="w-full pl-9 pr-4 py-2.5 bg-slate-900/80 border border-slate-700 rounded-xl text-sm text-white placeholder-slate-500 focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500"
-                />
-              </div>
-            </div>
 
-            <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1">
-                Alamat Email Aktif
-              </label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
-                  <Mail className="w-4 h-4" />
+                <div>
+                  <label className="block text-xs font-semibold text-slate-300 mb-1">
+                    Alamat Email Aktif
+                  </label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                      <Mail className="w-4 h-4" />
+                    </div>
+                    <input
+                      type="email"
+                      required
+                      placeholder="nama@gmail.com"
+                      value={formData.email}
+                      onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                      className="w-full pl-9 pr-4 py-2.5 bg-slate-900/80 border border-slate-700 rounded-xl text-sm text-white placeholder-slate-500 focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500"
+                    />
+                  </div>
                 </div>
-                <input
-                  type="email"
-                  required
-                  placeholder="nama@gmail.com"
-                  value={formData.email}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  className="w-full pl-9 pr-4 py-2.5 bg-slate-900/80 border border-slate-700 rounded-xl text-sm text-white placeholder-slate-500 focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500"
-                />
-              </div>
-            </div>
 
 
 
-            <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1">
-                Password
-              </label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
-                  <Lock className="w-4 h-4" />
+                <div>
+                  <label className="block text-xs font-semibold text-slate-300 mb-1">
+                    Password
+                  </label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                      <Lock className="w-4 h-4" />
+                    </div>
+                    <input
+                      type="password"
+                      required
+                      placeholder="Minimal 6 karakter"
+                      value={formData.password}
+                      onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                      className="w-full pl-9 pr-4 py-2.5 bg-slate-900/80 border border-slate-700 rounded-xl text-sm text-white placeholder-slate-500 focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500"
+                    />
+                  </div>
                 </div>
-                <input
-                  type="password"
-                  required
-                  placeholder="Minimal 6 karakter"
-                  value={formData.password}
-                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                  className="w-full pl-9 pr-4 py-2.5 bg-slate-900/80 border border-slate-700 rounded-xl text-sm text-white placeholder-slate-500 focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500"
-                />
-              </div>
-            </div>
 
-            <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1">
-                Konfirmasi Password
-              </label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
-                  <Lock className="w-4 h-4" />
+                <div>
+                  <label className="block text-xs font-semibold text-slate-300 mb-1">
+                    Konfirmasi Password
+                  </label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                      <Lock className="w-4 h-4" />
+                    </div>
+                    <input
+                      type="password"
+                      required
+                      placeholder="Ulangi password Anda"
+                      value={formData.confirmPassword}
+                      onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
+                      className="w-full pl-9 pr-4 py-2.5 bg-slate-900/80 border border-slate-700 rounded-xl text-sm text-white placeholder-slate-500 focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500"
+                    />
+                  </div>
                 </div>
-                <input
-                  type="password"
-                  required
-                  placeholder="Ulangi password Anda"
-                  value={formData.confirmPassword}
-                  onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
-                  className="w-full pl-9 pr-4 py-2.5 bg-slate-900/80 border border-slate-700 rounded-xl text-sm text-white placeholder-slate-500 focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500"
-                />
-              </div>
-            </div>
 
-            <div className="pt-2">
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full py-3 px-4 bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold rounded-xl shadow-lg shadow-amber-400/20 hover:shadow-amber-400/30 transition-all flex items-center justify-center gap-2 text-sm disabled:opacity-50"
-              >
-                {loading ? 'Memproses Registrasi...' : 'Buat Akun Pendaftaran'}
-                <ArrowRight className="w-4 h-4" />
-              </button>
-            </div>
-          </form>
-          </>
+                <div className="pt-2">
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="w-full py-3 px-4 bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold rounded-xl shadow-lg shadow-amber-400/20 hover:shadow-amber-400/30 transition-all flex items-center justify-center gap-2 text-sm disabled:opacity-50"
+                  >
+                    {loading ? 'Memproses Registrasi...' : 'Buat Akun Pendaftaran'}
+                    <ArrowRight className="w-4 h-4" />
+                  </button>
+                </div>
+              </form>
+            </>
           )}
         </div>
       </div>

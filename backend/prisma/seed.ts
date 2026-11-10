@@ -41,7 +41,7 @@ async function main() {
     { key: 'PAYMENT_ACCOUNT_NUMBER', value: '137-00-1234567-8', description: 'Nomor Rekening Resmi Kampus' },
     { key: 'PAYMENT_ACCOUNT_HOLDER', value: 'Yayasan Mulia Angkasa Akademi', description: 'Atas Nama Rekening Kampus' },
     { key: 'HELP_DESK_PHONE', value: '081255401558', description: 'Nomor WhatsApp Helpdesk PMB' },
-    { key: 'ANNOUNCEMENT_BANNER', value: 'Pendaftaran Mahasiswa Baru Gelombang 1 TA 2026/2027 telah dibuka! Segera lengkapi berkas dan verifikasi pendaftaran.', description: 'Teks banner pengumuman atas portal calon mahasiswa' },
+    { key: 'ANNOUNCEMENT_BANNER', value: 'Pendaftaran Mahasiswa Baru Gelombang 1 TA 2027/2028 telah dibuka! Segera lengkapi berkas dan verifikasi pendaftaran.', description: 'Teks banner pengumuman atas portal calon mahasiswa' },
   ];
 
   for (const setting of defaultSettings) {
@@ -55,16 +55,16 @@ async function main() {
 
   // 2. Create Default PMB Period Gelombang 1
   const activePeriod = await prisma.pmbPeriod.upsert({
-    where: { id: 'period-2026' },
+    where: { id: 'period-2027' },
     update: {
       name: 'PMB Gelombang 1', // 👈 Update nama jika id sudah ada di DB
     },
     create: {
-      id: 'period-2026',
-      year: '2026/2027',
+      id: 'period-2027',
+      year: '2027/2028',
       name: 'PMB Gelombang 1', // 👈 Ubah teks di sini
-      startDate: new Date('2026-01-01'),
-      endDate: new Date('2026-12-31'),
+      startDate: new Date('2027-01-01'),
+      endDate: new Date('2027-12-31'),
       isActive: true,
     },
   });
@@ -78,10 +78,10 @@ async function main() {
     },
     create: {
       id: 'period-2027-wave2',
-      year: '2026/2027',
+      year: '2027/2028',
       name: 'PMB Gelombang 2',
-      startDate: new Date('2026-07-01'),
-      endDate: new Date('2026-12-31'),
+      startDate: new Date('2027-07-01'),
+      endDate: new Date('2027-12-31'),
       isActive: false,
     },
   });

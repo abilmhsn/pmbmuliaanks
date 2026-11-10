@@ -122,7 +122,6 @@ export class AdminService {
       ];
     }
 
-    // Filter berdasarkan status, prodi, atau periodId gelombang
     if (status || studyProgramId || periodId) {
       where.registrations = {
         some: {
@@ -177,7 +176,7 @@ export class AdminService {
     return applicant;
   }
 
-  // --- FUNGSI TRASH / SOFT DELETE ---
+  // --- FUNGSI TRASH / SOFT DELETE (TEKS LOG DISEDERHANAKAN) ---
   async softDeleteApplicant(id: string, currentUser?: { id?: string; email?: string }) {
     const applicant = await this.prisma.applicant.findUnique({ where: { id } });
     if (!applicant) {
@@ -196,7 +195,7 @@ export class AdminService {
           userEmail: currentUser?.email,
           action: 'TRASH_APPLICANT',
           target: `Pendaftar: ${applicant.fullName}`,
-          details: `Data pendaftar dipindahkan ke tempat sampah oleh ${currentUser?.email || 'Admin'}`,
+          details: `Dipindahkan ke tempat sampah`,
         },
       });
     } catch (e) {
@@ -241,7 +240,7 @@ export class AdminService {
           userEmail: currentUser?.email,
           action: 'RESTORE_APPLICANT',
           target: `Pendaftar: ${applicant.fullName}`,
-          details: `Data pendaftar dipulihkan dari tempat sampah oleh ${currentUser?.email || 'Admin'}`,
+          details: `Data dipulihkan dari tempat sampah`,
         },
       });
     } catch (e) {
@@ -263,6 +262,18 @@ export class AdminService {
       include: { applicant: true },
     });
 
+    const statusMap: Record<string, string> = {
+      BELUM_LENGKAP: 'Belum Lengkap',
+      MENUNGGU_VERIFIKASI: 'Menunggu Verifikasi',
+      DIVERIFIKASI: 'Diverifikasi',
+      LULUS_SELEKSI: 'Lulus Seleksi',
+      DAFTAR_ULANG: 'Daftar Ulang',
+      DITERIMA: 'Diterima Resmi',
+      DITOLAK: 'Ditolak / Tidak Lulus',
+    };
+
+    const friendlyStatus = statusMap[status] || status;
+
     try {
       await this.prisma.auditLog.create({
         data: {
@@ -270,7 +281,7 @@ export class AdminService {
           userEmail: currentUser?.email,
           action: 'STATUS_UPDATE',
           target: `Pendaftar: ${reg.applicant.fullName}`,
-          details: `Status pendaftaran diubah menjadi "${status}"${notes ? ` (Catatan: ${notes})` : ''} oleh ${currentUser?.email || 'Admin'}`,
+          details: `Status diubah ke "${friendlyStatus}"${notes ? ` (${notes})` : ''}`,
         },
       });
     } catch (e) {
@@ -309,8 +320,8 @@ export class AdminService {
           userId: currentUser?.id,
           userEmail: currentUser?.email,
           action: 'VERIFY_DOCUMENT',
-          target: `Berkas: ${doc.fileName} (${doc.type}) - ${doc.applicant.fullName}`,
-          details: `Dokumen diverifikasi sebagai "${isVerified ? 'VALID' : 'BELUM VALID'}"${notes ? ` (Catatan: ${notes})` : ''} oleh ${currentUser?.email || 'Admin'}`,
+          target: `Berkas: ${doc.type} (${doc.applicant.fullName})`,
+          details: `Berkas diverifikasi: ${isVerified ? 'VALID' : 'TIDAK VALID'}${notes ? ` (${notes})` : ''}`,
         },
       });
     } catch (e) {
@@ -343,6 +354,12 @@ export class AdminService {
       });
     }
 
+    const payStatusMap: Record<string, string> = {
+      VERIFIED: 'Lunas / Sah',
+      REJECTED: 'Ditolak',
+      PENDING: 'Menunggu Konfirmasi',
+    };
+
     try {
       const applicantName = payment.registration?.applicant?.fullName || 'Pendaftar';
       await this.prisma.auditLog.create({
@@ -350,8 +367,8 @@ export class AdminService {
           userId: currentUser?.id,
           userEmail: currentUser?.email,
           action: 'VERIFY_PAYMENT',
-          target: `Pembayaran Rp ${payment.amount} - ${applicantName}`,
-          details: `Status pembayaran diverifikasi sebagai "${status}"${notes ? ` (Catatan: ${notes})` : ''} oleh ${currentUser?.email || 'Admin'}`,
+          target: `Pembayaran (${applicantName})`,
+          details: `Status pembayaran: ${payStatusMap[status] || status}${notes ? ` (${notes})` : ''}`,
         },
       });
     } catch (e) {
@@ -378,7 +395,7 @@ export class AdminService {
           userEmail: currentUser?.email,
           action: 'PERMANENT_DELETE_APPLICANT',
           target: `Pendaftar: ${applicant.fullName}`,
-          details: `Data pendaftar dihapus secara permanen dari sistem oleh ${currentUser?.email || 'Admin'}`,
+          details: `Data dihapus permanen`,
         },
       });
     } catch (e) {
@@ -388,13 +405,11 @@ export class AdminService {
     return deleted;
   }
 
-  // --- FUNGSI EXPORT CSV DENGAN LINK URL UTUH (AUTO-CLICKABLE) ---
+  // --- FUNGSI EXPORT CSV DENGAN LINK URL UTUH ---
   async exportApplicantsToCsv(periodId?: string): Promise<string> {
-    // URL Public Storage Supabase dengan Nama Bucket: pmb-documents
     const SUPABASE_STORAGE_PUBLIC_URL =
       'https://apuvscjcdkpoevuacnzm.supabase.co/storage/v1/object/public/pmb-documents';
 
-    // Helper untuk menyusun URL HTTPS aktif
     const formatUrl = (path?: string) => {
       if (!path || path === '-' || path.trim() === '') return '-';
       if (path.startsWith('http://') || path.startsWith('https://')) return path;
@@ -455,7 +470,6 @@ export class AdminService {
         ? `Rp ${latestPayment.amount.toLocaleString('id-ID')}`
         : '0';
 
-      // Menggabungkan Bucket pmb-documents dengan path folder/file
       const proofUrl = formatUrl(latestPayment?.proofUrl);
       const fotoUrl = formatUrl(docs.find((d) => d.type === 'FOTO')?.fileUrl);
       const ktpUrl = formatUrl(docs.find((d) => d.type === 'KTP')?.fileUrl);
@@ -469,6 +483,7 @@ export class AdminService {
 
     return csv;
   }
+
   async getAuditLogs() {
     return this.prisma.auditLog.findMany({
       orderBy: { createdAt: 'desc' },

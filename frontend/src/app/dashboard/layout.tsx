@@ -59,7 +59,7 @@ export default function DashboardLayout({
           {isLoading ? 'Memuat...' : (user?.applicant?.fullName || user?.email || 'Tamu')}
         </div>
         <div className="text-[11px] font-mono text-amber-400 mt-1">
-          No: {user?.applicant?.registrationNumber || 'PMB-2026-PENDING'}
+          No: {user?.applicant?.registrationNumber || 'PMB-2027-PENDING'}
         </div>
       </div>
 
@@ -118,7 +118,7 @@ export default function DashboardLayout({
           <span className="text-sm font-bold text-white">Portal Calon Mahasiswa</span>
         </div>
         <span className="ml-auto text-[10px] font-mono text-amber-400 truncate max-w-[140px]">
-          {user?.applicant?.registrationNumber || 'PMB-2026-PENDING'}
+          {user?.applicant?.registrationNumber || 'PMB-2027-PENDING'}
         </span>
       </header>
 

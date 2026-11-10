@@ -55,6 +55,36 @@ export default function SuperAdminAuditLogsPage() {
     );
   });
 
+  // Helper untuk merapikan teks rincian perubahan yang terlalu panjang / mentah
+  const formatLogDetails = (text?: string) => {
+    if (!text) return '-';
+
+    // 1. Mengubah deretan variabel REGISTRATION_OPEN, REGISTRATION_FEE...
+    if (text.includes('REGISTRATION_OPEN') || text.includes('Diperbarui kunci:')) {
+      return 'Memperbarui pengaturan sistem global';
+    }
+
+    // 2. Merapikan teks status pendaftaran
+    let cleaned = text
+      .replace(/Status pendaftaran diubah menjadi /gi, 'Status diubah ke ')
+      .replace(/Status pembayaran diverifikasi sebagai /gi, 'Pembayaran: ')
+      .replace(/Dokumen diverifikasi sebagai /gi, 'Berkas: ')
+      .replace(/ Data pendaftar /gi, ' ')
+      .replace(/ oleh .*$/gi, ''); // Hapus kata "oleh email@domain" di akhir
+
+    // 3. Terjemahkan kata kunci status baku
+    cleaned = cleaned
+      .replace(/"LULUS_SELEKSI"/g, '"Lulus Seleksi"')
+      .replace(/"DAFTAR_ULANG"/g, '"Daftar Ulang"')
+      .replace(/"DITERIMA"/g, '"Diterima Resmi"')
+      .replace(/"DIVERIFIKASI"/g, '"Diverifikasi"')
+      .replace(/"MENUNGGU_VERIFIKASI"/g, '"Menunggu Verifikasi"')
+      .replace(/"VERIFIED"/g, '"Lunas"')
+      .replace(/"REJECTED"/g, '"Ditolak"');
+
+    return cleaned;
+  };
+
   const getActionBadge = (action: string) => {
     switch (action) {
       case 'VERIFY_PAYMENT':
@@ -155,8 +185,8 @@ export default function SuperAdminAuditLogsPage() {
       {/* Top Header */}
       <div
         className={`flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 sm:p-6 rounded-2xl border shadow-xl transition-colors ${isDark
-          ? 'bg-slate-900 border-slate-800 text-white'
-          : 'bg-white border-slate-200/80 text-slate-900 shadow-sm'
+            ? 'bg-slate-900 border-slate-800 text-white'
+            : 'bg-white border-slate-200/80 text-slate-900 shadow-sm'
           }`}
       >
         <div>
@@ -164,7 +194,6 @@ export default function SuperAdminAuditLogsPage() {
             className={`text-xl sm:text-2xl font-black tracking-tight flex items-center gap-2.5 ${isDark ? 'text-white' : 'text-slate-900'
               }`}
           >
-
             <span>Audit Log & Integritas Aktivitas Sistem</span>
           </h1>
           <p
@@ -179,8 +208,8 @@ export default function SuperAdminAuditLogsPage() {
         <button
           onClick={fetchLogs}
           className={`w-full sm:w-auto justify-center flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap border ${isDark
-            ? 'bg-slate-800 border-slate-700 hover:bg-slate-700 text-slate-300 hover:text-white'
-            : 'bg-slate-100 border-slate-200 hover:bg-slate-200 text-slate-700'
+              ? 'bg-slate-800 border-slate-700 hover:bg-slate-700 text-slate-300 hover:text-white'
+              : 'bg-slate-100 border-slate-200 hover:bg-slate-200 text-slate-700'
             }`}
         >
           <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin text-purple-500' : ''}`} />
@@ -191,8 +220,8 @@ export default function SuperAdminAuditLogsPage() {
       {/* Filter and Search Bar */}
       <div
         className={`border p-3 sm:p-4 rounded-2xl flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 sm:gap-4 transition-colors ${isDark
-          ? 'bg-slate-900 border-slate-800'
-          : 'bg-white border-slate-200/80 shadow-sm'
+            ? 'bg-slate-900 border-slate-800'
+            : 'bg-white border-slate-200/80 shadow-sm'
           }`}
       >
         {/* Filter Action Dropdown */}
@@ -202,8 +231,8 @@ export default function SuperAdminAuditLogsPage() {
             value={actionFilter}
             onChange={(e) => setActionFilter(e.target.value)}
             className={`px-3 py-2 border rounded-xl text-xs font-semibold focus:outline-none focus:border-purple-500 cursor-pointer w-full md:w-auto transition-colors ${isDark
-              ? 'bg-slate-950 border-slate-800 text-white'
-              : 'bg-slate-50 border-slate-300 text-slate-900'
+                ? 'bg-slate-950 border-slate-800 text-white'
+                : 'bg-slate-50 border-slate-300 text-slate-900'
               }`}
           >
             <option value="">Semua Jenis Tindakan</option>
@@ -232,8 +261,8 @@ export default function SuperAdminAuditLogsPage() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className={`w-full pl-9 pr-4 py-2 border rounded-xl text-xs placeholder-slate-400 focus:outline-none focus:border-purple-500 transition-colors ${isDark
-              ? 'bg-slate-950 border-slate-800 text-white'
-              : 'bg-slate-50 border-slate-200 text-slate-900'
+                ? 'bg-slate-950 border-slate-800 text-white'
+                : 'bg-slate-50 border-slate-200 text-slate-900'
               }`}
           />
         </div>
@@ -242,8 +271,8 @@ export default function SuperAdminAuditLogsPage() {
       {/* Logs Table / List */}
       <div
         className={`border rounded-2xl overflow-hidden shadow-xl transition-colors ${isDark
-          ? 'bg-slate-900 border-slate-800'
-          : 'bg-white border-slate-200/80 shadow-sm'
+            ? 'bg-slate-900 border-slate-800'
+            : 'bg-white border-slate-200/80 shadow-sm'
           }`}
       >
         {/* Desktop Table View */}
@@ -251,8 +280,8 @@ export default function SuperAdminAuditLogsPage() {
           <table className="w-full text-left text-xs">
             <thead
               className={`font-bold uppercase tracking-wider text-[10px] border-b transition-colors ${isDark
-                ? 'bg-slate-950/80 text-slate-400 border-slate-800'
-                : 'bg-slate-50 text-slate-500 border-slate-200'
+                  ? 'bg-slate-950/80 text-slate-400 border-slate-800'
+                  : 'bg-slate-50 text-slate-500 border-slate-200'
                 }`}
             >
               <tr>
@@ -351,13 +380,13 @@ export default function SuperAdminAuditLogsPage() {
                         {log.target || '-'}
                       </td>
 
-                      {/* Details */}
+                      {/* Details (Menggunakan Formatter Rapi) */}
                       <td
                         className={`py-3 px-4 max-w-md ${isDark ? 'text-slate-300' : 'text-slate-600'
                           }`}
                       >
-                        <p className="line-clamp-2 leading-relaxed text-[11px]">
-                          {log.details || '-'}
+                        <p className="leading-relaxed text-[11px] font-medium truncate">
+                          {formatLogDetails(log.details)}
                         </p>
                       </td>
                     </tr>
@@ -432,11 +461,11 @@ export default function SuperAdminAuditLogsPage() {
                   {log.details && (
                     <p
                       className={`text-[11px] p-2.5 rounded-xl border leading-relaxed transition-colors ${isDark
-                        ? 'bg-slate-950/60 border-slate-800/80 text-slate-300'
-                        : 'bg-slate-50 border-slate-200 text-slate-700'
+                          ? 'bg-slate-950/60 border-slate-800/80 text-slate-300'
+                          : 'bg-slate-50 border-slate-200 text-slate-700'
                         }`}
                     >
-                      {log.details}
+                      {formatLogDetails(log.details)}
                     </p>
                   )}
 
@@ -454,8 +483,8 @@ export default function SuperAdminAuditLogsPage() {
                     </span>
                     <span
                       className={`px-1.5 py-0.5 rounded font-semibold ${isDark
-                        ? 'bg-slate-800 text-slate-300'
-                        : 'bg-slate-200 text-slate-700'
+                          ? 'bg-slate-800 text-slate-300'
+                          : 'bg-slate-200 text-slate-700'
                         }`}
                     >
                       {log.user?.role || 'SYSTEM'}

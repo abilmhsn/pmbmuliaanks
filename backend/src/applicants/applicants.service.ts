@@ -122,10 +122,10 @@ export class ApplicantsService {
       // Fallback: create standard period if none active
       activePeriod = await this.prisma.pmbPeriod.create({
         data: {
-          year: '2026/2027',
-          name: 'PMB Gelombang I 2026/2027',
+          year: '2027/2028',
+          name: 'PMB Gelombang I 2027/2028',
           startDate: new Date(),
-          endDate: new Date('2026-12-31'),
+          endDate: new Date('2027-12-31'),
           isActive: true,
         },
       });

@@ -36,6 +36,33 @@ export default function AdminAuditLogsPage() {
         );
     });
 
+    // Helper khusus penyederhana teks rincian tanpa mengubah UI
+    const formatLogDetails = (text?: string) => {
+        if (!text) return '-';
+
+        if (text.includes('REGISTRATION_OPEN') || text.includes('Diperbarui kunci:')) {
+            return 'Memperbarui pengaturan sistem global';
+        }
+
+        let cleaned = text
+            .replace(/Status pendaftaran diubah menjadi /gi, 'Status diubah ke ')
+            .replace(/Status pembayaran diverifikasi sebagai /gi, 'Pembayaran: ')
+            .replace(/Dokumen diverifikasi sebagai /gi, 'Berkas: ')
+            .replace(/ Data pendaftar /gi, ' ')
+            .replace(/ oleh .*$/gi, '');
+
+        cleaned = cleaned
+            .replace(/"LULUS_SELEKSI"/g, '"Lulus Seleksi"')
+            .replace(/"DAFTAR_ULANG"/g, '"Daftar Ulang"')
+            .replace(/"DITERIMA"/g, '"Diterima Resmi"')
+            .replace(/"DIVERIFIKASI"/g, '"Diverifikasi"')
+            .replace(/"MENUNGGU_VERIFIKASI"/g, '"Menunggu Verifikasi"')
+            .replace(/"VERIFIED"/g, '"Lunas"')
+            .replace(/"REJECTED"/g, '"Ditolak"');
+
+        return cleaned;
+    };
+
     return (
         <div className="space-y-6 max-w-7xl mx-auto px-2 sm:px-0">
             {/* Header Banner */}
@@ -142,7 +169,7 @@ export default function AdminAuditLogsPage() {
 
                                         {/* Details */}
                                         <td className="p-4 text-slate-300 max-w-xs truncate" title={log.details}>
-                                            {log.details || '-'}
+                                            {formatLogDetails(log.details)}
                                         </td>
                                     </tr>
                                 ))

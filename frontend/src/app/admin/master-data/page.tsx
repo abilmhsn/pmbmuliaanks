@@ -224,7 +224,7 @@ export default function AdminMasterDataPage() {
                   <div key={per.id} className="p-4 bg-slate-950 rounded-xl border border-slate-800 flex justify-between items-center">
                     <div>
                       <h4 className="font-bold text-white text-sm">{per.name}</h4>
-                      <p className="text-xs text-slate-400 font-mono mt-0.5">T.A {per.year || per.academicYear || '2026/2027'}</p>
+                      <p className="text-xs text-slate-400 font-mono mt-0.5">T.A {per.year || per.academicYear || '2027/2028'}</p>
                     </div>
 
                     <div>
