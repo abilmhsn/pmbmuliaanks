@@ -40,6 +40,14 @@ export default function StudentDashboard() {
   // State untuk menampung pengumuman dari backend
   const [announcements, setAnnouncements] = useState<any[]>([]);
 
+  // State untuk menampung Pengaturan Global Bank & Biaya dari Super Admin
+  const [bankSettings, setBankSettings] = useState({
+    bankName: 'BANK NEGARA INDONESIA (BNI)',
+    accountNumber: '182 0221 226',
+    accountHolder: 'PMB Kampus Mulia Angkasa Akademi',
+    registrationFee: 250000,
+  });
+
   // Helper untuk memastikan URL berkas Supabase selalu valid dan bisa dibuka tanpa error about:blank#blocked
   const getFullDocumentUrl = (filePath?: string) => {
     if (!filePath || filePath === '-' || filePath.trim() === '') return '#';
@@ -71,21 +79,27 @@ export default function StudentDashboard() {
   });
 
   const [selectedProgramId, setSelectedProgramId] = useState('');
-  const [paymentAmount, setPaymentAmount] = useState('250000');
   const [selectedDocType, setSelectedDocType] = useState('FOTO');
   const [docFile, setDocFile] = useState<File | null>(null);
   const [paymentFile, setPaymentFile] = useState<File | null>(null);
-
+  const [paymentAmount, setPaymentAmount] = useState('250000');
   const availableCities = getCitiesByProvince(personalForm.province);
 
   useEffect(() => {
     fetchPrograms();
     fetchAnnouncements();
+    fetchSettings();
 
     if (refreshUser) {
       refreshUser();
     }
   }, []);
+
+  useEffect(() => {
+    if (bankSettings.registrationFee) {
+      setPaymentAmount(String(bankSettings.registrationFee));
+    }
+  }, [bankSettings.registrationFee]);
 
   useEffect(() => {
     const el = document.getElementById(`tab-${activeTab}`);
@@ -140,6 +154,39 @@ export default function StudentDashboard() {
       setAnnouncements(res.data);
     } catch (err) {
       console.error('Gagal memuat pengumuman:', err);
+    }
+  };
+
+  const fetchSettings = async () => {
+    try {
+      // Panggil endpoint publik yang benar
+      const res = await api.get('/super-admin/public/settings');
+
+      if (res.data) {
+        // Handle jika data berupa Object { KEY: VALUE } atau Array [{ key, value }]
+        let settingsMap: Record<string, string> = {};
+
+        if (Array.isArray(res.data)) {
+          res.data.forEach((item: any) => {
+            settingsMap[item.key] = item.value;
+          });
+        } else if (typeof res.data === 'object') {
+          settingsMap = res.data;
+        }
+
+        // Ambil nilai REGISTRATION_FEE dari DB
+        const feeRaw = settingsMap.REGISTRATION_FEE;
+        const fee = feeRaw !== undefined && feeRaw !== null && feeRaw !== '' ? Number(feeRaw) : 250000;
+
+        setBankSettings({
+          bankName: settingsMap.PAYMENT_BANK_NAME || 'Bank Mandiri',
+          accountNumber: settingsMap.PAYMENT_ACCOUNT_NUMBER || '137-00-1234567-8',
+          accountHolder: settingsMap.PAYMENT_ACCOUNT_HOLDER || 'Yayasan Mulia Angkasa Akademi',
+          registrationFee: fee,
+        });
+      }
+    } catch (err) {
+      console.error('Gagal memuat pengaturan global bank:', err);
     }
   };
 
@@ -350,12 +397,12 @@ export default function StudentDashboard() {
           <div className="flex items-center gap-3">
             <span
               className={`px-4 py-2 rounded-xl text-xs font-extrabold uppercase tracking-wider shadow ${currentStatus === 'DITERIMA' || currentStatus === 'LULUS_SELEKSI'
-                  ? 'bg-emerald-500 text-slate-950'
-                  : currentStatus === 'DIVERIFIKASI'
-                    ? 'bg-sky-500 text-white'
-                    : currentStatus === 'MENUNGGU_VERIFIKASI'
-                      ? 'bg-amber-400 text-slate-950'
-                      : 'bg-slate-700 text-slate-300'
+                ? 'bg-emerald-500 text-slate-950'
+                : currentStatus === 'DIVERIFIKASI'
+                  ? 'bg-sky-500 text-white'
+                  : currentStatus === 'MENUNGGU_VERIFIKASI'
+                    ? 'bg-amber-400 text-slate-950'
+                    : 'bg-slate-700 text-slate-300'
                 }`}
             >
               {currentStatus.replace('_', ' ')}
@@ -383,10 +430,10 @@ export default function StudentDashboard() {
                 <div
                   key={step.key}
                   className={`p-3 rounded-xl border text-center transition-all ${isCurrent
-                      ? 'bg-sky-600 border-sky-400 text-white font-bold ring-2 ring-sky-400/50'
-                      : isCompleted
-                        ? 'bg-slate-800 border-slate-700 text-sky-400 font-semibold'
-                        : 'bg-slate-950/40 border-slate-800 text-slate-500 text-xs'
+                    ? 'bg-sky-600 border-sky-400 text-white font-bold ring-2 ring-sky-400/50'
+                    : isCompleted
+                      ? 'bg-slate-800 border-slate-700 text-sky-400 font-semibold'
+                      : 'bg-slate-950/40 border-slate-800 text-slate-500 text-xs'
                     }`}
                 >
                   <div className="text-[10px] text-slate-400 uppercase font-mono">Step 0{idx + 1}</div>
@@ -402,8 +449,8 @@ export default function StudentDashboard() {
       {message.text && (
         <div
           className={`p-4 rounded-xl border text-sm font-medium flex items-center gap-3 ${message.type === 'success'
-              ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
-              : 'bg-rose-50 text-rose-800 border-rose-200'
+            ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
+            : 'bg-rose-50 text-rose-800 border-rose-200'
             }`}
         >
           {message.type === 'success' ? (
@@ -432,8 +479,8 @@ export default function StudentDashboard() {
                 type="button"
                 onClick={() => setActiveTab(tab.id as any)}
                 className={`px-4 py-3 text-xs font-bold flex items-center gap-2 rounded-xl whitespace-nowrap flex-shrink-0 transition-all ${activeTab === tab.id
-                    ? 'bg-slate-800 text-white shadow-md shadow-sky-600/30'
-                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                  ? 'bg-slate-800 text-white shadow-md shadow-sky-600/30'
+                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                   }`}
               >
                 <tab.icon className="w-4 h-4 flex-shrink-0" />
@@ -694,8 +741,8 @@ export default function StudentDashboard() {
                     key={prog.id}
                     onClick={() => setSelectedProgramId(prog.id)}
                     className={`p-6 rounded-2xl border-2 cursor-pointer transition-all flex flex-col justify-between ${selectedProgramId === prog.id
-                        ? 'border-sky-600 bg-sky-50/80 shadow-md ring-2 ring-sky-600/30'
-                        : 'border-slate-200 hover:border-slate-300 bg-white'
+                      ? 'border-sky-600 bg-sky-50/80 shadow-md ring-2 ring-sky-600/30'
+                      : 'border-slate-200 hover:border-slate-300 bg-white'
                       }`}
                   >
                     <div>
@@ -946,12 +993,15 @@ export default function StudentDashboard() {
                       </h4>
                       <div className="bg-slate-800 p-4 rounded-xl border border-slate-700 space-y-2">
                         <div className="text-xs text-slate-400">Bank Transfer:</div>
-                        <div className="text-lg font-bold text-white">BANK NEGARA INDONESIA (BNI)</div>
-                        <div className="text-2xl font-mono font-extrabold text-amber-300">182 0221 226</div>
-                        <div className="text-xs text-slate-300">a.n PMB Kampus Mulia Angkasa Akademi</div>
+                        <div className="text-lg font-bold text-white uppercase">{bankSettings.bankName}</div>
+                        <div className="text-2xl font-mono font-extrabold text-amber-300">{bankSettings.accountNumber}</div>
+                        <div className="text-xs text-slate-300">a.n {bankSettings.accountHolder}</div>
                       </div>
                       <div className="text-xs text-slate-400 leading-relaxed">
-                        Nominal Biaya Pendaftaran: <span className="font-bold text-white">Rp 3.500.000</span>.
+                        Nominal Biaya Pendaftaran:{' '}
+                        <span className="font-bold text-white">
+                          Rp {Number(bankSettings?.registrationFee || 0).toLocaleString('id-ID')}
+                        </span>.
                         Setelah melakukan pembayaran, unggah bukti transfer pada form di sebelah kanan.
                       </div>
                     </div>
@@ -969,7 +1019,7 @@ export default function StudentDashboard() {
                           required
                           value={paymentAmount}
                           onChange={(e) => setPaymentAmount(e.target.value)}
-                          className="w-full px-4 py-2.5 bg-white border border-slate-300 rounded-xl text-sm"
+                          className="w-full px-4 py-2.5 bg-white border border-slate-300 rounded-xl text-sm text-slate-900 font-semibold"
                         />
                       </div>
 

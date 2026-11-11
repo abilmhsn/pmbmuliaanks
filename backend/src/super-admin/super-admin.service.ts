@@ -10,7 +10,7 @@ import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class SuperAdminService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService) { }
 
   /**
    * Catat aktivitas penting ke audit trail
@@ -432,7 +432,7 @@ export class SuperAdminService {
   }
 
   /**
-   * Kelola Pengaturan Global Sistem PMB
+   * Kelola Pengaturan Global Sistem PMB (Untuk Admin Dashboard)
    */
   async getSettings() {
     const settings = await this.prisma.systemSetting.findMany({
@@ -495,7 +495,6 @@ export class SuperAdminService {
 
     const userIds = trashedApplicants.map((a) => a.userId);
 
-    // Hapus users (cascade akan menghapus applicant, berkas, pendaftaran)
     const result = await this.prisma.user.deleteMany({
       where: { id: { in: userIds } },
     });
@@ -515,7 +514,7 @@ export class SuperAdminService {
   }
 
   /**
-   * Public settings (untuk homepage/portal calon mahasiswa)
+   * Public settings (untuk portal calon mahasiswa)
    */
   async getPublicSettings() {
     const settings = await this.prisma.systemSetting.findMany({
@@ -534,20 +533,12 @@ export class SuperAdminService {
       },
     });
 
-    const result: Record<string, string> = {
-      REGISTRATION_OPEN: 'true',
-      REGISTRATION_FEE: '250000',
-      PAYMENT_BANK_NAME: 'Bank Mandiri',
-      PAYMENT_ACCOUNT_NUMBER: '137-00-1234567-8',
-      PAYMENT_ACCOUNT_HOLDER: 'Yayasan Mulia Angkasa Akademi',
-      HELP_DESK_PHONE: '081255401558',
-      ANNOUNCEMENT_BANNER: '',
-    };
-
+    // Transformasi Array dari Prisma menjadi Object Key-Value
+    const settingsMap: Record<string, string> = {};
     settings.forEach((s) => {
-      result[s.key] = s.value;
+      settingsMap[s.key] = s.value;
     });
 
-    return result;
+    return settingsMap;
   }
 }

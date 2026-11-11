@@ -15,14 +15,16 @@ import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { Role } from '@prisma/client';
+import { Public } from '../auth/decorators/public.decorator';
 
 @Controller('super-admin')
 export class SuperAdminController {
-  constructor(private readonly superAdminService: SuperAdminService) {}
+  constructor(private readonly superAdminService: SuperAdminService) { }
 
   /**
    * Public: Pengaturan global untuk homepage / portal
    */
+  @Public()
   @Get('public/settings')
   async getPublicSettings() {
     return this.superAdminService.getPublicSettings();
