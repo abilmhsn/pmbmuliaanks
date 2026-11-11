@@ -35,6 +35,8 @@ export default function AdminLayout({
 
   const SidebarContent = () => (
     <div className="flex flex-col h-full">
+
+
       {/* Header Sidebar */}
       <div className="p-4 border-b border-slate-800/80 flex items-center justify-between">
         <div className="flex items-center space-x-3">
@@ -124,9 +126,7 @@ export default function AdminLayout({
           <Menu className="w-5 h-5" />
         </button>
         <div className="flex items-center gap-2">
-          <div className="w-7 h-7 rounded-lg bg-gradient-to-tr from-amber-500 to-amber-300 flex items-center justify-center">
-            <ShieldCheck className="w-4 h-4 text-slate-950" />
-          </div>
+
           <span className="text-sm font-extrabold text-white tracking-wide">ADMIN PANEL</span>
         </div>
       </header>

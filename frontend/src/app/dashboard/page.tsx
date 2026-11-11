@@ -29,8 +29,6 @@ import {
   isValidCity,
 } from '@/data/indonesiaRegions';
 
-
-
 export default function StudentDashboard() {
   const { user, refreshUser } = useAuth();
   const [activeTab, setActiveTab] = useState<'personal' | 'education' | 'program' | 'documents' | 'payment'>('personal');
@@ -42,7 +40,16 @@ export default function StudentDashboard() {
   // State untuk menampung pengumuman dari backend
   const [announcements, setAnnouncements] = useState<any[]>([]);
 
+  // Helper untuk memastikan URL berkas Supabase selalu valid dan bisa dibuka tanpa error about:blank#blocked
+  const getFullDocumentUrl = (filePath?: string) => {
+    if (!filePath || filePath === '-' || filePath.trim() === '') return '#';
+    if (filePath.startsWith('http://') || filePath.startsWith('https://')) return filePath;
 
+    const SUPABASE_STORAGE_PUBLIC_URL =
+      'https://apuvscjcdkpoevuacnzm.supabase.co/storage/v1/object/public/pmb-documents';
+
+    return `${SUPABASE_STORAGE_PUBLIC_URL}/${filePath.replace(/^\//, '')}`;
+  };
 
   // Form States
   const [personalForm, setPersonalForm] = useState({
@@ -53,7 +60,7 @@ export default function StudentDashboard() {
     address: '',
     city: '',
     province: '',
-    phone: '', // 👈 Ditambahkan agar nomor WhatsApp bisa dikelola oleh state
+    phone: '',
   });
 
   const [educationForm, setEducationForm] = useState({
@@ -69,23 +76,17 @@ export default function StudentDashboard() {
   const [docFile, setDocFile] = useState<File | null>(null);
   const [paymentFile, setPaymentFile] = useState<File | null>(null);
 
-  // Daftar kota/kabupaten dinamis berdasarkan provinsi yang dipilih
   const availableCities = getCitiesByProvince(personalForm.province);
-
-
 
   useEffect(() => {
     fetchPrograms();
     fetchAnnouncements();
 
-
-    // Panggil refreshUser agar data status terbaru dari database langsung ditarik saat halaman dibuka
     if (refreshUser) {
       refreshUser();
     }
   }, []);
 
-  // Tab aktif otomatis digeser ke tengah agar tidak terpotong di layar HP
   useEffect(() => {
     const el = document.getElementById(`tab-${activeTab}`);
     el?.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
@@ -103,7 +104,7 @@ export default function StudentDashboard() {
           address: p.address || '',
           city: p.city || '',
           province: p.province || '',
-          phone: user.applicant.phone || '', // 👈 Mengambil data phone dari applicant
+          phone: user.applicant.phone || '',
         });
       }
 
@@ -133,7 +134,6 @@ export default function StudentDashboard() {
     }
   };
 
-  // Fungsi mengambil pengumuman publik dari backend
   const fetchAnnouncements = async () => {
     try {
       const res = await api.get('/announcements');
@@ -284,7 +284,7 @@ export default function StudentDashboard() {
       await refreshUser();
       setMessage({ type: 'success', text: 'Bukti pembayaran berhasil diunggah! Menunggu verifikasi admin.' });
       setPaymentFile(null);
-      setIsReuploading(false); // Reset mode re-upload setelah sukses
+      setIsReuploading(false);
     } catch (err: any) {
       setMessage({ type: 'error', text: err.response?.data?.message || 'Gagal mengunggah pembayaran.' });
     } finally {
@@ -294,11 +294,9 @@ export default function StudentDashboard() {
 
   return (
     <div className="space-y-8 max-w-6xl mx-auto w-full min-w-0">
-
       {/* SECTION PENGUMUMAN / NOTIFIKASI COMPACT */}
       {announcements.length > 0 && (
-        <div className="bg-slate-900  border-amber-500 rounded-2xl p-4 shadow-lg space-y-3">
-          {/* Header Ringkas */}
+        <div className="bg-slate-900 border-amber-500 rounded-2xl p-4 shadow-lg space-y-3">
           <div className="flex items-center justify-between pb-2 border-b border-slate-800">
             <div className="flex items-center gap-2 text-white font-bold text-xs tracking-wider">
               <Bell className="w-4 h-4 animate-pulse" />
@@ -309,7 +307,6 @@ export default function StudentDashboard() {
             </span>
           </div>
 
-          {/* List Pengumuman Ringkas & Scrollable jika banyak */}
           <div className="space-y-2 max-h-52 overflow-y-auto pr-1 custom-scrollbar">
             {announcements.map((item) => (
               <div
@@ -340,7 +337,6 @@ export default function StudentDashboard() {
         <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
           <div>
             <div className="flex items-center gap-2 text-xs text-amber-400 font-semibold mb-1">
-
               STATUS PENDAFTARAN TERKINI
             </div>
             <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white">
@@ -354,12 +350,12 @@ export default function StudentDashboard() {
           <div className="flex items-center gap-3">
             <span
               className={`px-4 py-2 rounded-xl text-xs font-extrabold uppercase tracking-wider shadow ${currentStatus === 'DITERIMA' || currentStatus === 'LULUS_SELEKSI'
-                ? 'bg-emerald-500 text-slate-950'
-                : currentStatus === 'DIVERIFIKASI'
-                  ? 'bg-sky-500 text-white'
-                  : currentStatus === 'MENUNGGU_VERIFIKASI'
-                    ? 'bg-amber-400 text-slate-950'
-                    : 'bg-slate-700 text-slate-300'
+                  ? 'bg-emerald-500 text-slate-950'
+                  : currentStatus === 'DIVERIFIKASI'
+                    ? 'bg-sky-500 text-white'
+                    : currentStatus === 'MENUNGGU_VERIFIKASI'
+                      ? 'bg-amber-400 text-slate-950'
+                      : 'bg-slate-700 text-slate-300'
                 }`}
             >
               {currentStatus.replace('_', ' ')}
@@ -387,10 +383,10 @@ export default function StudentDashboard() {
                 <div
                   key={step.key}
                   className={`p-3 rounded-xl border text-center transition-all ${isCurrent
-                    ? 'bg-sky-600 border-sky-400 text-white font-bold ring-2 ring-sky-400/50'
-                    : isCompleted
-                      ? 'bg-slate-800 border-slate-700 text-sky-400 font-semibold'
-                      : 'bg-slate-950/40 border-slate-800 text-slate-500 text-xs'
+                      ? 'bg-sky-600 border-sky-400 text-white font-bold ring-2 ring-sky-400/50'
+                      : isCompleted
+                        ? 'bg-slate-800 border-slate-700 text-sky-400 font-semibold'
+                        : 'bg-slate-950/40 border-slate-800 text-slate-500 text-xs'
                     }`}
                 >
                   <div className="text-[10px] text-slate-400 uppercase font-mono">Step 0{idx + 1}</div>
@@ -406,8 +402,8 @@ export default function StudentDashboard() {
       {message.text && (
         <div
           className={`p-4 rounded-xl border text-sm font-medium flex items-center gap-3 ${message.type === 'success'
-            ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
-            : 'bg-rose-50 text-rose-800 border-rose-200'
+              ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
+              : 'bg-rose-50 text-rose-800 border-rose-200'
             }`}
         >
           {message.type === 'success' ? (
@@ -421,8 +417,6 @@ export default function StudentDashboard() {
 
       {/* Tabs Navigation */}
       <div className="bg-white rounded-2xl shadow-sm border border-slate-200 w-full max-w-full min-w-0">
-
-        {/* Container scroll horizontal (hanya deretan tab yang bergeser) */}
         <div className="w-full max-w-full min-w-0 overflow-x-auto overflow-y-hidden overscroll-x-contain touch-pan-x [-webkit-overflow-scrolling:touch] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden border-b border-slate-200">
           <div className="flex items-center flex-nowrap w-max p-2 gap-2">
             {[
@@ -438,8 +432,8 @@ export default function StudentDashboard() {
                 type="button"
                 onClick={() => setActiveTab(tab.id as any)}
                 className={`px-4 py-3 text-xs font-bold flex items-center gap-2 rounded-xl whitespace-nowrap flex-shrink-0 transition-all ${activeTab === tab.id
-                  ? 'bg-slate-800 text-white shadow-md shadow-sky-600/30'
-                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                    ? 'bg-slate-800 text-white shadow-md shadow-sky-600/30'
+                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                   }`}
               >
                 <tab.icon className="w-4 h-4 flex-shrink-0" />
@@ -566,7 +560,7 @@ export default function StudentDashboard() {
                       setPersonalForm({
                         ...personalForm,
                         province: val,
-                        city: '', // Reset kota otomatis saat provinsi berubah
+                        city: '',
                       });
                     }}
                     helperText="Cari dan pilih provinsi tempat tinggal saat ini"
@@ -700,8 +694,8 @@ export default function StudentDashboard() {
                     key={prog.id}
                     onClick={() => setSelectedProgramId(prog.id)}
                     className={`p-6 rounded-2xl border-2 cursor-pointer transition-all flex flex-col justify-between ${selectedProgramId === prog.id
-                      ? 'border-sky-600 bg-sky-50/80 shadow-md ring-2 ring-sky-600/30'
-                      : 'border-slate-200 hover:border-slate-300 bg-white'
+                        ? 'border-sky-600 bg-sky-50/80 shadow-md ring-2 ring-sky-600/30'
+                        : 'border-slate-200 hover:border-slate-300 bg-white'
                       }`}
                   >
                     <div>
@@ -720,8 +714,6 @@ export default function StudentDashboard() {
                       <h4 className="text-lg font-bold text-slate-900 mb-2">{prog.name}</h4>
                       <p className="text-xs text-slate-600 leading-relaxed mb-4">{prog.description}</p>
                     </div>
-
-
                   </div>
                 ))}
               </div>
@@ -795,7 +787,6 @@ export default function StudentDashboard() {
               <div className="pt-4 w-full max-w-full min-w-0">
                 <h4 className="font-bold text-sm text-slate-900 mb-3">Daftar Dokumen Terunggah:</h4>
 
-                {/* Wrapper scroll horizontal: hanya tabel yang bergeser */}
                 <div className="w-full max-w-full min-w-0 border rounded-2xl overflow-x-auto overflow-y-hidden overscroll-x-contain touch-pan-x [-webkit-overflow-scrolling:touch]">
                   <table className="w-max min-w-full text-left text-xs">
                     <thead className="bg-slate-100 border-b font-bold text-slate-700">
@@ -825,7 +816,7 @@ export default function StudentDashboard() {
                             </td>
                             <td className="p-3 text-right whitespace-nowrap">
                               <a
-                                href={`http://localhost:5000${doc.fileUrl}`}
+                                href={getFullDocumentUrl(doc.fileUrl)}
                                 target="_blank"
                                 rel="noreferrer"
                                 className="text-sky-600 hover:underline font-semibold"
@@ -856,13 +847,10 @@ export default function StudentDashboard() {
                 Pembayaran & Bukti Transfer
               </h3>
 
-              {/* Pengecekan: Jika sudah ada pembayaran DAN sedang tidak dalam mode upload ulang */}
               {user?.applicant?.registrations?.[0]?.payments &&
                 user.applicant.registrations[0].payments.length > 0 &&
                 !isReuploading ? (
-
                 <div className="space-y-6">
-                  {/* BANNER PERINGATAN BUKTI TERKIRIM & TOMBOL SOLUSI / UPLOAD ULANG */}
                   <div className="bg-amber-50 border border-amber-300 p-6 rounded-2xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 shadow-sm">
                     <div className="flex items-start gap-4">
                       <div className="p-3 bg-amber-500 text-slate-950 rounded-xl font-bold flex-shrink-0">
@@ -887,13 +875,11 @@ export default function StudentDashboard() {
                     </button>
                   </div>
 
-                  {/* TABEL RIWAYAT BUKTI PEMBAYARAN MAHASISWA */}
                   <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm w-full max-w-full min-w-0">
                     <div className="p-4 bg-slate-50 border-b border-slate-200 font-bold text-xs text-slate-700">
                       Riwayat Bukti Pembayaran Anda:
                     </div>
 
-                    {/* Wrapper scroll horizontal: hanya tabel yang bergeser */}
                     <div className="w-full max-w-full min-w-0 overflow-x-auto overflow-y-hidden overscroll-x-contain touch-pan-x [-webkit-overflow-scrolling:touch]">
                       <table className="w-max min-w-full text-left text-xs">
                         <thead className="bg-slate-100/70 text-slate-600 font-bold border-b border-slate-200">
@@ -903,8 +889,6 @@ export default function StudentDashboard() {
                             <th className="p-3 whitespace-nowrap">Bukti File</th>
                             <th className="p-3 whitespace-nowrap">Status Verifikasi</th>
                           </tr>
-
-
                         </thead>
                         <tbody className="divide-y divide-slate-200 text-slate-700">
                           {user.applicant.registrations[0].payments.map((pay: any) => (
@@ -913,7 +897,7 @@ export default function StudentDashboard() {
                               <td className="p-3 font-mono font-bold text-slate-900 whitespace-nowrap">Rp {pay.amount?.toLocaleString('id-ID')}</td>
                               <td className="p-3 whitespace-nowrap">
                                 <a
-                                  href={`http://localhost:5000${pay.proofUrl}`}
+                                  href={getFullDocumentUrl(pay.proofUrl)}
                                   target="_blank"
                                   rel="noreferrer"
                                   className="text-sky-600 hover:underline font-semibold"
@@ -921,8 +905,6 @@ export default function StudentDashboard() {
                                   Lihat Bukti Transfer
                                 </a>
                               </td>
-
-
 
                               <td className="p-3 whitespace-nowrap">
                                 {pay.status === 'VERIFIED' ? (
@@ -942,10 +924,7 @@ export default function StudentDashboard() {
                     </div>
                   </div>
                 </div>
-
               ) : (
-
-                /* FORM UPLOAD BUKTI TRANSFER (Tampil saat belum pernah upload ATAU saat mode upload ulang aktif) */
                 <div className="space-y-4">
                   {isReuploading && (
                     <div className="flex justify-between items-center p-3 bg-sky-50 border border-sky-200 rounded-xl text-sky-800 text-xs font-semibold">

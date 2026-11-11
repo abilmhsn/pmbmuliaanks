@@ -53,7 +53,7 @@ export default function LoginPage() {
             <span className="text-base font-extrabold text-white tracking-tight">
               MULIA ANGKASA AKADEMI
             </span>
-            <span className="block text-[10px] font-semibold text-sky-400 tracking-wider uppercase">
+            <span className="block text-[10px] font-semibold text-sky-50 tracking-wider uppercase">
               Portal PMB
             </span>
           </div>

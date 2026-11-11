@@ -297,12 +297,11 @@ function SuperAdminLayoutContent({ children }: { children: React.ReactNode }) {
             <Menu className="w-5 h-5" />
           </button>
           <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg bg-gradient-to-tr from-purple-600 via-indigo-500 to-amber-400 flex items-center justify-center shadow-md shadow-purple-500/20">
-              <Crown className="w-4 h-4 text-white" />
-            </div>
+
+
             <div>
               <span
-                className={`text-xs font-black tracking-wider block leading-none ${isDark ? 'text-white' : 'text-slate-900'
+                className={`text-xs h-2 font-black tracking-wider block leading-none ${isDark ? 'text-white' : 'text-slate-900'
                   }`}
               >
                 SUPER ADMIN
@@ -318,6 +317,7 @@ function SuperAdminLayoutContent({ children }: { children: React.ReactNode }) {
         </div>
 
         <div className="flex items-center gap-1.5">
+
           {/* Mobile Theme Toggle Button */}
           <button
             onClick={toggleTheme}

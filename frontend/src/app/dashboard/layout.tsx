@@ -24,7 +24,7 @@ export default function DashboardLayout({
   const SidebarContent = () => (
     <div className="flex flex-col h-full">
       {/* Header / Logo */}
-      <div className="p-6 border-b border-slate-800 flex items-center justify-between">
+      <div className="p-4 border-b border-slate-800 flex items-center justify-between">
         <div className="flex items-center space-x-3">
           <div className="w-12 h-12 rounded-xl overflow-hidden flex items-center justify-center flex-shrink-0">
             <img
@@ -37,7 +37,7 @@ export default function DashboardLayout({
             <span className="text-sm font-bold text-white block leading-tight">
               MULIA ANGKASA AKADEMI
             </span>
-            <span className="text-[10px] text-sky-400 font-semibold tracking-wider">
+            <span className="text-[10px] text-sky-50 font-semibold tracking-wider">
               Portal Calon Mahasiswa
             </span>
           </div>

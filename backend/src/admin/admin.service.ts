@@ -12,7 +12,12 @@ export class AdminService {
     const sevenDaysAgo = new Date();
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
-    // Eksekusi seluruh 9 query database sekaligus secara PARALEL
+    // Hanya hitung pendaftar yang AKTIF (deletedAt: null)
+    const activeApplicantWhere = {
+      deletedAt: null,
+      ...(periodId ? { registrations: { some: { periodId } } } : {}),
+    };
+
     const [
       totalApplicants,
       newApplicants,
@@ -25,32 +30,46 @@ export class AdminService {
       lastWeekApplicants,
     ] = await Promise.all([
       this.prisma.applicant.count({
-        where: periodId ? { registrations: { some: { periodId } } } : {},
+        where: activeApplicantWhere,
       }),
       this.prisma.applicant.count({
         where: {
           createdAt: { gte: sevenDaysAgo },
+          deletedAt: null,
           ...(periodId ? { registrations: { some: { periodId } } } : {}),
         },
       }),
       this.prisma.registration.count({
-        where: { status: RegistrationStatus.MENUNGGU_VERIFIKASI, ...registrationFilter },
+        where: {
+          status: RegistrationStatus.MENUNGGU_VERIFIKASI,
+          applicant: { deletedAt: null },
+          ...registrationFilter,
+        },
       }),
       this.prisma.registration.count({
-        where: { status: RegistrationStatus.DIVERIFIKASI, ...registrationFilter },
+        where: {
+          status: RegistrationStatus.DIVERIFIKASI,
+          applicant: { deletedAt: null },
+          ...registrationFilter,
+        },
       }),
       this.prisma.registration.count({
-        where: { status: RegistrationStatus.LULUS_SELEKSI, ...registrationFilter },
+        where: {
+          status: RegistrationStatus.LULUS_SELEKSI,
+          applicant: { deletedAt: null },
+          ...registrationFilter,
+        },
       }),
       this.prisma.registration.count({
         where: {
           status: { in: [RegistrationStatus.DAFTAR_ULANG, RegistrationStatus.DITERIMA] },
+          applicant: { deletedAt: null },
           ...registrationFilter,
         },
       }),
       this.prisma.studyProgram.count(),
       this.prisma.applicant.findMany({
-        where: periodId ? { registrations: { some: { periodId } } } : {},
+        where: activeApplicantWhere,
         take: 5,
         orderBy: { createdAt: 'desc' },
         include: {
@@ -62,6 +81,7 @@ export class AdminService {
       this.prisma.applicant.findMany({
         where: {
           createdAt: { gte: sevenDaysAgo },
+          deletedAt: null,
           ...(periodId ? { registrations: { some: { periodId } } } : {}),
         },
         select: { createdAt: true },
@@ -111,7 +131,10 @@ export class AdminService {
   }
 
   async getApplicants(search?: string, status?: RegistrationStatus, studyProgramId?: string, periodId?: string) {
-    const where: any = {};
+    // Selalu filter pendaftar yang TIDAK DIHAPUS (deletedAt: null)
+    const where: any = {
+      deletedAt: null,
+    };
 
     if (search) {
       where.OR = [
@@ -176,7 +199,7 @@ export class AdminService {
     return applicant;
   }
 
-  // --- FUNGSI TRASH / SOFT DELETE (TEKS LOG DISEDERHANAKAN) ---
+  // --- FUNGSI TRASH / SOFT DELETE ---
   async softDeleteApplicant(id: string, currentUser?: { id?: string; email?: string }) {
     const applicant = await this.prisma.applicant.findUnique({ where: { id } });
     if (!applicant) {
@@ -405,7 +428,6 @@ export class AdminService {
     return deleted;
   }
 
-  // --- FUNGSI EXPORT CSV DENGAN LINK URL UTUH ---
   async exportApplicantsToCsv(periodId?: string): Promise<string> {
     const SUPABASE_STORAGE_PUBLIC_URL =
       'https://apuvscjcdkpoevuacnzm.supabase.co/storage/v1/object/public/pmb-documents';
@@ -417,7 +439,10 @@ export class AdminService {
     };
 
     const applicants = await this.prisma.applicant.findMany({
-      where: periodId ? { registrations: { some: { periodId } } } : {},
+      where: {
+        deletedAt: null,
+        ...(periodId ? { registrations: { some: { periodId } } } : {}),
+      },
       include: {
         user: { select: { email: true } },
         personalData: true,

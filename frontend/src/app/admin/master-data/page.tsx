@@ -179,32 +179,44 @@ export default function AdminMasterDataPage() {
               </div>
 
               <div className="space-y-4">
-                {programs.map((prog) => (
-                  <div key={prog.id} className="p-4 bg-slate-950 rounded-xl border border-slate-800 space-y-2 relative group">
-                    <div className="flex justify-between items-start">
-                      <span className="px-2.5 py-1 bg-amber-400/20 text-amber-400 font-mono text-xs font-bold rounded-md">
-                        {prog.code}
-                      </span>
-                      <div className="flex items-center gap-3">
-                        <span className="text-xs text-slate-400 font-mono">
-                          Quota: <span className="text-white font-bold">{prog.quota} Kuota</span>
+                {programs.map((prog) => {
+                  // Kalkulasi Kuota Dinamis
+                  const filled = prog.filledCount ?? 0;
+                  const remaining = prog.remainingQuota ?? Math.max(0, (prog.quota || 0) - filled);
+
+                  return (
+                    <div key={prog.id} className="p-4 bg-slate-950 rounded-xl border border-slate-800 space-y-2 relative group">
+                      <div className="flex justify-between items-start">
+                        <span className="px-2.5 py-1 bg-amber-400/20 text-amber-400 font-mono text-xs font-bold rounded-md">
+                          {prog.code}
                         </span>
-                        <button
-                          onClick={() => handleOpenEditProgram(prog)}
-                          className="p-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-md transition-all"
-                          title="Edit Program Studi"
-                        >
-                          <Edit2 className="w-3.5 h-3.5 text-sky-400" />
-                        </button>
+                        <div className="flex items-center gap-3">
+                          {/* Indikator Kuota Dinamis (Terisi, Sisa, & Total) */}
+                          <div className="text-xs font-mono text-slate-400 flex items-center gap-1.5">
+                            <span>Sisa: <strong className="text-emerald-400">{remaining}</strong></span>
+                            <span>/</span>
+                            <span>Terisi: <strong className="text-amber-400">{filled}</strong></span>
+                            <span>/</span>
+                            <span>Total: <strong className="text-white">{prog.quota}</strong></span>
+                          </div>
+
+                          <button
+                            onClick={() => handleOpenEditProgram(prog)}
+                            className="p-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-md transition-all ml-1"
+                            title="Edit Program Studi"
+                          >
+                            <Edit2 className="w-3.5 h-3.5 text-sky-400" />
+                          </button>
+                        </div>
+                      </div>
+                      <h4 className="font-bold text-white text-base">{prog.name}</h4>
+                      <p className="text-xs text-slate-400">{prog.description}</p>
+                      <div className="pt-2 text-xs font-bold text-sky-400">
+                        Biaya Kuliah: Rp {prog.tuitionFee?.toLocaleString('id-ID')}
                       </div>
                     </div>
-                    <h4 className="font-bold text-white text-base">{prog.name}</h4>
-                    <p className="text-xs text-slate-400">{prog.description}</p>
-                    <div className="pt-2 text-xs font-bold text-sky-400">
-                      Biaya Kuliah: Rp {prog.tuitionFee?.toLocaleString('id-ID')}
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
 
@@ -276,9 +288,7 @@ export default function AdminMasterDataPage() {
                     onChange={(e) => setAnnType(e.target.value)}
                     className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-xl text-xs text-white font-bold"
                   >
-                    <option value="INFO">INFO (Biru)</option>
-                    <option value="URGENT">URGENT (Merah)</option>
-                    <option value="SUCCESS">SUCCESS (Hijau)</option>
+                    <option value="INFO">INFO</option>
                   </select>
                 </div>
               </div>
