@@ -9,7 +9,7 @@ async function bootstrap() {
 
   // Enable CORS for frontend Next.js application
   app.enableCors({
-    origin: ['http://localhost:3000', 'https://pmb-mulia-angkasa.vercel.app'], // Sesuaikan domain frontend kamu
+    origin: ['http://localhost:3000', 'https://pmbmuliangakasaakademi.vercel.app'], // Sesuaikan domain frontend kamu
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
     credentials: true,
   });
@@ -32,7 +32,7 @@ async function bootstrap() {
   app.setGlobalPrefix('api');
 
   const port = process.env.PORT || 5000;
-  await app.listen(port);
+  await app.listen(port, '0.0.0.0');
   console.log(`🚀 NestJS Backend Server running on: http://localhost:${port}/api`);
 }
 bootstrap();
