@@ -1,5 +1,6 @@
 'use client';
-import React, { useState, useEffect } from 'react';
+
+import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import api from '@/lib/api';
 import {
@@ -10,68 +11,115 @@ import {
   CreditCard,
   CheckCircle2,
   AlertCircle,
-  FileText,
-  Clock,
-  ChevronRight,
-  Sparkles,
-  Printer,
-  Bell,
-  Info,
-  CreditCardCheck,
 } from 'lucide-react';
-import Link from 'next/link';
-import CityAutocomplete from '@/components/CityAutocomplete';
-import SearchableSelect from '@/components/SearchableSelect';
+import { isValidProvince, isValidCity } from '@/data/indonesiaRegions';
+
 import {
-  PROVINCES,
-  getCitiesByProvince,
-  isValidProvince,
-  isValidCity,
-} from '@/data/indonesiaRegions';
+  TabType,
+  PersonalFormData,
+  EducationFormData,
+  BankSettingsData,
+  StatusStep,
+  TabDefinition,
+  StudyProgram,
+  AnnouncementItem,
+  DocumentItem,
+  PaymentItem,
+} from './types';
+
+import { useWilayahIndonesia } from './hooks/useWilayahIndonesia';
+import AnnouncementsBanner from './components/AnnouncementsBanner';
+import ApplicantStatusBanner from './components/ApplicantStatusBanner';
+import TabNavigation from './components/TabNavigation';
+import PersonalDataTab from './components/PersonalDataTab';
+import EducationDataTab from './components/EducationDataTab';
+import ProgramSelectionTab from './components/ProgramSelectionTab';
+import DocumentsUploadTab from './components/DocumentsUploadTab';
+import PaymentTab from './components/PaymentTab';
 
 export default function StudentDashboard() {
   const { user, refreshUser } = useAuth();
-  const [activeTab, setActiveTab] = useState<'personal' | 'education' | 'program' | 'documents' | 'payment'>('personal');
+
+  const [activeTab, setActiveTab] = useState<TabType>('personal');
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
-  const [programs, setPrograms] = useState<any[]>([]);
+  const [programs, setPrograms] = useState<StudyProgram[]>([]);
+  const [announcements, setAnnouncements] = useState<AnnouncementItem[]>([]);
   const [isReuploading, setIsReuploading] = useState(false);
 
-  // State untuk menampung pengumuman dari backend
-  const [announcements, setAnnouncements] = useState<any[]>([]);
+  // Mencegah data lokal tertimpa setiap kali refreshUser memperbarui user.
+  const hydratedApplicantIdRef = useRef<string | null>(null);
 
-  // State untuk menampung Pengaturan Global Bank & Biaya dari Super Admin
-  const [bankSettings, setBankSettings] = useState({
-    bankName: 'BANK NEGARA INDONESIA (BNI)',
-    accountNumber: '182 0221 226',
-    accountHolder: 'PMB Kampus Mulia Angkasa Akademi',
-    registrationFee: 250000,
-  });
+  const applicant = user?.applicant;
+  const savedPersonal = applicant?.personalData;
+  const savedEducation = applicant?.educationData;
+  const savedRegistration = applicant?.registrations?.[0];
+  const savedDocuments: DocumentItem[] = applicant?.documents || [];
 
-  // Helper untuk memastikan URL berkas Supabase selalu valid dan bisa dibuka tanpa error about:blank#blocked
-  const getFullDocumentUrl = (filePath?: string) => {
-    if (!filePath || filePath === '-' || filePath.trim() === '') return '#';
-    if (filePath.startsWith('http://') || filePath.startsWith('https://')) return filePath;
+  // ==========================================
+  // STATUS PENYELESAIAN TAHAP DARI DATABASE
+  // ==========================================
 
-    const SUPABASE_STORAGE_PUBLIC_URL =
-      'https://apuvscjcdkpoevuacnzm.supabase.co/storage/v1/object/public/pmb-documents';
+  const isPersonalCompleted = Boolean(
+    savedPersonal &&
+      savedPersonal.nik?.trim() &&
+      savedPersonal.birthPlace?.trim() &&
+      savedPersonal.birthDate &&
+      savedPersonal.address?.trim() &&
+      savedPersonal.city?.trim() &&
+      savedPersonal.province?.trim() &&
+      savedPersonal.district?.trim() &&
+      savedPersonal.subDistrict?.trim() &&
+      savedPersonal.rtRw?.trim() &&
+      savedPersonal.postalCode?.trim() &&
+      applicant?.phone?.trim()
+  );
 
-    return `${SUPABASE_STORAGE_PUBLIC_URL}/${filePath.replace(/^\//, '')}`;
-  };
+  const isEducationCompleted = Boolean(
+    savedEducation &&
+      savedEducation.schoolName?.trim() &&
+      savedEducation.npsn?.trim() &&
+      savedEducation.major?.trim() &&
+      savedEducation.graduationYear
+  );
 
-  // Form States
-  const [personalForm, setPersonalForm] = useState({
+  const isProgramCompleted = Boolean(savedRegistration?.studyProgramId);
+
+  const requiredDocuments = ['FOTO', 'KTP', 'IJAZAH', 'TRANSKRIP'];
+
+  const isDocumentsCompleted = requiredDocuments.every((type) =>
+    savedDocuments.some((doc) => doc.type === type)
+  );
+
+  const tabOrder: TabType[] = [
+    'personal',
+    'education',
+    'program',
+    'documents',
+    'payment',
+  ];
+
+  // ==========================================
+  // FORM STATES
+  // ==========================================
+
+  const [personalForm, setPersonalForm] = useState<PersonalFormData>({
     nik: '',
     birthPlace: '',
     birthDate: '',
     gender: 'Laki-laki',
     address: '',
+    rt: '',
+    rw: '',
+    postalCode: '',
+    district: '',
+    subDistrict: '',
     city: '',
     province: '',
     phone: '',
   });
 
-  const [educationForm, setEducationForm] = useState({
+  const [educationForm, setEducationForm] = useState<EducationFormData>({
     schoolName: '',
     npsn: '',
     major: 'IPA',
@@ -83,61 +131,146 @@ export default function StudentDashboard() {
   const [docFile, setDocFile] = useState<File | null>(null);
   const [paymentFile, setPaymentFile] = useState<File | null>(null);
   const [paymentAmount, setPaymentAmount] = useState('250000');
-  const availableCities = getCitiesByProvince(personalForm.province);
 
-  useEffect(() => {
-    fetchPrograms();
-    fetchAnnouncements();
-    fetchSettings();
+  // ==========================================
+  // WILAYAH INDONESIA (CUSTOM HOOK)
+  // ==========================================
 
-    if (refreshUser) {
-      refreshUser();
+  const {
+    availableCities,
+    districtList,
+    subDistrictList,
+    loadingDistricts,
+    loadingSubDistricts,
+  } = useWilayahIndonesia(
+    personalForm.province,
+    personalForm.city,
+    personalForm.district
+  );
+
+  // ==========================================
+  // PENGATURAN BANK
+  // ==========================================
+
+  const [bankSettings, setBankSettings] = useState<BankSettingsData>({
+    bankName: 'BANK NEGARA INDONESIA (BNI)',
+    accountNumber: '182 0221 226',
+    accountHolder: 'PMB Kampus Mulia Angkasa Akademi',
+    registrationFee: 250000,
+  });
+
+  // ==========================================
+  // CEK APAKAH FORM MASIH SESUAI DATA DATABASE
+  // ==========================================
+
+  const savedRtRw = (savedPersonal?.rtRw || '').split('/');
+  const savedRt = (savedRtRw[0] || '').replace(/\D/g, '').slice(0, 3);
+  const savedRw = (savedRtRw[1] || '').replace(/\D/g, '').slice(0, 3);
+
+  const savedBirthDate = savedPersonal?.birthDate
+    ? new Date(savedPersonal.birthDate).toISOString().split('T')[0]
+    : '';
+
+  const isPersonalFormSaved = Boolean(
+    isPersonalCompleted &&
+      personalForm.nik === (savedPersonal?.nik || '').replace(/\D/g, '').slice(0, 16) &&
+      personalForm.birthPlace === (savedPersonal?.birthPlace || '') &&
+      personalForm.birthDate === savedBirthDate &&
+      personalForm.gender === (savedPersonal?.gender || 'Laki-laki') &&
+      personalForm.address === (savedPersonal?.address || '') &&
+      personalForm.rt === savedRt &&
+      personalForm.rw === savedRw &&
+      personalForm.postalCode === (savedPersonal?.postalCode || '').replace(/\D/g, '').slice(0, 5) &&
+      personalForm.district === (savedPersonal?.district || '') &&
+      personalForm.subDistrict === (savedPersonal?.subDistrict || '') &&
+      personalForm.city === (savedPersonal?.city || '') &&
+      personalForm.province === (savedPersonal?.province || '') &&
+      personalForm.phone === (applicant?.phone || '').replace(/\D/g, '')
+  );
+
+  const isEducationFormSaved = Boolean(
+    isEducationCompleted &&
+      educationForm.schoolName === (savedEducation?.schoolName || '') &&
+      educationForm.npsn === (savedEducation?.npsn || '') &&
+      educationForm.major === (savedEducation?.major || '') &&
+      Number(educationForm.graduationYear) === Number(savedEducation?.graduationYear)
+  );
+
+  const isProgramFormSaved = Boolean(
+    isProgramCompleted && selectedProgramId === savedRegistration?.studyProgramId
+  );
+
+  // ==========================================
+  // SISTEM PENGUNCIAN TAHAP
+  // ==========================================
+
+  const canAccessTab = (tab: TabType) => {
+    switch (tab) {
+      case 'personal':
+        return true;
+      case 'education':
+        return isPersonalFormSaved;
+      case 'program':
+        return isPersonalFormSaved && isEducationFormSaved;
+      case 'documents':
+        return isPersonalFormSaved && isEducationFormSaved && isProgramFormSaved;
+      case 'payment':
+        return (
+          isPersonalFormSaved &&
+          isEducationFormSaved &&
+          isProgramFormSaved &&
+          isDocumentsCompleted
+        );
+      default:
+        return false;
     }
-  }, []);
+  };
 
-  useEffect(() => {
-    if (bankSettings.registrationFee) {
-      setPaymentAmount(String(bankSettings.registrationFee));
+  const goToTab = (tab: TabType) => {
+    if (loading) return;
+
+    if (!canAccessTab(tab)) {
+      setMessage({
+        type: 'error',
+        text: 'Tahap ini masih terkunci. Selesaikan dan simpan tahap sebelumnya terlebih dahulu.',
+      });
+      return;
     }
-  }, [bankSettings.registrationFee]);
 
-  useEffect(() => {
-    const el = document.getElementById(`tab-${activeTab}`);
-    el?.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
-  }, [activeTab]);
+    setMessage({ type: '', text: '' });
+    setActiveTab(tab);
+  };
 
-  useEffect(() => {
-    if (user?.applicant) {
-      const p = user.applicant.personalData;
-      if (p) {
-        setPersonalForm({
-          nik: p.nik || '',
-          birthPlace: p.birthPlace || '',
-          birthDate: p.birthDate ? new Date(p.birthDate).toISOString().split('T')[0] : '',
-          gender: p.gender || 'Laki-laki',
-          address: p.address || '',
-          city: p.city || '',
-          province: p.province || '',
-          phone: user.applicant.phone || '',
-        });
-      }
-
-      const e = user.applicant.educationData;
-      if (e) {
-        setEducationForm({
-          schoolName: e.schoolName || '',
-          npsn: e.npsn || '',
-          major: e.major || 'IPA',
-          graduationYear: e.graduationYear || 2027,
-        });
-      }
-
-      const reg = user.applicant.registrations?.[0];
-      if (reg) {
-        setSelectedProgramId(reg.studyProgramId || '');
-      }
+  const goToPreviousTab = () => {
+    const currentIndex = tabOrder.indexOf(activeTab);
+    if (currentIndex > 0) {
+      setMessage({ type: '', text: '' });
+      setActiveTab(tabOrder[currentIndex - 1]);
     }
-  }, [user]);
+  };
+
+  // ==========================================
+  // HELPER URL DOKUMEN
+  // ==========================================
+
+  const getFullDocumentUrl = (filePath?: string) => {
+    if (!filePath || filePath === '-' || filePath.trim() === '') {
+      return '#';
+    }
+
+    if (filePath.startsWith('http://') || filePath.startsWith('https://')) {
+      return filePath;
+    }
+
+    const SUPABASE_STORAGE_PUBLIC_URL =
+      'https://apuvscjcdkpoevuacnzm.supabase.co/storage/v1/object/public/pmb-documents';
+
+    return `${SUPABASE_STORAGE_PUBLIC_URL}/${filePath.replace(/^\//, '')}`;
+  };
+
+  // ==========================================
+  // FETCH DATA
+  // ==========================================
 
   const fetchPrograms = async () => {
     try {
@@ -159,41 +292,133 @@ export default function StudentDashboard() {
 
   const fetchSettings = async () => {
     try {
-      // Panggil endpoint publik yang benar
       const res = await api.get('/super-admin/public/settings');
 
       if (res.data) {
-        // Handle jika data berupa Object { KEY: VALUE } atau Array [{ key, value }]
-        let settingsMap: Record<string, string> = {};
+        const settingsMap: Record<string, string> = {};
 
         if (Array.isArray(res.data)) {
-          res.data.forEach((item: any) => {
+          res.data.forEach((item: { key: string; value: string }) => {
             settingsMap[item.key] = item.value;
           });
-        } else if (typeof res.data === 'object') {
-          settingsMap = res.data;
+        } else if (typeof res.data === 'object' && res.data !== null) {
+          Object.assign(settingsMap, res.data);
         }
 
-        // Ambil nilai REGISTRATION_FEE dari DB
         const feeRaw = settingsMap.REGISTRATION_FEE;
-        const fee = feeRaw !== undefined && feeRaw !== null && feeRaw !== '' ? Number(feeRaw) : 250000;
+        const fee =
+          feeRaw !== undefined && feeRaw !== null && feeRaw !== ''
+            ? Number(feeRaw)
+            : 250000;
 
         setBankSettings({
           bankName: settingsMap.PAYMENT_BANK_NAME || 'Bank Mandiri',
-          accountNumber: settingsMap.PAYMENT_ACCOUNT_NUMBER || '137-00-1234567-8',
-          accountHolder: settingsMap.PAYMENT_ACCOUNT_HOLDER || 'Yayasan Mulia Angkasa Akademi',
+          accountNumber:
+            settingsMap.PAYMENT_ACCOUNT_NUMBER || '137-00-1234567-8',
+          accountHolder:
+            settingsMap.PAYMENT_ACCOUNT_HOLDER ||
+            'Yayasan Mulia Angkasa Akademi',
           registrationFee: fee,
         });
+
+        setPaymentAmount(String(fee));
       }
     } catch (err) {
       console.error('Gagal memuat pengaturan global bank:', err);
     }
   };
 
+  // ==========================================
+  // MUAT DATA FORM DARI DATABASE
+  // ==========================================
+
+  useEffect(() => {
+    if (!applicant) return;
+
+    const applicantId = String(applicant.id || user?.id || '');
+    if (!applicantId) return;
+
+    if (hydratedApplicantIdRef.current === applicantId) return;
+    hydratedApplicantIdRef.current = applicantId;
+
+    const p = applicant.personalData;
+    if (p) {
+      const [rt = '', rw = ''] = (p.rtRw || '').split('/');
+
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setPersonalForm({
+        nik: (p.nik || '').replace(/\D/g, '').slice(0, 16),
+        birthPlace: p.birthPlace || '',
+        birthDate: p.birthDate
+          ? new Date(p.birthDate).toISOString().split('T')[0]
+          : '',
+        gender: p.gender || 'Laki-laki',
+        address: p.address || '',
+        rt: rt.replace(/\D/g, '').slice(0, 3),
+        rw: rw.replace(/\D/g, '').slice(0, 3),
+        postalCode: (p.postalCode || '').replace(/\D/g, '').slice(0, 5),
+        district: p.district || '',
+        subDistrict: p.subDistrict || '',
+        city: p.city || '',
+        province: p.province || '',
+        phone: (applicant.phone || '').replace(/\D/g, ''),
+      });
+    } else {
+      setPersonalForm((prev) => ({
+        ...prev,
+        phone: (applicant.phone || '').replace(/\D/g, ''),
+      }));
+    }
+
+    const e = applicant.educationData;
+    if (e) {
+      setEducationForm({
+        schoolName: e.schoolName || '',
+        npsn: e.npsn || '',
+        major: e.major || 'IPA',
+        graduationYear: e.graduationYear || 2027,
+      });
+    }
+
+    const registration = applicant.registrations?.[0];
+    if (registration) {
+      setSelectedProgramId(registration.studyProgramId || '');
+    }
+  }, [applicant, user?.id]);
+
+  // ==========================================
+  // LOAD DATA AWAL
+  // ==========================================
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    fetchPrograms();
+    fetchAnnouncements();
+    fetchSettings();
+
+    if (refreshUser) {
+      refreshUser();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    const el = document.getElementById(`tab-${activeTab}`);
+    el?.scrollIntoView({
+      behavior: 'smooth',
+      inline: 'center',
+      block: 'nearest',
+    });
+  }, [activeTab]);
+
+  // ==========================================
+  // STATUS PENDAFTARAN
+  // ==========================================
+
   const currentRegistration = user?.applicant?.registrations?.[0];
   const currentStatus = currentRegistration?.status || 'BELUM_LENGKAP';
 
-  const statusSteps = [
+  const statusSteps: StatusStep[] = [
     { key: 'BELUM_LENGKAP', label: 'Belum Lengkap' },
     { key: 'MENUNGGU_VERIFIKASI', label: 'Menunggu Verifikasi' },
     { key: 'DIVERIFIKASI', label: 'Diverifikasi' },
@@ -207,13 +432,75 @@ export default function StudentDashboard() {
     return idx >= 0 ? idx : 0;
   };
 
+  // ==========================================
+  // HANDLERS
+  // ==========================================
+
   const handleSavePersonal = async (e: React.FormEvent) => {
     e.preventDefault();
+
     try {
+      if (!/^\d{16}$/.test(personalForm.nik)) {
+        setMessage({
+          type: 'error',
+          text: 'NIK wajib diisi tepat 16 digit angka.',
+        });
+        return;
+      }
+
       if (!personalForm.birthPlace.trim()) {
         setMessage({ type: 'error', text: 'Tempat lahir wajib diisi.' });
         return;
       }
+
+      if (!personalForm.birthDate) {
+        setMessage({ type: 'error', text: 'Tanggal lahir wajib diisi.' });
+        return;
+      }
+
+      if (
+        !personalForm.phone.trim() ||
+        !/^\d{9,15}$/.test(personalForm.phone)
+      ) {
+        setMessage({
+          type: 'error',
+          text: 'Nomor WhatsApp / HP wajib diisi dengan angka yang valid (minimal 9 digit).',
+        });
+        return;
+      }
+
+      if (!personalForm.address.trim()) {
+        setMessage({
+          type: 'error',
+          text: 'Alamat jalan / nomor rumah wajib diisi.',
+        });
+        return;
+      }
+
+      if (!personalForm.rt.trim() || !/^\d{1,3}$/.test(personalForm.rt)) {
+        setMessage({
+          type: 'error',
+          text: 'RT wajib diisi dengan angka (maksimal 3 digit).',
+        });
+        return;
+      }
+
+      if (!personalForm.rw.trim() || !/^\d{1,3}$/.test(personalForm.rw)) {
+        setMessage({
+          type: 'error',
+          text: 'RW wajib diisi dengan angka (maksimal 3 digit).',
+        });
+        return;
+      }
+
+      if (!/^\d{5}$/.test(personalForm.postalCode)) {
+        setMessage({
+          type: 'error',
+          text: 'Kode Pos wajib diisi tepat 5 digit angka.',
+        });
+        return;
+      }
+
       if (!isValidProvince(personalForm.province)) {
         setMessage({
           type: 'error',
@@ -221,6 +508,7 @@ export default function StudentDashboard() {
         });
         return;
       }
+
       if (!isValidCity(personalForm.city, personalForm.province)) {
         setMessage({
           type: 'error',
@@ -228,22 +516,48 @@ export default function StudentDashboard() {
         });
         return;
       }
-      if (!personalForm.address.trim()) {
+
+      if (!personalForm.district.trim()) {
         setMessage({
           type: 'error',
-          text: 'Alamat lengkap tempat tinggal wajib diisi.',
+          text: 'Silakan pilih Kecamatan tempat tinggal.',
+        });
+        return;
+      }
+
+      if (!personalForm.subDistrict.trim()) {
+        setMessage({
+          type: 'error',
+          text: 'Silakan pilih Desa / Kelurahan tempat tinggal.',
         });
         return;
       }
 
       setLoading(true);
       setMessage({ type: '', text: '' });
-      await api.post('/applicants/personal-data', personalForm);
+
+      const { rt, rw, ...restPersonalForm } = personalForm;
+
+      const payload = {
+        ...restPersonalForm,
+        rtRw: `${rt}/${rw}`,
+      };
+
+      await api.post('/applicants/personal-data', payload);
       await refreshUser();
-      setMessage({ type: 'success', text: 'Data pribadi berhasil disimpan!' });
+
+      setMessage({
+        type: 'success',
+        text: 'Data pribadi berhasil disimpan!',
+      });
+
       setActiveTab('education');
-    } catch (err: any) {
-      setMessage({ type: 'error', text: err.response?.data?.message || 'Gagal menyimpan data.' });
+    } catch (err: unknown) {
+      const errResponse = err as { response?: { data?: { message?: string } } };
+      setMessage({
+        type: 'error',
+        text: errResponse.response?.data?.message || 'Gagal menyimpan data.',
+      });
     } finally {
       setLoading(false);
     }
@@ -251,15 +565,39 @@ export default function StudentDashboard() {
 
   const handleSaveEducation = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (
+      !educationForm.schoolName.trim() ||
+      !educationForm.npsn.trim() ||
+      !educationForm.major.trim() ||
+      !educationForm.graduationYear
+    ) {
+      setMessage({
+        type: 'error',
+        text: 'Semua data pendidikan wajib diisi.',
+      });
+      return;
+    }
+
     try {
       setLoading(true);
       setMessage({ type: '', text: '' });
+
       await api.post('/applicants/education-data', educationForm);
       await refreshUser();
-      setMessage({ type: 'success', text: 'Data pendidikan berhasil disimpan!' });
+
+      setMessage({
+        type: 'success',
+        text: 'Data pendidikan berhasil disimpan!',
+      });
+
       setActiveTab('program');
-    } catch (err: any) {
-      setMessage({ type: 'error', text: err.response?.data?.message || 'Gagal menyimpan data.' });
+    } catch (err: unknown) {
+      const errResponse = err as { response?: { data?: { message?: string } } };
+      setMessage({
+        type: 'error',
+        text: errResponse.response?.data?.message || 'Gagal menyimpan data.',
+      });
     } finally {
       setLoading(false);
     }
@@ -267,19 +605,39 @@ export default function StudentDashboard() {
 
   const handleSaveProgram = async (e: React.FormEvent) => {
     e.preventDefault();
+
     if (!selectedProgramId) {
-      setMessage({ type: 'error', text: 'Pilih salah satu Program Studi' });
+      setMessage({
+        type: 'error',
+        text: 'Pilih salah satu Program Studi.',
+      });
       return;
     }
+
     try {
       setLoading(true);
       setMessage({ type: '', text: '' });
-      await api.post('/applicants/program-selection', { studyProgramId: selectedProgramId });
+
+      await api.post('/applicants/program-selection', {
+        studyProgramId: selectedProgramId,
+      });
+
       await refreshUser();
-      setMessage({ type: 'success', text: 'Pilihan Program Studi berhasil disimpan!' });
+
+      setMessage({
+        type: 'success',
+        text: 'Pilihan Program Studi berhasil disimpan!',
+      });
+
       setActiveTab('documents');
-    } catch (err: any) {
-      setMessage({ type: 'error', text: err.response?.data?.message || 'Gagal menyimpan pilihan prodi.' });
+    } catch (err: unknown) {
+      const errResponse = err as { response?: { data?: { message?: string } } };
+      setMessage({
+        type: 'error',
+        text:
+          errResponse.response?.data?.message ||
+          'Gagal menyimpan pilihan program studi.',
+      });
     } finally {
       setLoading(false);
     }
@@ -287,10 +645,23 @@ export default function StudentDashboard() {
 
   const handleUploadDocument = async (e: React.FormEvent) => {
     e.preventDefault();
+
     if (!docFile) {
-      setMessage({ type: 'error', text: 'Pilih file dokumen yang akan diunggah' });
+      setMessage({
+        type: 'error',
+        text: 'Pilih file dokumen yang akan diunggah.',
+      });
       return;
     }
+
+    if (docFile.size > 5 * 1024 * 1024) {
+      setMessage({
+        type: 'error',
+        text: 'Ukuran file maksimal 5 MB.',
+      });
+      return;
+    }
+
     const formData = new FormData();
     formData.append('file', docFile);
     formData.append('type', selectedDocType);
@@ -298,14 +669,31 @@ export default function StudentDashboard() {
     try {
       setLoading(true);
       setMessage({ type: '', text: '' });
+
       await api.post('/documents/upload', formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
+
       await refreshUser();
-      setMessage({ type: 'success', text: `Dokumen ${selectedDocType} berhasil diunggah!` });
+
+      setMessage({
+        type: 'success',
+        text: `Dokumen ${selectedDocType} berhasil diunggah!`,
+      });
+
       setDocFile(null);
-    } catch (err: any) {
-      setMessage({ type: 'error', text: err.response?.data?.message || 'Gagal mengunggah dokumen.' });
+
+      const fileInput = document.getElementById(
+        'document-file-input'
+      ) as HTMLInputElement | null;
+
+      if (fileInput) fileInput.value = '';
+    } catch (err: unknown) {
+      const errResponse = err as { response?: { data?: { message?: string } } };
+      setMessage({
+        type: 'error',
+        text: errResponse.response?.data?.message || 'Gagal mengunggah dokumen.',
+      });
     } finally {
       setLoading(false);
     }
@@ -313,10 +701,23 @@ export default function StudentDashboard() {
 
   const handleUploadPayment = async (e: React.FormEvent) => {
     e.preventDefault();
+
     if (!paymentFile) {
-      setMessage({ type: 'error', text: 'Pilih file bukti pembayaran' });
+      setMessage({
+        type: 'error',
+        text: 'Pilih file bukti pembayaran.',
+      });
       return;
     }
+
+    if (paymentFile.size > 5 * 1024 * 1024) {
+      setMessage({
+        type: 'error',
+        text: 'Ukuran file maksimal 5 MB.',
+      });
+      return;
+    }
+
     const formData = new FormData();
     formData.append('proof', paymentFile);
     formData.append('amount', paymentAmount);
@@ -325,133 +726,74 @@ export default function StudentDashboard() {
     try {
       setLoading(true);
       setMessage({ type: '', text: '' });
+
       await api.post('/payments/upload', formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
+
       await refreshUser();
-      setMessage({ type: 'success', text: 'Bukti pembayaran berhasil diunggah! Menunggu verifikasi admin.' });
+
+      setMessage({
+        type: 'success',
+        text: 'Bukti pembayaran berhasil diunggah! Menunggu verifikasi admin.',
+      });
+
       setPaymentFile(null);
       setIsReuploading(false);
-    } catch (err: any) {
-      setMessage({ type: 'error', text: err.response?.data?.message || 'Gagal mengunggah pembayaran.' });
+
+      const fileInput = document.getElementById(
+        'payment-file-input'
+      ) as HTMLInputElement | null;
+
+      if (fileInput) fileInput.value = '';
+    } catch (err: unknown) {
+      const errResponse = err as { response?: { data?: { message?: string } } };
+      setMessage({
+        type: 'error',
+        text: errResponse.response?.data?.message || 'Gagal mengunggah pembayaran.',
+      });
     } finally {
       setLoading(false);
     }
   };
 
+  const tabDefinitions: TabDefinition[] = [
+    { id: 'personal', label: '1. Data Diri', icon: User },
+    { id: 'education', label: '2. Data Pendidikan', icon: GraduationCap },
+    { id: 'program', label: '3. Pilihan Prodi', icon: Award },
+    { id: 'documents', label: '4. Upload Dokumen', icon: Upload },
+    { id: 'payment', label: '5. Pembayaran', icon: CreditCard },
+  ];
+
+  const applicantPayments: PaymentItem[] =
+    user?.applicant?.registrations?.[0]?.payments || [];
+
+  // ==========================================
+  // RENDER
+  // ==========================================
+
   return (
     <div className="space-y-8 max-w-6xl mx-auto w-full min-w-0">
-      {/* SECTION PENGUMUMAN / NOTIFIKASI COMPACT */}
-      {announcements.length > 0 && (
-        <div className="bg-slate-900 border-amber-500 rounded-2xl p-4 shadow-lg space-y-3">
-          <div className="flex items-center justify-between pb-2 border-b border-slate-800">
-            <div className="flex items-center gap-2 text-white font-bold text-xs tracking-wider">
-              <Bell className="w-4 h-4 animate-pulse" />
-              <span>PENGUMUMAN PANITIA PMB</span>
-            </div>
-            <span className="text-[10px] bg-amber-500/10 text-amber-400 border border-amber-500/20 px-2 py-0.5 rounded-full font-semibold">
-              {announcements.length} Informasi
-            </span>
-          </div>
+      {/* PENGUMUMAN */}
+      <AnnouncementsBanner announcements={announcements} />
 
-          <div className="space-y-2 max-h-52 overflow-y-auto pr-1 custom-scrollbar">
-            {announcements.map((item) => (
-              <div
-                key={item.id}
-                className="bg-slate-900 hover:bg-slate-950 p-3 rounded-xl border border-slate-800/80 transition-all space-y-1"
-              >
-                <div className="flex items-center justify-between gap-2">
-                  <h4 className="font-semibold text-slate-100 text-xs flex items-center gap-2">
-                    <Info className="w-3.5 h-3.5 text-amber-400 flex-shrink-0" />
-                    <span>{item.title}</span>
-                  </h4>
-                  <span className="text-[10px] text-slate-400 font-mono flex-shrink-0">
-                    {new Date(item.publishedAt || item.createdAt).toLocaleDateString('id-ID')}
-                  </span>
-                </div>
-                <p className="text-[11px] text-slate-300 leading-relaxed pl-5 whitespace-pre-line">
-                  {item.content}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
+      {/* BANNER STATUS & STEPPER */}
+      <ApplicantStatusBanner
+        fullName={user?.applicant?.fullName}
+        registrationNumber={user?.applicant?.registrationNumber}
+        currentStatus={currentStatus}
+        statusSteps={statusSteps}
+        getStatusIndex={getStatusIndex}
+      />
 
-      {/* Top Banner Status */}
-      <div className="bg-slate-900 text-white p-6 sm:p-8 rounded-2xl shadow-xl relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-80 h-80 bg-sky-500/10 rounded-full blur-3xl"></div>
-        <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-          <div>
-            <div className="flex items-center gap-2 text-xs text-amber-400 font-semibold mb-1">
-              STATUS PENDAFTARAN TERKINI
-            </div>
-            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white">
-              {user?.applicant?.fullName}
-            </h1>
-            <p className="text-xs text-slate-300 mt-1 font-mono">
-              Nomor Pendaftaran: <span className="text-amber-300 font-bold">{user?.applicant?.registrationNumber}</span>
-            </p>
-          </div>
-
-          <div className="flex items-center gap-3">
-            <span
-              className={`px-4 py-2 rounded-xl text-xs font-extrabold uppercase tracking-wider shadow ${currentStatus === 'DITERIMA' || currentStatus === 'LULUS_SELEKSI'
-                ? 'bg-emerald-500 text-slate-950'
-                : currentStatus === 'DIVERIFIKASI'
-                  ? 'bg-sky-500 text-white'
-                  : currentStatus === 'MENUNGGU_VERIFIKASI'
-                    ? 'bg-amber-400 text-slate-950'
-                    : 'bg-slate-700 text-slate-300'
-                }`}
-            >
-              {currentStatus.replace('_', ' ')}
-            </span>
-
-            <Link
-              href="/dashboard/cetak-bukti"
-              className="px-4 py-2 bg-amber-400 hover:bg-amber-300 text-slate-950 text-xs font-bold rounded-xl shadow flex items-center gap-1.5 transition-all"
-            >
-              <Printer className="w-4 h-4" />
-              Cetak Bukti PMB
-            </Link>
-          </div>
-        </div>
-
-        {/* Visual Stepper */}
-        <div className="mt-8 pt-6 border-t border-slate-800">
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2">
-            {statusSteps.map((step, idx) => {
-              const currentIdx = getStatusIndex(currentStatus);
-              const isCompleted = idx <= currentIdx;
-              const isCurrent = idx === currentIdx;
-
-              return (
-                <div
-                  key={step.key}
-                  className={`p-3 rounded-xl border text-center transition-all ${isCurrent
-                    ? 'bg-sky-600 border-sky-400 text-white font-bold ring-2 ring-sky-400/50'
-                    : isCompleted
-                      ? 'bg-slate-800 border-slate-700 text-sky-400 font-semibold'
-                      : 'bg-slate-950/40 border-slate-800 text-slate-500 text-xs'
-                    }`}
-                >
-                  <div className="text-[10px] text-slate-400 uppercase font-mono">Step 0{idx + 1}</div>
-                  <div className="text-xs truncate mt-0.5">{step.label}</div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      </div>
-
-      {/* Alert Messages */}
+      {/* PESAN NOTIFIKASI */}
       {message.text && (
         <div
-          className={`p-4 rounded-xl border text-sm font-medium flex items-center gap-3 ${message.type === 'success'
-            ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
-            : 'bg-rose-50 text-rose-800 border-rose-200'
-            }`}
+          className={`p-4 rounded-xl border text-sm font-medium flex items-center gap-3 ${
+            message.type === 'success'
+              ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
+              : 'bg-rose-50 text-rose-800 border-rose-200'
+          }`}
         >
           {message.type === 'success' ? (
             <CheckCircle2 className="w-5 h-5 text-emerald-600 flex-shrink-0" />
@@ -462,593 +804,83 @@ export default function StudentDashboard() {
         </div>
       )}
 
-      {/* Tabs Navigation */}
+      {/* NAVIGASI & CONTENT TAHAP */}
       <div className="bg-white rounded-2xl shadow-sm border border-slate-200 w-full max-w-full min-w-0">
-        <div className="w-full max-w-full min-w-0 overflow-x-auto overflow-y-hidden overscroll-x-contain touch-pan-x [-webkit-overflow-scrolling:touch] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden border-b border-slate-200">
-          <div className="flex items-center flex-nowrap w-max p-2 gap-2">
-            {[
-              { id: 'personal', label: '1. Data Diri', icon: User },
-              { id: 'education', label: '2. Data Pendidikan', icon: GraduationCap },
-              { id: 'program', label: '3. Pilihan Prodi', icon: Award },
-              { id: 'documents', label: '4. Upload Dokumen', icon: Upload },
-              { id: 'payment', label: '5. Pembayaran', icon: CreditCard },
-            ].map((tab) => (
-              <button
-                key={tab.id}
-                id={`tab-${tab.id}`}
-                type="button"
-                onClick={() => setActiveTab(tab.id as any)}
-                className={`px-4 py-3 text-xs font-bold flex items-center gap-2 rounded-xl whitespace-nowrap flex-shrink-0 transition-all ${activeTab === tab.id
-                  ? 'bg-slate-800 text-white shadow-md shadow-sky-600/30'
-                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                  }`}
-              >
-                <tab.icon className="w-4 h-4 flex-shrink-0" />
-                <span>{tab.label}</span>
-              </button>
-            ))}
-          </div>
-        </div>
+        <TabNavigation
+          activeTab={activeTab}
+          loading={loading}
+          canAccessTab={canAccessTab}
+          goToTab={goToTab}
+          tabDefinitions={tabDefinitions}
+        />
 
         <div className="p-6 sm:p-8">
-          {/* TAB 1: DATA DIRI */}
           {activeTab === 'personal' && (
-            <form onSubmit={handleSavePersonal} className="space-y-6">
-              <h3 className="text-lg font-bold text-slate-900 border-b pb-3">
-                Isi Data Pribadi Calon Mahasiswa
-              </h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">
-                    Nama Lengkap (Sesuai KTP/Ijazah)
-                  </label>
-                  <input
-                    type="text"
-                    disabled
-                    value={user?.applicant?.fullName || ''}
-                    className="w-full px-4 py-2.5 bg-slate-100 border border-slate-300 rounded-xl text-sm font-semibold text-slate-700 cursor-not-allowed"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">
-                    NIK (Nomor Induk Kependudukan - 16 Digit)
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    maxLength={16}
-                    placeholder="3271012345670001"
-                    value={personalForm.nik}
-                    onChange={(e) => setPersonalForm({ ...personalForm, nik: e.target.value })}
-                    className="w-full px-4 py-2.5 bg-white border border-slate-300 rounded-xl text-sm text-slate-900 focus:outline-none focus:border-sky-500"
-                  />
-                </div>
-
-                <div>
-                  <CityAutocomplete
-                    id="birthPlace"
-                    label="Tempat Lahir"
-                    required
-                    placeholder="Ketik kota/kabupaten lahir (misal: Cirebon)"
-                    value={personalForm.birthPlace}
-                    onChange={(val) =>
-                      setPersonalForm({ ...personalForm, birthPlace: val })
-                    }
-                    helperText="Pilih nama kota atau kabupaten resmi dari rekomendasi pencarian"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">
-                    Tanggal Lahir
-                  </label>
-                  <input
-                    type="date"
-                    required
-                    value={personalForm.birthDate}
-                    onChange={(e) => setPersonalForm({ ...personalForm, birthDate: e.target.value })}
-                    className="w-full px-4 py-2.5 bg-white border border-slate-300 rounded-xl text-sm text-slate-900 focus:outline-none focus:border-sky-500"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">
-                    Jenis Kelamin
-                  </label>
-                  <select
-                    value={personalForm.gender}
-                    onChange={(e) => setPersonalForm({ ...personalForm, gender: e.target.value })}
-                    className="w-full px-4 py-2.5 bg-white border border-slate-300 rounded-xl text-sm text-slate-900 focus:outline-none focus:border-sky-500"
-                  >
-                    <option value="Laki-laki">Laki-laki</option>
-                    <option value="Perempuan">Perempuan</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">
-                    Nomor WhatsApp / HP
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="Contoh: 08123456789"
-                    value={personalForm.phone}
-                    onChange={(e) => setPersonalForm({ ...personalForm, phone: e.target.value })}
-                    className="w-full px-4 py-2.5 bg-white border border-slate-300 rounded-xl text-sm text-slate-900 focus:outline-none focus:border-sky-500"
-                  />
-                </div>
-
-                <div className="sm:col-span-2">
-                  <label className="block text-xs font-bold text-slate-700 mb-1">
-                    Alamat Lengkap Tempat Tinggal
-                  </label>
-                  <textarea
-                    rows={2}
-                    required
-                    placeholder="Masukkan nama jalan, nomor rumah, RT/RW, dusun, dan detail alamat lainnya."
-                    value={personalForm.address}
-                    onChange={(e) => setPersonalForm({ ...personalForm, address: e.target.value })}
-                    className="w-full px-4 py-2.5 bg-white border border-slate-300 rounded-xl text-sm text-slate-900 focus:outline-none focus:border-sky-500 placeholder:text-slate-400"
-                  />
-                </div>
-
-                <div>
-                  <SearchableSelect
-                    id="province"
-                    label="Provinsi Tempat Tinggal"
-                    required
-                    placeholder="Pilih Provinsi..."
-                    searchPlaceholder="Cari provinsi (misal: Jawa Barat)..."
-                    options={PROVINCES}
-                    value={personalForm.province}
-                    onChange={(val) => {
-                      setPersonalForm({
-                        ...personalForm,
-                        province: val,
-                        city: '',
-                      });
-                    }}
-                    helperText="Cari dan pilih provinsi tempat tinggal saat ini"
-                  />
-                </div>
-
-                <div>
-                  <SearchableSelect
-                    id="city"
-                    label="Kota / Kabupaten Tempat Tinggal"
-                    required
-                    placeholder="Pilih Kota / Kabupaten..."
-                    searchPlaceholder="Cari kota / kabupaten..."
-                    options={availableCities}
-                    value={personalForm.city}
-                    onChange={(val) =>
-                      setPersonalForm({ ...personalForm, city: val })
-                    }
-                    disabled={!personalForm.province}
-                    disabledMessage="Pilih provinsi terlebih dahulu"
-                    helperText={
-                      personalForm.province
-                        ? `Daftar kota/kabupaten di ${personalForm.province}`
-                        : 'Pilih provinsi terlebih dahulu untuk melihat daftar wilayah'
-                    }
-                  />
-                </div>
-              </div>
-
-              <div className="pt-4 border-t flex justify-end">
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="px-6 py-3 bg-slate-800 hover:bg-slate-700 text-white font-bold text-sm rounded-full shadow shadow-sky-600/30 flex items-center gap-2"
-                >
-                  {loading ? 'Menyimpan...' : 'Simpan & Lanjut Data Pendidikan'}
-                  <ChevronRight className="w-4 h-4" />
-                </button>
-              </div>
-            </form>
+            <PersonalDataTab
+              personalForm={personalForm}
+              setPersonalForm={setPersonalForm}
+              userFullName={user?.applicant?.fullName}
+              districtList={districtList}
+              subDistrictList={subDistrictList}
+              loadingDistricts={loadingDistricts}
+              loadingSubDistricts={loadingSubDistricts}
+              availableCities={availableCities}
+              loading={loading}
+              onSubmit={handleSavePersonal}
+            />
           )}
 
-          {/* TAB 2: DATA PENDIDIKAN */}
           {activeTab === 'education' && (
-            <form onSubmit={handleSaveEducation} className="space-y-6">
-              <h3 className="text-lg font-bold text-slate-900 border-b pb-3">
-                Isi Data Pendidikan Terakhir
-              </h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">
-                    Nama Asal Sekolah (SMA / SMK / MA)
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="SMKN 1 Bekasi"
-                    value={educationForm.schoolName}
-                    onChange={(e) => setEducationForm({ ...educationForm, schoolName: e.target.value })}
-                    className="w-full px-4 py-2.5 bg-white border border-slate-300 rounded-xl text-sm text-slate-900 focus:outline-none focus:border-sky-500"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">
-                    NPSN Sekolah (Nomor Pokok Sekolah Nasional)
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="20254123"
-                    value={educationForm.npsn}
-                    onChange={(e) => setEducationForm({ ...educationForm, npsn: e.target.value })}
-                    className="w-full px-4 py-2.5 bg-white border border-slate-300 rounded-xl text-sm text-slate-900 focus:outline-none focus:border-sky-500"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">
-                    Jurusan di Sekolah
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="IPA / IPS / Rekayasa Perangkat Lunak / Otomotif"
-                    value={educationForm.major}
-                    onChange={(e) => setEducationForm({ ...educationForm, major: e.target.value })}
-                    className="w-full px-4 py-2.5 bg-white border border-slate-300 rounded-xl text-sm text-slate-900 focus:outline-none focus:border-sky-500"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">
-                    Tahun Lulus
-                  </label>
-                  <input
-                    type="number"
-                    required
-                    min={1995}
-                    max={2030}
-                    value={educationForm.graduationYear}
-                    onChange={(e) => setEducationForm({ ...educationForm, graduationYear: parseInt(e.target.value) || 2027 })}
-                    className="w-full px-4 py-2.5 bg-white border border-slate-300 rounded-xl text-sm text-slate-900 focus:outline-none focus:border-sky-500"
-                  />
-                </div>
-              </div>
-
-              <div className="pt-4 border-t flex justify-end">
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="px-6 py-3 bg-slate-900 hover:bg-slate-800 text-white font-bold text-sm rounded-full shadow shadow-sky-600/30 flex items-center gap-2"
-                >
-                  {loading ? 'Menyimpan...' : 'Simpan & Lanjut Pilihan Prodi'}
-                  <ChevronRight className="w-4 h-4" />
-                </button>
-              </div>
-            </form>
+            <EducationDataTab
+              educationForm={educationForm}
+              setEducationForm={setEducationForm}
+              loading={loading}
+              onPrevious={goToPreviousTab}
+              onSubmit={handleSaveEducation}
+            />
           )}
 
-          {/* TAB 3: PILIHAN PROGRAM STUDI */}
           {activeTab === 'program' && (
-            <form onSubmit={handleSaveProgram} className="space-y-6">
-              <h3 className="text-lg font-bold text-slate-900 border-b pb-3">
-                Pilih Program Studi Unggulan
-              </h3>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {programs.map((prog) => (
-                  <div
-                    key={prog.id}
-                    onClick={() => setSelectedProgramId(prog.id)}
-                    className={`p-6 rounded-2xl border-2 cursor-pointer transition-all flex flex-col justify-between ${selectedProgramId === prog.id
-                      ? 'border-sky-600 bg-sky-50/80 shadow-md ring-2 ring-sky-600/30'
-                      : 'border-slate-200 hover:border-slate-300 bg-white'
-                      }`}
-                  >
-                    <div>
-                      <div className="flex justify-between items-start mb-4">
-                        <span className="px-3 py-1 bg-slate-900 text-white rounded-lg text-xs font-mono font-bold">
-                          {prog.code}
-                        </span>
-                        <input
-                          type="radio"
-                          name="programSelection"
-                          checked={selectedProgramId === prog.id}
-                          onChange={() => setSelectedProgramId(prog.id)}
-                          className="w-5 h-5 text-sky-600 focus:ring-sky-500"
-                        />
-                      </div>
-                      <h4 className="text-lg font-bold text-slate-900 mb-2">{prog.name}</h4>
-                      <p className="text-xs text-slate-600 leading-relaxed mb-4">{prog.description}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              <div className="pt-4 border-t flex justify-end">
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="px-6 py-3 bg-slate-900 hover:bg-slate-800 text-white font-bold text-sm rounded-full shadow shadow-sky-600/30 flex items-center gap-2"
-                >
-                  {loading ? 'Menyimpan...' : 'Simpan & Lanjut Upload Dokumen'}
-                  <ChevronRight className="w-4 h-4" />
-                </button>
-              </div>
-            </form>
+            <ProgramSelectionTab
+              programs={programs}
+              selectedProgramId={selectedProgramId}
+              setSelectedProgramId={setSelectedProgramId}
+              loading={loading}
+              onPrevious={goToPreviousTab}
+              onSubmit={handleSaveProgram}
+            />
           )}
 
-          {/* TAB 4: UPLOAD DOKUMEN */}
           {activeTab === 'documents' && (
-            <div className="space-y-6">
-              <h3 className="text-lg font-bold text-slate-900 border-b pb-3">
-                Unggah Dokumen Berkas PMB
-              </h3>
-
-              <form onSubmit={handleUploadDocument} className="bg-slate-50 p-6 rounded-2xl border border-slate-200 space-y-4">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1">
-                      Jenis Dokumen
-                    </label>
-                    <select
-                      value={selectedDocType}
-                      onChange={(e) => setSelectedDocType(e.target.value)}
-                      className="w-full px-4 py-2.5 bg-white border border-slate-300 rounded-xl text-sm text-slate-900"
-                    >
-                      <option value="FOTO">Pasfoto Berwarna (Latar Merah)</option>
-                      <option value="KTP">KTP / Kartu Pelajar / KK</option>
-                      <option value="IJAZAH">Ijazah / SKL Sementara</option>
-                      <option value="TRANSKRIP">Transkrip Nilai / Rapor</option>
-                      <option value="LAINNYA">Dokumen Pendukung Lainnya</option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1">
-                      Pilih File (JPG, PNG, PDF max 5MB)
-                    </label>
-                    <input
-                      type="file"
-                      required
-                      accept="image/*,application/pdf"
-                      onChange={(e) => setDocFile(e.target.files?.[0] || null)}
-                      className="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-xs text-slate-700"
-                    />
-                  </div>
-                </div>
-
-                <div className="flex justify-end">
-                  <button
-                    type="submit"
-                    disabled={loading}
-                    className="px-5 py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs rounded-xl shadow flex items-center gap-1.5"
-                  >
-                    <Upload className="w-4 h-4" />
-                    {loading ? 'Mengunggah...' : 'Unggah Dokumen'}
-                  </button>
-                </div>
-              </form>
-
-              {/* Uploaded Files Table */}
-              <div className="pt-4 w-full max-w-full min-w-0">
-                <h4 className="font-bold text-sm text-slate-900 mb-3">Daftar Dokumen Terunggah:</h4>
-
-                <div className="w-full max-w-full min-w-0 border rounded-2xl overflow-x-auto overflow-y-hidden overscroll-x-contain touch-pan-x [-webkit-overflow-scrolling:touch]">
-                  <table className="w-max min-w-full text-left text-xs">
-                    <thead className="bg-slate-100 border-b font-bold text-slate-700">
-                      <tr>
-                        <th className="p-3 whitespace-nowrap">Tipe Dokumen</th>
-                        <th className="p-3 whitespace-nowrap">Nama File</th>
-                        <th className="p-3 whitespace-nowrap">Status Verifikasi</th>
-                        <th className="p-3 whitespace-nowrap text-right">Aksi</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y text-slate-700">
-                      {user?.applicant?.documents && user.applicant.documents.length > 0 ? (
-                        user.applicant.documents.map((doc: any) => (
-                          <tr key={doc.id}>
-                            <td className="p-3 font-bold whitespace-nowrap">{doc.type}</td>
-                            <td className="p-3 whitespace-nowrap">{doc.fileName}</td>
-                            <td className="p-3 whitespace-nowrap">
-                              {doc.isVerified ? (
-                                <span className="px-2.5 py-1 bg-emerald-100 text-emerald-800 rounded-full font-bold">
-                                  Terverifikasi
-                                </span>
-                              ) : (
-                                <span className="px-2.5 py-1 bg-amber-100 text-amber-800 rounded-full font-bold">
-                                  Menunggu Verifikasi
-                                </span>
-                              )}
-                            </td>
-                            <td className="p-3 text-right whitespace-nowrap">
-                              <a
-                                href={getFullDocumentUrl(doc.fileUrl)}
-                                target="_blank"
-                                rel="noreferrer"
-                                className="text-sky-600 hover:underline font-semibold"
-                              >
-                                Lihat File
-                              </a>
-                            </td>
-                          </tr>
-                        ))
-                      ) : (
-                        <tr>
-                          <td colSpan={4} className="p-6 text-center text-slate-400">
-                            Belum ada dokumen yang diunggah.
-                          </td>
-                        </tr>
-                      )}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </div>
+            <DocumentsUploadTab
+              requiredDocuments={requiredDocuments}
+              savedDocuments={savedDocuments}
+              selectedDocType={selectedDocType}
+              setSelectedDocType={setSelectedDocType}
+              setDocFile={setDocFile}
+              loading={loading}
+              isDocumentsCompleted={isDocumentsCompleted}
+              getFullDocumentUrl={getFullDocumentUrl}
+              onUpload={handleUploadDocument}
+              onPrevious={goToPreviousTab}
+              onNext={() => goToTab('payment')}
+            />
           )}
 
-          {/* TAB 5: PEMBAYARAN */}
           {activeTab === 'payment' && (
-            <div className="space-y-6">
-              <h3 className="text-lg font-bold text-slate-900 border-b pb-3">
-                Pembayaran & Bukti Transfer
-              </h3>
-
-              {user?.applicant?.registrations?.[0]?.payments &&
-                user.applicant.registrations[0].payments.length > 0 &&
-                !isReuploading ? (
-                <div className="space-y-6">
-                  <div className="bg-amber-50 border border-amber-300 p-6 rounded-2xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 shadow-sm">
-                    <div className="flex items-start gap-4">
-                      <div className="p-3 bg-amber-500 text-slate-950 rounded-xl font-bold flex-shrink-0">
-                        <AlertCircle className="w-6 h-6" />
-                      </div>
-                      <div className="space-y-1">
-                        <h4 className="font-bold text-amber-900 text-sm">
-                          ⚠️ Anda Sudah Mengunggah Bukti Pembayaran
-                        </h4>
-                        <p className="text-xs text-amber-800 leading-relaxed">
-                          Bukti transfer Anda telah tersimpan dan sedang diperiksa panitia. Jika Anda salah mengunggah file atau ingin memperbarui bukti transfer, silakan klik tombol di sebelah kanan.
-                        </p>
-                      </div>
-                    </div>
-
-                    <button
-                      type="button"
-                      onClick={() => setIsReuploading(true)}
-                      className="px-4 py-2.5 bg-amber-600 hover:bg-amber-500 text-white font-bold text-xs rounded-xl transition-all whitespace-nowrap shadow-sm self-end sm:self-center"
-                    >
-                      Salah Upload? Unggah Ulang
-                    </button>
-                  </div>
-
-                  <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm w-full max-w-full min-w-0">
-                    <div className="p-4 bg-slate-50 border-b border-slate-200 font-bold text-xs text-slate-700">
-                      Riwayat Bukti Pembayaran Anda:
-                    </div>
-
-                    <div className="w-full max-w-full min-w-0 overflow-x-auto overflow-y-hidden overscroll-x-contain touch-pan-x [-webkit-overflow-scrolling:touch]">
-                      <table className="w-max min-w-full text-left text-xs">
-                        <thead className="bg-slate-100/70 text-slate-600 font-bold border-b border-slate-200">
-                          <tr>
-                            <th className="p-3 whitespace-nowrap">Tipe Pembayaran</th>
-                            <th className="p-3 whitespace-nowrap">Nominal</th>
-                            <th className="p-3 whitespace-nowrap">Bukti File</th>
-                            <th className="p-3 whitespace-nowrap">Status Verifikasi</th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-slate-200 text-slate-700">
-                          {user.applicant.registrations[0].payments.map((pay: any) => (
-                            <tr key={pay.id}>
-                              <td className="p-3 font-bold whitespace-nowrap">{pay.paymentType || 'Biaya Pendaftaran PMB'}</td>
-                              <td className="p-3 font-mono font-bold text-slate-900 whitespace-nowrap">Rp {pay.amount?.toLocaleString('id-ID')}</td>
-                              <td className="p-3 whitespace-nowrap">
-                                <a
-                                  href={getFullDocumentUrl(pay.proofUrl)}
-                                  target="_blank"
-                                  rel="noreferrer"
-                                  className="text-sky-600 hover:underline font-semibold"
-                                >
-                                  Lihat Bukti Transfer
-                                </a>
-                              </td>
-
-                              <td className="p-3 whitespace-nowrap">
-                                {pay.status === 'VERIFIED' ? (
-                                  <span className="px-2.5 py-1 bg-emerald-100 text-emerald-800 rounded-full font-bold">
-                                    Terverifikasi
-                                  </span>
-                                ) : (
-                                  <span className="px-2.5 py-1 bg-amber-100 text-amber-800 rounded-full font-bold">
-                                    Menunggu Verifikasi Admin
-                                  </span>
-                                )}
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  {isReuploading && (
-                    <div className="flex justify-between items-center p-3 bg-sky-50 border border-sky-200 rounded-xl text-sky-800 text-xs font-semibold">
-                      <span>ℹ️ Anda sedang dalam mode memperbarui / mengunggah ulang bukti transfer.</span>
-                      <button
-                        type="button"
-                        onClick={() => setIsReuploading(false)}
-                        className="text-slate-500 hover:text-slate-800 underline font-bold"
-                      >
-                        Batal
-                      </button>
-                    </div>
-                  )}
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="bg-slate-900 text-white p-6 rounded-2xl space-y-4">
-                      <h4 className="text-sm font-bold text-amber-400 uppercase tracking-wider">
-                        Rekening Pembayaran Resmi Kampus:
-                      </h4>
-                      <div className="bg-slate-800 p-4 rounded-xl border border-slate-700 space-y-2">
-                        <div className="text-xs text-slate-400">Bank Transfer:</div>
-                        <div className="text-lg font-bold text-white uppercase">{bankSettings.bankName}</div>
-                        <div className="text-2xl font-mono font-extrabold text-amber-300">{bankSettings.accountNumber}</div>
-                        <div className="text-xs text-slate-300">a.n {bankSettings.accountHolder}</div>
-                      </div>
-                      <div className="text-xs text-slate-400 leading-relaxed">
-                        Nominal Biaya Pendaftaran:{' '}
-                        <span className="font-bold text-white">
-                          Rp {Number(bankSettings?.registrationFee || 0).toLocaleString('id-ID')}
-                        </span>.
-                        Setelah melakukan pembayaran, unggah bukti transfer pada form di sebelah kanan.
-                      </div>
-                    </div>
-
-                    <form onSubmit={handleUploadPayment} className="bg-slate-50 p-6 rounded-2xl border border-slate-200 space-y-4">
-                      <h4 className="font-bold text-sm text-slate-900">
-                        {isReuploading ? 'Unggah Ulang Bukti Baru:' : 'Upload Bukti Transfer:'}
-                      </h4>
-                      <div>
-                        <label className="block text-xs font-bold text-slate-700 mb-1">
-                          Jumlah Transfer (Rp)
-                        </label>
-                        <input
-                          type="number"
-                          required
-                          value={paymentAmount}
-                          onChange={(e) => setPaymentAmount(e.target.value)}
-                          className="w-full px-4 py-2.5 bg-white border border-slate-300 rounded-xl text-sm text-slate-900 font-semibold"
-                        />
-                      </div>
-
-                      <div>
-                        <label className="block text-xs font-bold text-slate-700 mb-1">
-                          File Bukti Transfer (Foto/PDF)
-                        </label>
-                        <input
-                          type="file"
-                          required
-                          accept="image/*,application/pdf"
-                          onChange={(e) => setPaymentFile(e.target.files?.[0] || null)}
-                          className="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-xs text-slate-700"
-                        />
-                      </div>
-
-                      <button
-                        type="submit"
-                        disabled={loading}
-                        className="w-full py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-full shadow flex items-center justify-center gap-2"
-                      >
-                        <CreditCard className="w-4 h-4" />
-                        {loading ? 'Mengirim...' : isReuploading ? 'Simpan Bukti Pembayaran Baru' : 'Kirim Bukti Pembayaran'}
-                      </button>
-                    </form>
-                  </div>
-                </div>
-              )}
-            </div>
+            <PaymentTab
+              payments={applicantPayments}
+              bankSettings={bankSettings}
+              paymentAmount={paymentAmount}
+              setPaymentAmount={setPaymentAmount}
+              setPaymentFile={setPaymentFile}
+              isReuploading={isReuploading}
+              setIsReuploading={setIsReuploading}
+              loading={loading}
+              getFullDocumentUrl={getFullDocumentUrl}
+              onUpload={handleUploadPayment}
+              onPrevious={goToPreviousTab}
+            />
           )}
         </div>
       </div>

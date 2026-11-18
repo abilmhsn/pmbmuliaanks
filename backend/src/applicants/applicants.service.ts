@@ -20,7 +20,6 @@ export class ApplicantsService {
       },
     });
 
-
     if (!applicant) return;
 
     // Check if personal, education, study program are provided
@@ -47,6 +46,13 @@ export class ApplicantsService {
       throw new NotFoundException('Data pendaftar tidak ditemukan');
     }
 
+    if (dto.phone) {
+      await this.prisma.applicant.update({
+        where: { id: applicant.id },
+        data: { phone: dto.phone },
+      });
+    }
+
     const personalData = await this.prisma.personalData.upsert({
       where: { applicantId: applicant.id },
       update: {
@@ -55,6 +61,10 @@ export class ApplicantsService {
         birthDate: new Date(dto.birthDate),
         gender: dto.gender,
         address: dto.address,
+        rtRw: dto.rtRw || null,
+        postalCode: dto.postalCode || null,
+        district: dto.district || null,
+        subDistrict: dto.subDistrict || null,
         city: dto.city,
         province: dto.province,
       },
@@ -65,6 +75,10 @@ export class ApplicantsService {
         birthDate: new Date(dto.birthDate),
         gender: dto.gender,
         address: dto.address,
+        rtRw: dto.rtRw || null,
+        postalCode: dto.postalCode || null,
+        district: dto.district || null,
+        subDistrict: dto.subDistrict || null,
         city: dto.city,
         province: dto.province,
       },
@@ -238,8 +252,6 @@ export class ApplicantsService {
       },
     });
 
-
-
     if (!applicant) {
       throw new NotFoundException('Data pendaftar tidak ditemukan');
     }
@@ -248,6 +260,19 @@ export class ApplicantsService {
     if (!registration) {
       throw new BadRequestException('Belum ada pendaftaran aktif');
     }
+
+    const fullAddress =
+      [
+        applicant.personalData?.address,
+        applicant.personalData?.rtRw ? `RT/RW ${applicant.personalData.rtRw}` : null,
+        applicant.personalData?.subDistrict ? `Kel. ${applicant.personalData.subDistrict}` : null,
+        applicant.personalData?.district ? `Kec. ${applicant.personalData.district}` : null,
+        applicant.personalData?.city,
+        applicant.personalData?.province,
+        applicant.personalData?.postalCode,
+      ]
+        .filter(Boolean)
+        .join(', ') || '-';
 
     return {
       campusName: 'KAMPUS MULIA ANGKASA',
@@ -260,7 +285,7 @@ export class ApplicantsService {
       nik: applicant.personalData?.nik || '-',
       gender: applicant.personalData?.gender || '-',
       birthInfo: `${applicant.personalData?.birthPlace || '-'}, ${applicant.personalData?.birthDate ? new Date(applicant.personalData.birthDate).toLocaleDateString('id-ID') : '-'}`,
-      address: `${applicant.personalData?.address || '-'}, ${applicant.personalData?.city || '-'}, ${applicant.personalData?.province || '-'}`,
+      address: fullAddress,
       schoolName: applicant.educationData?.schoolName || '-',
       npsn: applicant.educationData?.npsn || '-',
       major: applicant.educationData?.major || '-',
@@ -315,4 +340,3 @@ export class ApplicantsService {
     });
   }
 }
-

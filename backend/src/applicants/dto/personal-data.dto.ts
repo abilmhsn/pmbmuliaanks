@@ -18,13 +18,29 @@ export class PersonalDataDto {
   @IsString()
   gender: string;
 
-  @IsOptional() // 👈 Tambahkan ini agar opsional / bisa disimpan
+  @IsOptional()
   @IsString()
-  phone?: string;  // 👈 Tambahkan ini
+  phone?: string;
 
   @IsNotEmpty()
   @IsString()
   address: string;
+
+  @IsOptional()
+  @IsString()
+  rtRw?: string;
+
+  @IsOptional()
+  @IsString()
+  postalCode?: string;
+
+  @IsOptional()
+  @IsString()
+  district?: string;
+
+  @IsOptional()
+  @IsString()
+  subDistrict?: string;
 
   @IsNotEmpty()
   @IsString()

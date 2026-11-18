@@ -43,6 +43,10 @@ model PersonalData {
   birthDate   DateTime
   gender      String
   address     String
+  rtRw        String?
+  postalCode  String?
+  district    String?
+  subDistrict String?
   city        String
   province    String
   applicant   Applicant @relation(fields: [applicantId], references: [id], onDelete: Cascade)
