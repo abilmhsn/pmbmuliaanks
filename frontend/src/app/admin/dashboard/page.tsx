@@ -348,13 +348,13 @@ export default function AdminDashboardPage() {
 
       {/* BOTTOM SECTION: Trend Chart & Activity */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-        {/* Tren 7 Hari Terakhir */}
+        {/* Tren 3 Bulan Terakhir */}
         <div className="lg:col-span-1 bg-slate-900 p-6 rounded-3xl border border-slate-800 shadow-xl flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
                 <TrendingUp className="w-4 h-4 text-emerald-400" />
-                <h3 className="text-sm font-bold text-white">Tren Pendaftaran (7 Hari)</h3>
+                <h3 className="text-sm font-bold text-white">Tren Pendaftaran (3 Bulan)</h3>
               </div>
               <button
                 onClick={() => fetchStats()}
@@ -367,7 +367,7 @@ export default function AdminDashboardPage() {
 
             {loading ? (
               <div className="space-y-2 py-4">
-                {[1, 2, 3, 4].map((i) => (
+                {[1, 2, 3].map((i) => (
                   <div key={i} className="h-6 bg-slate-800 animate-pulse rounded-md" />
                 ))}
               </div>
@@ -394,7 +394,7 @@ export default function AdminDashboardPage() {
                 ))}
               </div>
             ) : (
-              <p className="text-xs text-slate-500 py-6 text-center">Belum ada grafik tren minggu ini.</p>
+              <p className="text-xs text-slate-500 py-6 text-center">Belum ada grafik tren 3 bulan terakhir.</p>
             )}
           </div>
 

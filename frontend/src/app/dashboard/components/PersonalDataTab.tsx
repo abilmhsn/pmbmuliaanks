@@ -356,7 +356,7 @@ export default function PersonalDataTab({
           disabled={loading}
           className="px-6 py-3 bg-slate-900 hover:bg-slate-800 disabled:opacity-50 text-white font-bold text-sm rounded-full shadow flex items-center gap-2 transition-all active:scale-95"
         >
-          {loading ? 'Menyimpan...' : 'Simpan & Lanjut Data Pendidikan'}
+          {loading ? 'Menyimpan...' : 'Lanjut Data Pendidikan'}
           <ChevronRight className="w-4 h-4" />
         </button>
       </div>

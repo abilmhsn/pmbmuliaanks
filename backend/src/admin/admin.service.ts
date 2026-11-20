@@ -9,8 +9,10 @@ export class AdminService {
   async getDashboardStats(periodId?: string) {
     const registrationFilter = periodId ? { periodId } : {};
 
+    const now = new Date();
     const sevenDaysAgo = new Date();
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+    const threeMonthsStart = new Date(now.getFullYear(), now.getMonth() - 2, 1);
 
     // Hanya hitung pendaftar yang AKTIF (deletedAt: null)
     const activeApplicantWhere = {
@@ -27,7 +29,7 @@ export class AdminService {
       reRegistered,
       totalStudyPrograms,
       recentApplicants,
-      lastWeekApplicants,
+      lastThreeMonthsApplicants,
     ] = await Promise.all([
       this.prisma.applicant.count({
         where: activeApplicantWhere,
@@ -80,7 +82,7 @@ export class AdminService {
       }),
       this.prisma.applicant.findMany({
         where: {
-          createdAt: { gte: sevenDaysAgo },
+          createdAt: { gte: threeMonthsStart },
           deletedAt: null,
           ...(periodId ? { registrations: { some: { periodId } } } : {}),
         },
@@ -96,19 +98,18 @@ export class AdminService {
       status: app.registrations[0]?.status || 'PENDING',
     }));
 
-    // Format Tren 7 Hari Terakhir
+    // Format Tren 3 Bulan Terakhir
     const trendDataMap: { [key: string]: number } = {};
-    for (let i = 6; i >= 0; i--) {
-      const d = new Date();
-      d.setDate(d.getDate() - i);
-      const dateStr = d.toLocaleDateString('id-ID', { day: '2-digit', month: 'short' });
-      trendDataMap[dateStr] = 0;
+    for (let i = 2; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const monthStr = d.toLocaleDateString('id-ID', { month: 'short', year: 'numeric' });
+      trendDataMap[monthStr] = 0;
     }
 
-    lastWeekApplicants.forEach((app) => {
-      const dateStr = new Date(app.createdAt).toLocaleDateString('id-ID', { day: '2-digit', month: 'short' });
-      if (trendDataMap[dateStr] !== undefined) {
-        trendDataMap[dateStr] += 1;
+    lastThreeMonthsApplicants.forEach((app) => {
+      const monthStr = new Date(app.createdAt).toLocaleDateString('id-ID', { month: 'short', year: 'numeric' });
+      if (trendDataMap[monthStr] !== undefined) {
+        trendDataMap[monthStr] += 1;
       }
     });
 

@@ -1,7 +1,17 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
 import { getCitiesByProvince } from '@/data/indonesiaRegions';
+
+type Region = {
+  id: string;
+  name: string;
+};
+
+// Cache provinsi agar tidak terus mengambil data yang sama
+let provincesCache: Region[] | null = null;
+let provincesRequest: Promise<Region[]> | null = null;
 
 const formatRegionName = (str: string) =>
   str.toLowerCase().replace(/\b\w/g, (char) => char.toUpperCase());
@@ -9,71 +19,129 @@ const formatRegionName = (str: string) =>
 const normalizeName = (str: string) =>
   str.toLowerCase().replace(/administrasi\s+/g, '').trim();
 
+async function fetchJSON<T>(url: string): Promise<T> {
+  let lastError: unknown;
+
+  // Coba maksimal 3 kali jika koneksi gagal
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    try {
+      const response = await fetch(url);
+
+      if (!response.ok) {
+        throw new Error(
+          `HTTP ${response.status}: Gagal mengambil ${url}`
+        );
+      }
+
+      return (await response.json()) as T;
+    } catch (error) {
+      lastError = error;
+
+      if (attempt < 3) {
+        await new Promise((resolve) =>
+          setTimeout(resolve, 1000 * attempt)
+        );
+      }
+    }
+  }
+
+  throw lastError;
+}
+
+async function getProvinces(): Promise<Region[]> {
+  if (provincesCache) return provincesCache;
+
+  if (!provincesRequest) {
+    provincesRequest = fetchJSON<Region[]>(
+      'https://www.emsifa.com/api-wilayah-indonesia/api/provinces.json'
+    )
+      .then((data) => {
+        provincesCache = data;
+        return data;
+      })
+      .catch((error) => {
+        provincesRequest = null;
+        throw error;
+      });
+  }
+
+  return provincesRequest;
+}
+
 export function useWilayahIndonesia(
   province: string,
   city: string,
   district: string
 ) {
-  const [districtList, setDistrictList] = useState<{ id: string; name: string }[]>([]);
-  const [subDistrictList, setSubDistrictList] = useState<{ id: string; name: string }[]>([]);
+  const [districtList, setDistrictList] = useState<Region[]>([]);
+  const [subDistrictList, setSubDistrictList] = useState<Region[]>([]);
   const [loadingDistricts, setLoadingDistricts] = useState(false);
   const [loadingSubDistricts, setLoadingSubDistricts] = useState(false);
 
   const availableCities = getCitiesByProvince(province);
 
-  // Load Kecamatan berdasarkan Provinsi & Kota/Kabupaten
+  // Load kecamatan berdasarkan provinsi dan kota
   useEffect(() => {
     let active = true;
 
     const loadDistricts = async () => {
+      setDistrictList([]);
+      setSubDistrictList([]);
+
       if (!province || !city) {
-        setDistrictList([]);
-        setSubDistrictList([]);
+        setLoadingDistricts(false);
         return;
       }
 
       try {
         setLoadingDistricts(true);
 
-        const provRes = await fetch(
-          'https://www.emsifa.com/api-wilayah-indonesia/api/provinces.json'
-        );
-        const provincesData: { id: string; name: string }[] = await provRes.json();
+        const provincesData = await getProvinces();
+
+        if (!active) return;
 
         const matchedProv = provincesData.find(
           (p) => normalizeName(p.name) === normalizeName(province)
         );
 
-        if (!matchedProv) return;
+        if (!matchedProv) {
+          console.error('Provinsi tidak ditemukan:', province);
+          return;
+        }
 
-        const regRes = await fetch(
+        const regenciesData = await fetchJSON<Region[]>(
           `https://www.emsifa.com/api-wilayah-indonesia/api/regencies/${matchedProv.id}.json`
         );
-        const regenciesData: { id: string; name: string }[] = await regRes.json();
+
+        if (!active) return;
 
         const matchedCity = regenciesData.find(
           (r) => normalizeName(r.name) === normalizeName(city)
         );
 
-        if (!matchedCity) return;
+        if (!matchedCity) {
+          console.error('Kota/kabupaten tidak ditemukan:', city);
+          return;
+        }
 
-        const distRes = await fetch(
+        const districtsData = await fetchJSON<Region[]>(
           `https://www.emsifa.com/api-wilayah-indonesia/api/districts/${matchedCity.id}.json`
         );
-        const districtsData: { id: string; name: string }[] = await distRes.json();
 
+        if (!active) return;
+
+        setDistrictList(
+          districtsData
+            .map((d) => ({
+              id: d.id,
+              name: formatRegionName(d.name),
+            }))
+            .sort((a, b) => a.name.localeCompare(b.name, 'id'))
+        );
+      } catch (error) {
         if (active) {
-          setDistrictList(
-            districtsData
-              .map((d) => ({
-                id: d.id,
-                name: formatRegionName(d.name),
-              }))
-              .sort((a, b) => a.name.localeCompare(b.name, 'id'))
-          );
+          console.error('Gagal memuat data kecamatan:', error);
         }
-      } catch (err) {
-        console.error('Gagal memuat data kecamatan:', err);
       } finally {
         if (active) setLoadingDistricts(false);
       }
@@ -86,42 +154,48 @@ export function useWilayahIndonesia(
     };
   }, [province, city]);
 
-  // Load Desa / Kelurahan berdasarkan Kecamatan
+  // Load kelurahan berdasarkan kecamatan
   useEffect(() => {
     let active = true;
 
     const loadSubDistricts = async () => {
+      setSubDistrictList([]);
+
       if (!district || districtList.length === 0) {
-        setSubDistrictList([]);
+        setLoadingSubDistricts(false);
         return;
       }
 
       const matchedDist = districtList.find(
-        (d) => d.name.toLowerCase() === district.toLowerCase()
+        (d) => normalizeName(d.name) === normalizeName(district)
       );
 
-      if (!matchedDist) return;
+      if (!matchedDist) {
+        setLoadingSubDistricts(false);
+        return;
+      }
 
       try {
         setLoadingSubDistricts(true);
 
-        const villRes = await fetch(
+        const villagesData = await fetchJSON<Region[]>(
           `https://www.emsifa.com/api-wilayah-indonesia/api/villages/${matchedDist.id}.json`
         );
-        const villagesData: { id: string; name: string }[] = await villRes.json();
 
+        if (!active) return;
+
+        setSubDistrictList(
+          villagesData
+            .map((v) => ({
+              id: v.id,
+              name: formatRegionName(v.name),
+            }))
+            .sort((a, b) => a.name.localeCompare(b.name, 'id'))
+        );
+      } catch (error) {
         if (active) {
-          setSubDistrictList(
-            villagesData
-              .map((v) => ({
-                id: v.id,
-                name: formatRegionName(v.name),
-              }))
-              .sort((a, b) => a.name.localeCompare(b.name, 'id'))
-          );
+          console.error('Gagal memuat data kelurahan:', error);
         }
-      } catch (err) {
-        console.error('Gagal memuat data kelurahan:', err);
       } finally {
         if (active) setLoadingSubDistricts(false);
       }

@@ -143,10 +143,10 @@ export default function AdminMasterDataPage() {
   };
 
   return (
-    <div className="space-y-8 max-w-7xl mx-auto">
+    <div className="space-y-6 max-w-7xl mx-auto">
       {/* Top Header */}
-      <div className="bg-slate-900 p-6 rounded-2xl border border-slate-800">
-        <h1 className="text-2xl font-extrabold text-white">Kelola Master Data & Informasi PMB</h1>
+      <div className="bg-slate-900 p-5 sm:p-6 rounded-2xl border border-slate-800">
+        <h1 className="text-xl sm:text-2xl font-extrabold text-white">Kelola Master Data & Informasi PMB</h1>
         <p className="text-xs text-slate-400 mt-1">
           Pengaturan Program Studi, Status Gelombang PMB (1 & 2), dan Pengumuman Pengguna.
         </p>
@@ -160,94 +160,113 @@ export default function AdminMasterDataPage() {
           </div>
         </div>
       ) : (
-        <>
-          {/* Grid Section */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {/* SECTION 1: PROGRAM STUDI */}
-            <div className="bg-slate-900 p-6 rounded-2xl border border-slate-800 space-y-4">
-              <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-                <div className="flex items-center gap-2">
-                  <BookOpen className="w-5 h-5 text-amber-400" />
-                  <h3 className="text-base font-bold text-white">Program Studi</h3>
-                </div>
-                <button
-                  onClick={handleOpenCreateProgram}
-                  className="px-3 py-1.5 bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-xs rounded-lg flex items-center gap-1 transition-all"
-                >
-                  <Plus className="w-3.5 h-3.5" /> Tambah Prodi
-                </button>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
+          {/* KOLOM KIRI: PROGRAM STUDI */}
+          <div className="bg-slate-900 p-5 sm:p-6 rounded-2xl border border-slate-800 space-y-4">
+            <div className="flex items-center justify-between gap-3 border-b border-slate-800 pb-3.5">
+              <div className="flex items-center gap-2.5">
+                <BookOpen className="w-5 h-5 text-amber-400 shrink-0" />
+                <h3 className="text-base font-bold text-white">Program Studi</h3>
               </div>
-
-              <div className="space-y-4">
-                {programs.map((prog) => {
-                  // Kalkulasi Kuota Dinamis
-                  const filled = prog.filledCount ?? 0;
-                  const remaining = prog.remainingQuota ?? Math.max(0, (prog.quota || 0) - filled);
-
-                  return (
-                    <div key={prog.id} className="p-4 bg-slate-950 rounded-xl border border-slate-800 space-y-2 relative group">
-                      <div className="flex justify-between items-start">
-                        <span className="px-2.5 py-1 bg-amber-400/20 text-amber-400 font-mono text-xs font-bold rounded-md">
-                          {prog.code}
-                        </span>
-                        <div className="flex items-center gap-3">
-                          {/* Indikator Kuota Dinamis (Terisi, Sisa, & Total) */}
-                          <div className="text-xs font-mono text-slate-400 flex items-center gap-1.5">
-                            <span>Sisa: <strong className="text-emerald-400">{remaining}</strong></span>
-                            <span>/</span>
-                            <span>Terisi: <strong className="text-amber-400">{filled}</strong></span>
-                            <span>/</span>
-                            <span>Total: <strong className="text-white">{prog.quota}</strong></span>
-                          </div>
-
-                          <button
-                            onClick={() => handleOpenEditProgram(prog)}
-                            className="p-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-md transition-all ml-1"
-                            title="Edit Program Studi"
-                          >
-                            <Edit2 className="w-3.5 h-3.5 text-sky-400" />
-                          </button>
-                        </div>
-                      </div>
-                      <h4 className="font-bold text-white text-base">{prog.name}</h4>
-                      <p className="text-xs text-slate-400">{prog.description}</p>
-                      <div className="pt-2 text-xs font-bold text-sky-400">
-                        Biaya Kuliah: Rp {prog.tuitionFee?.toLocaleString('id-ID')}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
+              <button
+                onClick={handleOpenCreateProgram}
+                className="px-3.5 py-2 bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-xs rounded-xl flex items-center gap-1.5 transition-all shrink-0"
+              >
+                <Plus className="w-3.5 h-3.5" /> Tambah Prodi
+              </button>
             </div>
 
+            <div className="space-y-4">
+              {programs.map((prog) => {
+                // Kalkulasi Kuota Dinamis
+                const filled = prog.filledCount ?? 0;
+                const remaining = prog.remainingQuota ?? Math.max(0, (prog.quota || 0) - filled);
+
+                return (
+                  <div key={prog.id} className="p-4 sm:p-5 bg-slate-950 rounded-xl border border-slate-800 space-y-3">
+                    {/* Baris Atas: Kode Prodi & Tombol Edit */}
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="px-2.5 py-1 bg-amber-400/15 text-amber-400 border border-amber-400/20 font-mono text-xs font-bold rounded-lg">
+                        {prog.code}
+                      </span>
+                      <button
+                        onClick={() => handleOpenEditProgram(prog)}
+                        className="p-2 bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 rounded-lg transition-all"
+                        title="Edit Program Studi"
+                      >
+                        <Edit2 className="w-3.5 h-3.5 text-sky-400" />
+                      </button>
+                    </div>
+
+                    {/* Nama & Deskripsi Prodi */}
+                    <div className="space-y-1.5">
+                      <h4 className="font-bold text-white text-base leading-snug">{prog.name}</h4>
+                      <p className="text-xs text-slate-400 leading-relaxed">{prog.description}</p>
+                    </div>
+
+                    {/* Indikator Kuota 3 Kolom Rapih */}
+                    <div className="grid grid-cols-3 gap-2 bg-slate-900/80 p-2.5 rounded-xl border border-slate-800/80 text-center font-mono">
+                      <div>
+                        <span className="block text-[10px] text-slate-400 uppercase">Sisa</span>
+                        <strong className="text-xs text-emerald-400">{remaining}</strong>
+                      </div>
+                      <div className="border-x border-slate-800">
+                        <span className="block text-[10px] text-slate-400 uppercase">Terisi</span>
+                        <strong className="text-xs text-amber-400">{filled}</strong>
+                      </div>
+                      <div>
+                        <span className="block text-[10px] text-slate-400 uppercase">Total</span>
+                        <strong className="text-xs text-white">{prog.quota}</strong>
+                      </div>
+                    </div>
+
+                    {/* Footer Biaya Kuliah */}
+                    <div className="pt-2 border-t border-slate-800/80 flex items-center justify-between text-xs">
+                      <span className="text-slate-400">Biaya Kuliah</span>
+                      <span className="font-bold text-sky-400 font-mono">
+                        Rp {prog.tuitionFee?.toLocaleString('id-ID')}
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* KOLOM KANAN: PERIODE GELOMBANG & KELOLA PENGUMUMAN */}
+          <div className="space-y-6">
             {/* SECTION 2: PERIODE GELOMBANG PMB */}
-            <div className="bg-slate-900 p-6 rounded-2xl border border-slate-800 space-y-4">
-              <div className="flex items-center gap-2 border-b border-slate-800 pb-3">
-                <Calendar className="w-5 h-5 text-sky-400" />
-                <h3 className="text-lg font-bold text-white">Periode Gelombang PMB (1 & 2)</h3>
+            <div className="bg-slate-900 p-5 sm:p-6 rounded-2xl border border-slate-800 space-y-4">
+              <div className="flex items-center gap-2.5 border-b border-slate-800 pb-3.5">
+                <Calendar className="w-5 h-5 text-sky-400 shrink-0" />
+                <h3 className="text-base font-bold text-white">Periode Gelombang PMB (1 & 2)</h3>
               </div>
 
-              <p className="text-xs text-slate-400">
+              <p className="text-xs text-slate-400 leading-relaxed">
                 Pilih gelombang aktif. Data pendaftar, statistik dashboard, dan hasil export CSV akan terisolasi khusus sesuai gelombang yang diaktifkan.
               </p>
 
-              <div className="space-y-4 pt-2">
+              <div className="space-y-3 pt-1">
                 {periods.slice(0, 2).map((per) => (
-                  <div key={per.id} className="p-4 bg-slate-950 rounded-xl border border-slate-800 flex justify-between items-center">
-                    <div>
+                  <div
+                    key={per.id}
+                    className={`p-4 bg-slate-950 rounded-xl border flex flex-col sm:flex-row sm:items-center justify-between gap-3 transition-all ${per.isActive ? 'border-emerald-500/40' : 'border-slate-800'
+                      }`}
+                  >
+                    <div className="space-y-0.5">
                       <h4 className="font-bold text-white text-sm">{per.name}</h4>
-                      <p className="text-xs text-slate-400 font-mono mt-0.5">T.A {per.year || per.academicYear || '2027/2028'}</p>
+                      <p className="text-xs text-slate-400 font-mono">T.A {per.year || per.academicYear || '2027/2028'}</p>
                     </div>
 
-                    <div>
+                    <div className="shrink-0">
                       {per.isActive ? (
-                        <span className="px-3 py-1.5 bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-xs font-extrabold rounded-lg flex items-center gap-1">
+                        <span className="w-full sm:w-auto justify-center px-3.5 py-2 bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 text-xs font-extrabold rounded-xl flex items-center gap-1.5">
                           <CheckCircle2 className="w-3.5 h-3.5" /> AKTIF
                         </span>
                       ) : (
                         <button
                           onClick={() => handleActivatePeriod(per.id, per.name)}
-                          className="px-4 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold rounded-lg transition-all border border-slate-700"
+                          className="w-full sm:w-auto px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold rounded-xl transition-all border border-slate-700 whitespace-nowrap"
                         >
                           Aktifkan Gelombang Ini
                         </button>
@@ -257,97 +276,98 @@ export default function AdminMasterDataPage() {
                 ))}
               </div>
             </div>
-          </div>
 
-          {/* SECTION 3: PENGUMUMAN DITERBITKAN */}
-          <div className="bg-slate-900 p-6 rounded-2xl border border-slate-800 space-y-6">
-            <div className="flex items-center gap-2 border-b border-slate-800 pb-3">
-              <Bell className="w-5 h-5 text-amber-400" />
-              <h3 className="text-lg font-bold text-white">Kelola Pengumuman PMB</h3>
-            </div>
+            {/* SECTION 3: PENGUMUMAN DITERBITKAN (MINIMALIS) */}
+            <div className="bg-slate-900 p-5 sm:p-6 rounded-2xl border border-slate-800 space-y-4">
+              <div className="flex items-center justify-between border-b border-slate-800 pb-3.5">
+                <div className="flex items-center gap-2.5">
+                  <Bell className="w-5 h-5 text-amber-400 shrink-0" />
+                  <h3 className="text-base font-bold text-white">Kelola Pengumuman PMB</h3>
+                </div>
+                <span className="text-[11px] text-slate-400 font-mono">
+                  {announcements.length} Aktif
+                </span>
+              </div>
 
-            <form onSubmit={handleCreateAnnouncement} className="bg-slate-950 p-6 rounded-xl border border-slate-800 space-y-4">
-              <h4 className="font-bold text-white text-xs uppercase tracking-wider">Terbitkan Pengumuman Baru</h4>
+              <form onSubmit={handleCreateAnnouncement} className="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-3">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                  <div className="sm:col-span-2">
+                    <input
+                      type="text"
+                      required
+                      placeholder="Judul pengumuman..."
+                      value={annTitle}
+                      onChange={(e) => setAnnTitle(e.target.value)}
+                      className="w-full px-3 py-2 bg-slate-900 border border-slate-800 focus:border-amber-400/50 focus:outline-none rounded-lg text-xs text-white"
+                    />
+                  </div>
+                  <div>
+                    <select
+                      value={annType}
+                      onChange={(e) => setAnnType(e.target.value)}
+                      className="w-full px-3 py-2 bg-slate-900 border border-slate-800 focus:border-amber-400/50 focus:outline-none rounded-lg text-xs text-amber-400 font-bold"
+                    >
+                      <option value="INFO">INFO</option>
+                    </select>
+                  </div>
+                </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div className="sm:col-span-2">
-                  <label className="block text-xs font-bold text-slate-400 mb-1">Judul Pengumuman</label>
-                  <input
-                    type="text"
+                <div>
+                  <textarea
+                    rows={2}
                     required
-                    placeholder="Contoh: Pengumuman Hasil Seleksi Administrasi Gelombang 1"
-                    value={annTitle}
-                    onChange={(e) => setAnnTitle(e.target.value)}
-                    className="w-full px-4 py-2 bg-slate-900 border border-slate-700 rounded-xl text-xs text-white"
+                    placeholder="Isi pesan singkat pengumuman..."
+                    value={annContent}
+                    onChange={(e) => setAnnContent(e.target.value)}
+                    className="w-full px-3 py-2 bg-slate-900 border border-slate-800 focus:border-amber-400/50 focus:outline-none rounded-lg text-xs text-white resize-none"
                   />
                 </div>
-                <div>
-                  <label className="block text-xs font-bold text-slate-400 mb-1">Tipe Badge</label>
-                  <select
-                    value={annType}
-                    onChange={(e) => setAnnType(e.target.value)}
-                    className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-xl text-xs text-white font-bold"
+
+                <div className="flex justify-end">
+                  <button
+                    type="submit"
+                    className="w-full sm:w-auto justify-center px-4 py-2 bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-xs rounded-lg flex items-center gap-1.5 transition-all"
                   >
-                    <option value="INFO">INFO</option>
-                  </select>
+                    <Plus className="w-3.5 h-3.5" /> Terbitkan
+                  </button>
                 </div>
-              </div>
+              </form>
 
-              <div>
-                <label className="block text-xs font-bold text-slate-400 mb-1">Isi Pengumuman</label>
-                <textarea
-                  rows={3}
-                  required
-                  placeholder="Tuliskan pesan lengkap pengumuman di sini..."
-                  value={annContent}
-                  onChange={(e) => setAnnContent(e.target.value)}
-                  className="w-full px-4 py-2 bg-slate-900 border border-slate-700 rounded-xl text-xs text-white"
-                />
-              </div>
-
-              <div className="flex justify-end">
-                <button
-                  type="submit"
-                  className="px-5 py-2.5 bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-xs rounded-xl shadow flex items-center gap-1.5"
-                >
-                  <Plus className="w-4 h-4" /> Terbitkan Pengumuman
-                </button>
-              </div>
-            </form>
-
-            <div className="space-y-3">
-              <h4 className="font-bold text-slate-400 text-xs">Daftar Pengumuman Aktif:</h4>
-              {announcements.map((ann) => (
-                <div key={ann.id} className="p-4 bg-slate-950 rounded-xl border border-slate-800 space-y-2">
-                  <div className="flex justify-between items-center">
-                    <span className="font-bold text-white text-sm">{ann.title}</span>
-                    <div className="flex items-center gap-3">
-                      <span
-                        className={`px-2.5 py-0.5 rounded text-[10px] font-mono font-bold ${ann.type === 'URGENT'
-                          ? 'bg-rose-500/20 text-rose-400 border border-rose-500/30'
-                          : ann.type === 'SUCCESS'
-                            ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
-                            : 'bg-sky-500/20 text-sky-400 border border-sky-500/30'
-                          }`}
-                      >
-                        {ann.type}
-                      </span>
+              {announcements.length > 0 && (
+                <div className="space-y-2.5 max-h-60 overflow-y-auto pr-1">
+                  {announcements.map((ann) => (
+                    <div key={ann.id} className="p-3.5 bg-slate-950 rounded-xl border border-slate-800/90 flex items-start justify-between gap-3">
+                      <div className="space-y-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <span
+                            className={`px-2 py-0.5 rounded text-[9px] font-mono font-bold shrink-0 ${ann.type === 'URGENT'
+                              ? 'bg-rose-500/20 text-rose-400 border border-rose-500/30'
+                              : ann.type === 'SUCCESS'
+                                ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                                : 'bg-sky-500/20 text-sky-400 border border-sky-500/30'
+                              }`}
+                          >
+                            {ann.type}
+                          </span>
+                          <span className="font-bold text-white text-xs truncate">{ann.title}</span>
+                        </div>
+                        <p className="text-[11px] text-slate-400 leading-relaxed line-clamp-2">{ann.content}</p>
+                      </div>
 
                       <button
                         onClick={() => handleDeleteAnnouncement(ann.id)}
-                        className="p-1.5 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 rounded-lg transition-all"
+                        className="p-1.5 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/20 rounded-lg transition-all shrink-0"
                         title="Hapus Pengumuman"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
                       </button>
                     </div>
-                  </div>
-                  <p className="text-xs text-slate-400">{ann.content}</p>
+                  ))}
                 </div>
-              ))}
+              )}
             </div>
           </div>
-        </>
+        </div>
       )}
 
       {/* MODAL EDIT / TAMBAH PROGRAM STUDI */}
