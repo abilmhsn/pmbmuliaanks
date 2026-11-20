@@ -11,6 +11,7 @@ import { PaymentsModule } from './payments/payments.module';
 import { AnnouncementsModule } from './announcements/announcements.module';
 import { AdminModule } from './admin/admin.module';
 import { SuperAdminModule } from './super-admin/super-admin.module';
+import { NewsModule } from './news/news.module';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { SuperAdminModule } from './super-admin/super-admin.module';
     AnnouncementsModule,
     AdminModule,
     SuperAdminModule,
+    NewsModule,
   ],
 })
 export class AppModule { }

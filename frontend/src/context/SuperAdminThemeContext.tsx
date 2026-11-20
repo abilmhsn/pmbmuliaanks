@@ -14,8 +14,8 @@ interface SuperAdminThemeContextType {
 const SuperAdminThemeContext = createContext<SuperAdminThemeContextType>({
   theme: 'dark',
   isDark: true,
-  toggleTheme: () => {},
-  setTheme: () => {},
+  toggleTheme: () => { },
+  setTheme: () => { },
 });
 
 export function SuperAdminThemeProvider({ children }: { children: React.ReactNode }) {
@@ -39,7 +39,7 @@ export function SuperAdminThemeProvider({ children }: { children: React.ReactNod
     setThemeState(t);
     try {
       localStorage.setItem('superadmin_theme', t);
-    } catch {}
+    } catch { }
   };
 
   const toggleTheme = () => {
@@ -56,8 +56,17 @@ export function SuperAdminThemeProvider({ children }: { children: React.ReactNod
         setTheme,
       }}
     >
-      <div className={theme === 'dark' ? 'dark text-slate-100' : 'light text-slate-900'} data-superadmin-theme={theme}>
-        {children}
+      <div
+        className={
+          theme === 'dark'
+            ? 'dark text-slate-100'
+            : 'light text-slate-900'
+        }
+        data-superadmin-theme={theme}
+      >
+        {mounted ? children : (
+          <div className="min-h-screen bg-slate-900" />
+        )}
       </div>
     </SuperAdminThemeContext.Provider>
   );

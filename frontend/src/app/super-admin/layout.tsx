@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, Suspense } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
 import {
@@ -10,6 +10,7 @@ import {
   ShieldCheck,
   Activity,
   Settings,
+  Newspaper,
   LogOut,
   Menu,
   X,
@@ -30,7 +31,15 @@ export default function SuperAdminLayout({
 }) {
   return (
     <SuperAdminThemeProvider>
-      <SuperAdminLayoutContent>{children}</SuperAdminLayoutContent>
+      <Suspense
+        fallback={
+          <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+            <div className="w-10 h-10 rounded-full border-4 border-purple-500 border-t-transparent animate-spin" />
+          </div>
+        }
+      >
+        <SuperAdminLayoutContent>{children}</SuperAdminLayoutContent>
+      </Suspense>
     </SuperAdminThemeProvider>
   );
 }
@@ -47,6 +56,12 @@ function SuperAdminLayoutContent({ children }: { children: React.ReactNode }) {
       label: 'Executive Overview',
       subtitle: 'Statistik & Keuangan',
       Icon: LayoutDashboard,
+    },
+    {
+      href: '/super-admin/news',
+      label: 'Berita (News)',
+      subtitle: 'Manajemen Konten Kampus',
+      Icon: Newspaper,
     },
     {
       href: '/super-admin/users',
@@ -442,11 +457,13 @@ function SuperAdminLayoutContent({ children }: { children: React.ReactNode }) {
           const shortLabel =
             href.includes('dashboard')
               ? 'Ikhtisar'
-              : href.includes('users')
-                ? 'Tim & Akun'
-                : href.includes('audit-logs')
-                  ? 'Audit Log'
-                  : 'Pengaturan';
+              : href.includes('news')
+                ? 'Berita'
+                : href.includes('users')
+                  ? 'Tim & Akun'
+                  : href.includes('audit-logs')
+                    ? 'Audit Log'
+                    : 'Pengaturan';
           return (
             <Link
               key={href}

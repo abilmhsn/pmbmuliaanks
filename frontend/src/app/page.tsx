@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { motion } from 'framer-motion';
 import {
   Plane, ShieldCheck, UserCheck, FileText, CreditCard, Award, CheckCircle2, ChevronDown, ChevronLeft, ChevronRight, PhoneCall, MessageCircle, ArrowRight, BookOpen, MapPin,
-  Mail, Clock, Menu, X, Sparkles, Users,
+  Mail, Clock, Menu, X, Sparkles, Users, Newspaper, Calendar, ArrowUpRight,
 }
   from 'lucide-react';
 import api from '@/lib/api';
@@ -40,6 +40,7 @@ export default function LandingPage() {
   const [openFaq, setOpenFaq] = useState<number | null>(0);
   const [programs, setPrograms] = useState<any[]>([]);
   const [announcements, setAnnouncements] = useState<any[]>([]);
+  const [newsList, setNewsList] = useState<any[]>([]);
 
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isAutoPlaying, setIsAutoPlaying] = useState(true);
@@ -56,9 +57,10 @@ export default function LandingPage() {
     let isMounted = true;
     const fetchData = async () => {
       try {
-        const [progRes, annRes] = await Promise.allSettled([
+        const [progRes, annRes, newsRes] = await Promise.allSettled([
           api.get('/study-programs'),
           api.get('/announcements'),
+          api.get('/news?limit=3'),
         ]);
         if (!isMounted) return;
         if (progRes.status === 'fulfilled' && progRes.value?.data) {
@@ -66,6 +68,9 @@ export default function LandingPage() {
         }
         if (annRes.status === 'fulfilled' && annRes.value?.data) {
           setAnnouncements(annRes.value.data);
+        }
+        if (newsRes.status === 'fulfilled' && newsRes.value?.data?.data) {
+          setNewsList(newsRes.value.data.data);
         }
       } catch (err) {
         console.warn('Error fetching public landing data:', err);
@@ -128,6 +133,7 @@ export default function LandingPage() {
             <a href="#prodi" className="hover:text-amber-500 transition-colors">Program Studi</a>
             <a href="#alur" className="hover:text-amber-500 transition-colors">Alur Pendaftaran</a>
             <a href="#syarat" className="hover:text-amber-500 transition-colors">Persyaratan</a>
+            <a href="#berita" className="hover:text-amber-500 transition-colors">Berita</a>
             <a href="#faq" className="hover:text-amber-500 transition-colors">FAQ</a>
             <a href="#kontak" className="hover:text-amber-500 transition-colors">Kontak</a>
           </nav>
@@ -174,6 +180,7 @@ export default function LandingPage() {
             <a href="#prodi" onClick={() => setIsMenuOpen(false)} className="block py-2 font-bold text-slate-300 hover:text-white border-b border-slate-800/60">Program Studi</a>
             <a href="#alur" onClick={() => setIsMenuOpen(false)} className="block py-2 text-sm text-slate-300 hover:text-white border-b border-slate-800/60">Alur Pendaftaran</a>
             <a href="#syarat" onClick={() => setIsMenuOpen(false)} className="block py-2 text-sm text-slate-300 hover:text-white border-b border-slate-800/60">Persyaratan</a>
+            <a href="#berita" onClick={() => setIsMenuOpen(false)} className="block py-2 text-sm text-slate-300 hover:text-white border-b border-slate-800/60">Berita</a>
             <a href="#faq" onClick={() => setIsMenuOpen(false)} className="block py-2 text-sm text-slate-300 hover:text-white border-b border-slate-800/60">FAQ</a>
             <a href="#kontak" onClick={() => setIsMenuOpen(false)} className="block py-2 text-sm text-slate-300 hover:text-white">Kontak</a>
 
@@ -581,6 +588,131 @@ export default function LandingPage() {
               </div>
             </div>
           </div>
+        </div>
+      </motion.section>
+
+
+      {/* Section: Berita & Informasi Kampus */}
+      <motion.section
+        id="berita"
+        initial={{ opacity: 0, y: 60 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, margin: "-80px" }}
+        transition={{ duration: 0.8, ease: "easeOut" }}
+        className="py-20 bg-slate-100/70 border-t border-slate-200"
+      >
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-4">
+            <div>
+              <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-slate-800 text-amber-50 border ">
+                <Newspaper className="w-3.5 h-3.5" />
+                <span>Kabar dan Aktivitas Kampus</span>
+              </div>
+              <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
+                Berita Terbaru Mulia Angkasa Akademi
+              </h2>
+              <p className="text-slate-600 text-xs sm:text-sm mt-2 max-w-2xl leading-relaxed">
+                Dapatkan informasi terkini seputar pendaftaran, beasiswa, seminar penerbangan, dan kegiatan civitas akademika Mulia Angkasa Akademi.
+              </p>
+            </div>
+
+            <Link
+              href="/news"
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-xs sm:text-sm font-bold bg-slate-900 text-white hover:bg-amber-400 hover:text-slate-950 shadow-md transition-all group flex-shrink-0"
+            >
+              <span>Lihat Semua Berita</span>
+              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+            </Link>
+          </div>
+
+          {newsList && newsList.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8">
+              {newsList.map((item: any) => {
+                const dateStr = item.publishedAt
+                  ? new Intl.DateTimeFormat('id-ID', {
+                    day: 'numeric',
+                    month: 'long',
+                    year: 'numeric',
+                  }).format(new Date(item.publishedAt))
+                  : 'Terbaru';
+
+                return (
+                  <article
+                    key={item.id}
+                    className="bg-white rounded-3xl overflow-hidden border border-slate-200 shadow-sm hover:shadow-xl hover:-translate-y-1.5 transition-all duration-300 flex flex-col group"
+                  >
+                    {/* Cover Thumbnail */}
+                    <div className="relative w-full h-48 sm:h-52 bg-slate-100 overflow-hidden">
+                      {item.imageUrl ? (
+                        <img
+                          src={item.imageUrl}
+                          alt={item.title}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-slate-800 to-slate-900 text-slate-400">
+                          <Newspaper className="w-10 h-10 mb-2 opacity-50" />
+                          <span className="text-[11px] font-semibold">Mulia Angkasa News</span>
+                        </div>
+                      )}
+                      <div className="absolute top-3 left-3">
+                        <span className="px-3 py-1 rounded-full text-[10px] font-extrabold tracking-wide uppercase bg-slate-900/90 text-amber-50 backdrop-blur-md shadow-sm border border-white/10">
+                          Warta Kampus
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Content */}
+                    <div className="p-5 sm:p-6 flex-1 flex flex-col justify-between space-y-4">
+                      <div className="space-y-2.5">
+                        <div className="flex items-center gap-2 text-xs text-slate-500">
+                          <Calendar className="w-3.5 h-3.5 text-amber-500" />
+                          <span>{dateStr}</span>
+                        </div>
+
+                        <h3 className="font-extrabold text-slate-900 text-base sm:text-lg line-clamp-2 leading-snug group-hover:text-amber-600 transition-colors">
+                          <Link href={`/news/${item.slug}`}>
+                            {item.title}
+                          </Link>
+                        </h3>
+
+                        {item.excerpt && (
+                          <p className="text-xs text-slate-600 line-clamp-3 leading-relaxed">
+                            {item.excerpt}
+                          </p>
+                        )}
+                      </div>
+
+                      <div className="pt-3 border-t border-slate-100 flex items-center justify-between">
+                        <span className="text-[11px] font-semibold text-slate-400">
+                          Mulia Angkasa Akademi
+                        </span>
+                        <Link
+                          href={`/news/${item.slug}`}
+                          className="text-xs font-bold text-slate-900 group-hover:text-amber-500 flex items-center gap-1 transition-colors"
+                        >
+                          <span>Baca Selengkapnya</span>
+                          <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+                        </Link>
+                      </div>
+                    </div>
+                  </article>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="bg-white rounded-3xl p-10 border border-slate-200 text-center space-y-3">
+              <div className="w-12 h-12 rounded-2xl bg-amber-400/10 text-amber-600 mx-auto flex items-center justify-center">
+                <Newspaper className="w-6 h-6" />
+              </div>
+              <h3 className="text-sm font-bold text-slate-800">
+                Belum ada berita yang dipublikasikan
+              </h3>
+              <p className="text-xs text-slate-500 max-w-md mx-auto">
+                Berita dan informasi terbaru akan segera hadir di halaman ini. Kunjungi kembali untuk mendapatkan update kegiatan kampus.
+              </p>
+            </div>
+          )}
         </div>
       </motion.section>
 

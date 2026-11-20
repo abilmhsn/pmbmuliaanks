@@ -17,6 +17,7 @@ model User {
   updatedAt DateTime   @updatedAt
   applicant Applicant?
   auditLogs AuditLog[]
+  news      News[]
 }
 
 model Applicant {
@@ -185,3 +186,27 @@ enum PaymentStatus {
   VERIFIED
   REJECTED
 }
+
+enum NewsStatus {
+  DRAFT
+  PUBLISHED
+}
+
+model News {
+  id          String     @id @default(uuid())
+  title       String
+  slug        String     @unique
+  excerpt     String?    @db.Text
+  content     String     @db.Text
+  imageUrl    String?
+  status      NewsStatus @default(DRAFT)
+  publishedAt DateTime?
+  authorId    String?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  author      User?      @relation(fields: [authorId], references: [id], onDelete: SetNull)
+
+  @@index([status, publishedAt])
+}
+
