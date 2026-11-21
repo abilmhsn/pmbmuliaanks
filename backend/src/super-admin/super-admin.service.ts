@@ -87,7 +87,7 @@ export class SuperAdminService {
       }),
     ]);
 
-    // 3. Financial Metrics
+    // 3. Financial Metrics (Khusus Rekap Uang Muka / DP)
     const verifiedPayments = await this.prisma.payment.aggregate({
       where: {
         status: PaymentStatus.VERIFIED,
@@ -130,8 +130,6 @@ export class SuperAdminService {
       const percentageFilled =
         prog.quota > 0 ? Math.min(100, Math.round((acceptedCount / prog.quota) * 100)) : 0;
 
-      const estimatedTuitionRevenue = acceptedCount * prog.tuitionFee;
-
       return {
         id: prog.id,
         code: prog.code,
@@ -142,17 +140,10 @@ export class SuperAdminService {
         acceptedCount,
         passedCount,
         percentageFilled,
-        estimatedTuitionRevenue,
       };
     });
 
-    // 5. Total Estimated Tuition Revenue from all accepted students
-    const totalPotentialTuition = programFulfillment.reduce(
-      (sum, p) => sum + p.estimatedTuitionRevenue,
-      0,
-    );
-
-    // 6. Recent Audit Logs
+    // 5. Recent Audit Logs
     const recentAuditLogs = await this.prisma.auditLog.findMany({
       take: 6,
       orderBy: { createdAt: 'desc' },
@@ -163,11 +154,8 @@ export class SuperAdminService {
       },
     });
 
-    // 7. System Setting: Registration Status
-    const regOpenSetting = await this.prisma.systemSetting.findUnique({
-      where: { key: 'REGISTRATION_OPEN' },
-    });
-    const isRegistrationOpen = regOpenSetting ? regOpenSetting.value === 'true' : true;
+    // 6. System Setting: Registration Status (selalu dibuka)
+    const isRegistrationOpen = true;
 
     return {
       userDemographic: {
@@ -191,7 +179,6 @@ export class SuperAdminService {
         verifiedCount: verifiedPayments._count,
         pendingAmount: pendingPayments._sum.amount || 0,
         pendingCount: pendingPayments._count,
-        totalPotentialTuition,
       },
       programFulfillment,
       recentAuditLogs,
@@ -443,6 +430,7 @@ export class SuperAdminService {
     settings.forEach((s) => {
       settingsMap[s.key] = s.value;
     });
+    settingsMap.REGISTRATION_OPEN = 'true';
 
     return {
       list: settings,
@@ -457,9 +445,17 @@ export class SuperAdminService {
     payload: Record<string, string>,
     currentAdmin: { id: string; email: string },
   ) {
+    if (payload.REGISTRATION_FEE && Number(payload.REGISTRATION_FEE) > 3500000) {
+      throw new BadRequestException('Nominal uang muka pendaftaran maksimal Rp 3.500.000');
+    }
+
+    const normalizedPayload: Record<string, string> = {
+      ...payload,
+      REGISTRATION_OPEN: 'true',
+    };
     const updatedKeys: string[] = [];
 
-    for (const [key, value] of Object.entries(payload)) {
+    for (const [key, value] of Object.entries(normalizedPayload)) {
       if (typeof value === 'string') {
         await this.prisma.systemSetting.upsert({
           where: { key },
@@ -538,6 +534,7 @@ export class SuperAdminService {
     settings.forEach((s) => {
       settingsMap[s.key] = s.value;
     });
+    settingsMap.REGISTRATION_OPEN = 'true';
 
     return settingsMap;
   }

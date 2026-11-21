@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import api from '@/lib/api';
 import { useSuperAdminTheme } from '@/context/SuperAdminThemeContext';
 import {
@@ -8,8 +8,6 @@ import {
   Search,
   RefreshCw,
   Filter,
-  CheckCircle2,
-  Clock,
   ShieldAlert,
   User,
   KeyRound,
@@ -17,7 +15,6 @@ import {
   CreditCard,
   Trash2,
   Settings,
-  Calendar,
 } from 'lucide-react';
 
 export default function SuperAdminAuditLogsPage() {
@@ -27,11 +24,7 @@ export default function SuperAdminAuditLogsPage() {
   const [actionFilter, setActionFilter] = useState('');
   const [search, setSearch] = useState('');
 
-  useEffect(() => {
-    fetchLogs();
-  }, [actionFilter]);
-
-  const fetchLogs = async () => {
+  const fetchLogs = useCallback(async () => {
     try {
       setLoading(true);
       const param = actionFilter ? `?action=${actionFilter}` : '';
@@ -42,7 +35,11 @@ export default function SuperAdminAuditLogsPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [actionFilter]);
+
+  useEffect(() => {
+    fetchLogs();
+  }, [fetchLogs]);
 
   const filteredLogs = logs.filter((log) => {
     if (!search.trim()) return true;
@@ -55,25 +52,20 @@ export default function SuperAdminAuditLogsPage() {
     );
   });
 
-  // Helper untuk merapikan teks rincian perubahan yang terlalu panjang / mentah
+  // Merapikan teks rincian perubahan yang terlalu panjang / mentah
   const formatLogDetails = (text?: string) => {
     if (!text) return '-';
 
-    // 1. Mengubah deretan variabel REGISTRATION_OPEN, REGISTRATION_FEE...
     if (text.includes('REGISTRATION_OPEN') || text.includes('Diperbarui kunci:')) {
       return 'Memperbarui pengaturan sistem global';
     }
 
-    // 2. Merapikan teks status pendaftaran
-    let cleaned = text
+    const cleaned = text
       .replace(/Status pendaftaran diubah menjadi /gi, 'Status diubah ke ')
       .replace(/Status pembayaran diverifikasi sebagai /gi, 'Pembayaran: ')
       .replace(/Dokumen diverifikasi sebagai /gi, 'Berkas: ')
       .replace(/ Data pendaftar /gi, ' ')
-      .replace(/ oleh .*$/gi, ''); // Hapus kata "oleh email@domain" di akhir
-
-    // 3. Terjemahkan kata kunci status baku
-    cleaned = cleaned
+      .replace(/ oleh .*$/gi, '')
       .replace(/"LULUS_SELEKSI"/g, '"Lulus Seleksi"')
       .replace(/"DAFTAR_ULANG"/g, '"Daftar Ulang"')
       .replace(/"DITERIMA"/g, '"Diterima Resmi"')
@@ -100,24 +92,24 @@ export default function SuperAdminAuditLogsPage() {
           label: 'Verifikasi Berkas',
           icon: FileCheck,
           className: isDark
-            ? 'bg-blue-500/20 text-blue-300 border-blue-500/30'
-            : 'bg-blue-50 text-blue-700 border-blue-200',
+            ? 'bg-sky-500/20 text-sky-300 border-sky-500/30'
+            : 'bg-sky-50 text-sky-700 border-sky-200',
         };
       case 'STATUS_UPDATE':
         return {
           label: 'Update Status Seleksi',
           icon: Activity,
           className: isDark
-            ? 'bg-purple-500/20 text-purple-300 border-purple-500/30'
-            : 'bg-purple-50 text-purple-700 border-purple-200',
+            ? 'bg-sky-500/20 text-sky-300 border-sky-500/30'
+            : 'bg-[#0f172a] text-white border-[#0f172a]',
         };
       case 'CREATE_ADMIN_USER':
         return {
           label: 'Buat Akun Admin',
           icon: User,
           className: isDark
-            ? 'bg-indigo-500/20 text-indigo-300 border-indigo-500/30'
-            : 'bg-indigo-50 text-indigo-700 border-indigo-200',
+            ? 'bg-cyan-500/20 text-cyan-300 border-cyan-500/30'
+            : 'bg-[#0f172a]/10 text-[#0f172a] border-[#0f172a]/20',
         };
       case 'UPDATE_USER_ROLE':
         return {
@@ -174,8 +166,8 @@ export default function SuperAdminAuditLogsPage() {
           label: action,
           icon: Activity,
           className: isDark
-            ? 'bg-slate-700/50 text-slate-300 border-slate-600'
-            : 'bg-slate-200 text-slate-700 border-slate-300',
+            ? 'bg-slate-800 text-slate-300 border-slate-700'
+            : 'bg-slate-100 text-[#0f172a] border-slate-300',
         };
     }
   };
@@ -184,17 +176,17 @@ export default function SuperAdminAuditLogsPage() {
     <div className="space-y-6 max-w-7xl mx-auto pb-12">
       {/* Top Header */}
       <div
-        className={`flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 sm:p-6 rounded-2xl border shadow-xl transition-colors ${isDark
-            ? 'bg-slate-900 border-slate-800 text-white'
-            : 'bg-white border-slate-200/80 text-slate-900 shadow-sm'
+        className={`flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 sm:p-6 rounded-2xl border transition-colors ${isDark
+            ? 'bg-[#0f172a] border-slate-800 text-white shadow-2xl'
+            : 'bg-white border-slate-200/80 text-[#0f172a] shadow-sm'
           }`}
       >
         <div>
           <h1
-            className={`text-xl sm:text-2xl font-black tracking-tight flex items-center gap-2.5 ${isDark ? 'text-white' : 'text-slate-900'
+            className={`text-xl sm:text-2xl font-black tracking-tight flex items-center gap-2.5 ${isDark ? 'text-white' : 'text-[#0f172a]'
               }`}
           >
-            <span>Audit Log & Integritas Aktivitas Sistem</span>
+            <span>Audit Log &amp; Integritas Aktivitas Sistem</span>
           </h1>
           <p
             className={`text-xs mt-1 leading-relaxed ${isDark ? 'text-slate-400' : 'text-slate-600'
@@ -206,13 +198,16 @@ export default function SuperAdminAuditLogsPage() {
         </div>
 
         <button
+          type="button"
           onClick={fetchLogs}
           className={`w-full sm:w-auto justify-center flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap border ${isDark
-              ? 'bg-slate-800 border-slate-700 hover:bg-slate-700 text-slate-300 hover:text-white'
-              : 'bg-slate-100 border-slate-200 hover:bg-slate-200 text-slate-700'
+              ? 'bg-slate-800 border-slate-700 hover:bg-slate-700 text-sky-400 hover:text-white'
+              : 'bg-[#0f172a] border-[#0f172a] hover:bg-slate-800 text-white'
             }`}
         >
-          <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin text-purple-500' : ''}`} />
+          <RefreshCw
+            className={`w-3.5 h-3.5 ${loading ? 'animate-spin text-amber-400' : ''}`}
+          />
           <span>Segarkan Log</span>
         </button>
       </div>
@@ -220,19 +215,22 @@ export default function SuperAdminAuditLogsPage() {
       {/* Filter and Search Bar */}
       <div
         className={`border p-3 sm:p-4 rounded-2xl flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 sm:gap-4 transition-colors ${isDark
-            ? 'bg-slate-900 border-slate-800'
+            ? 'bg-[#0f172a] border-slate-800'
             : 'bg-white border-slate-200/80 shadow-sm'
           }`}
       >
         {/* Filter Action Dropdown */}
         <div className="flex items-center gap-2 w-full md:w-auto">
-          <Filter className="w-4 h-4 text-purple-600 dark:text-purple-400 flex-shrink-0" />
+          <Filter
+            className={`w-4 h-4 flex-shrink-0 ${isDark ? 'text-sky-400' : 'text-[#0f172a]'
+              }`}
+          />
           <select
             value={actionFilter}
             onChange={(e) => setActionFilter(e.target.value)}
-            className={`px-3 py-2 border rounded-xl text-xs font-semibold focus:outline-none focus:border-purple-500 cursor-pointer w-full md:w-auto transition-colors ${isDark
-                ? 'bg-slate-950 border-slate-800 text-white'
-                : 'bg-slate-50 border-slate-300 text-slate-900'
+            className={`px-3 py-2 border rounded-xl text-xs font-semibold focus:outline-none focus:ring-2 cursor-pointer w-full md:w-auto transition-colors ${isDark
+                ? 'bg-slate-950 border-slate-800 text-white focus:ring-sky-500'
+                : 'bg-slate-50 border-slate-300 text-[#0f172a] focus:ring-[#0f172a]'
               }`}
           >
             <option value="">Semua Jenis Tindakan</option>
@@ -260,9 +258,9 @@ export default function SuperAdminAuditLogsPage() {
             placeholder="Cari pelaksana, target, atau rincian..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className={`w-full pl-9 pr-4 py-2 border rounded-xl text-xs placeholder-slate-400 focus:outline-none focus:border-purple-500 transition-colors ${isDark
-                ? 'bg-slate-950 border-slate-800 text-white'
-                : 'bg-slate-50 border-slate-200 text-slate-900'
+            className={`w-full pl-9 pr-4 py-2 border rounded-xl text-xs placeholder-slate-400 focus:outline-none focus:ring-2 transition-colors ${isDark
+                ? 'bg-slate-950 border-slate-800 text-white focus:ring-sky-500'
+                : 'bg-slate-50 border-slate-200 text-[#0f172a] focus:ring-[#0f172a]'
               }`}
           />
         </div>
@@ -271,7 +269,7 @@ export default function SuperAdminAuditLogsPage() {
       {/* Logs Table / List */}
       <div
         className={`border rounded-2xl overflow-hidden shadow-xl transition-colors ${isDark
-            ? 'bg-slate-900 border-slate-800'
+            ? 'bg-[#0f172a] border-slate-800'
             : 'bg-white border-slate-200/80 shadow-sm'
           }`}
       >
@@ -281,7 +279,7 @@ export default function SuperAdminAuditLogsPage() {
             <thead
               className={`font-bold uppercase tracking-wider text-[10px] border-b transition-colors ${isDark
                   ? 'bg-slate-950/80 text-slate-400 border-slate-800'
-                  : 'bg-slate-50 text-slate-500 border-slate-200'
+                  : 'bg-slate-50 text-[#0f172a] border-slate-200'
                 }`}
             >
               <tr>
@@ -300,7 +298,10 @@ export default function SuperAdminAuditLogsPage() {
                 <tr>
                   <td colSpan={5} className="py-12 text-center text-slate-500">
                     <div className="flex flex-col items-center gap-2">
-                      <div className="w-6 h-6 border-2 border-purple-500 border-t-transparent rounded-full animate-spin" />
+                      <div
+                        className={`w-6 h-6 border-2 border-t-transparent rounded-full animate-spin ${isDark ? 'border-sky-400' : 'border-[#0f172a]'
+                          }`}
+                      />
                       <span>Memuat riwayat audit...</span>
                     </div>
                   </td>
@@ -324,7 +325,7 @@ export default function SuperAdminAuditLogsPage() {
                       {/* Timestamp */}
                       <td className="py-3 px-4 whitespace-nowrap">
                         <div
-                          className={`font-semibold ${isDark ? 'text-slate-200' : 'text-slate-900'
+                          className={`font-semibold ${isDark ? 'text-slate-200' : 'text-[#0f172a]'
                             }`}
                         >
                           {new Date(log.createdAt).toLocaleTimeString('id-ID', {
@@ -333,10 +334,7 @@ export default function SuperAdminAuditLogsPage() {
                             second: '2-digit',
                           })}
                         </div>
-                        <div
-                          className={`text-[10px] ${isDark ? 'text-slate-500' : 'text-slate-500'
-                            }`}
-                        >
+                        <div className="text-[10px] text-slate-500">
                           {new Date(log.createdAt).toLocaleDateString('id-ID', {
                             day: '2-digit',
                             month: 'short',
@@ -358,7 +356,7 @@ export default function SuperAdminAuditLogsPage() {
                       {/* Actor */}
                       <td className="py-3 px-4 whitespace-nowrap">
                         <div
-                          className={`font-bold ${isDark ? 'text-white' : 'text-slate-900'
+                          className={`font-bold ${isDark ? 'text-white' : 'text-[#0f172a]'
                             }`}
                         >
                           {log.userEmail || 'Sistem Otomatis'}
@@ -368,19 +366,21 @@ export default function SuperAdminAuditLogsPage() {
                             }`}
                         >
                           Role:{' '}
-                          <span className="font-semibold">{log.user?.role || 'SYSTEM'}</span>
+                          <span className="font-semibold">
+                            {log.user?.role || 'SYSTEM'}
+                          </span>
                         </div>
                       </td>
 
                       {/* Target */}
                       <td
-                        className={`py-3 px-4 font-semibold max-w-xs truncate ${isDark ? 'text-slate-200' : 'text-slate-800'
+                        className={`py-3 px-4 font-semibold max-w-xs truncate ${isDark ? 'text-slate-200' : 'text-[#0f172a]'
                           }`}
                       >
                         {log.target || '-'}
                       </td>
 
-                      {/* Details (Menggunakan Formatter Rapi) */}
+                      {/* Details */}
                       <td
                         className={`py-3 px-4 max-w-md ${isDark ? 'text-slate-300' : 'text-slate-600'
                           }`}
@@ -405,7 +405,10 @@ export default function SuperAdminAuditLogsPage() {
           {loading ? (
             <div className="py-12 text-center text-slate-500">
               <div className="flex flex-col items-center gap-2">
-                <div className="w-6 h-6 border-2 border-purple-500 border-t-transparent rounded-full animate-spin" />
+                <div
+                  className={`w-6 h-6 border-2 border-t-transparent rounded-full animate-spin ${isDark ? 'border-sky-400' : 'border-[#0f172a]'
+                    }`}
+                />
                 <span className="text-xs">Memuat riwayat audit...</span>
               </div>
             </div>
@@ -444,13 +447,15 @@ export default function SuperAdminAuditLogsPage() {
 
                   {log.target && (
                     <div
-                      className={`text-xs font-semibold ${isDark ? 'text-white' : 'text-slate-900'
+                      className={`text-xs font-semibold ${isDark ? 'text-white' : 'text-[#0f172a]'
                         }`}
                     >
                       Target:{' '}
                       <span
                         className={
-                          isDark ? 'text-purple-300' : 'text-purple-700 font-bold'
+                          isDark
+                            ? 'text-sky-400 font-bold'
+                            : 'text-[#0f172a] font-extrabold'
                         }
                       >
                         {log.target}
@@ -476,7 +481,7 @@ export default function SuperAdminAuditLogsPage() {
                     <span>
                       Oleh:{' '}
                       <strong
-                        className={isDark ? 'text-slate-200' : 'text-slate-800'}
+                        className={isDark ? 'text-slate-200' : 'text-[#0f172a]'}
                       >
                         {log.userEmail || 'Sistem'}
                       </strong>
@@ -484,7 +489,7 @@ export default function SuperAdminAuditLogsPage() {
                     <span
                       className={`px-1.5 py-0.5 rounded font-semibold ${isDark
                           ? 'bg-slate-800 text-slate-300'
-                          : 'bg-slate-200 text-slate-700'
+                          : 'bg-slate-200 text-[#0f172a]'
                         }`}
                     >
                       {log.user?.role || 'SYSTEM'}

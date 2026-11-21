@@ -9,8 +9,11 @@ import {
   LogOut,
   Menu,
   X,
+  Lock,
 } from 'lucide-react';
 import { usePathname } from 'next/navigation';
+
+const PRINT_UNLOCKED_STATUSES = ['LULUS_SELEKSI', 'DAFTAR_ULANG', 'DITERIMA'];
 
 export default function DashboardLayout({
   children,
@@ -20,6 +23,10 @@ export default function DashboardLayout({
   const { user, logout, isLoading } = useAuth();
   const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  const currentStatus =
+    user?.applicant?.registrations?.[0]?.status || 'BELUM_LENGKAP';
+  const canPrintProof = PRINT_UNLOCKED_STATUSES.includes(currentStatus);
 
   const SidebarContent = () => (
     <div className="flex flex-col h-full">
@@ -77,17 +84,30 @@ export default function DashboardLayout({
           <span>Dashboard &amp; Status</span>
         </Link>
 
-        <Link
-          href="/dashboard/cetak-bukti"
-          onClick={() => setSidebarOpen(false)}
-          className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all ${pathname === '/dashboard/cetak-bukti'
-            ? 'bg-amber-500 text-slate-950 font-bold shadow-lg shadow-amber-500/30'
-            : 'text-amber-400 hover:bg-slate-800'
-            }`}
-        >
-          <Printer className="w-4 h-4" />
-          <span>Cetak Bukti PMB</span>
-        </Link>
+        {canPrintProof ? (
+          <Link
+            href="/dashboard/cetak-bukti"
+            onClick={() => setSidebarOpen(false)}
+            className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all ${pathname === '/dashboard/cetak-bukti'
+              ? 'bg-amber-500 text-slate-950 font-bold shadow-lg shadow-amber-500/30'
+              : 'text-amber-400 hover:bg-slate-800'
+              }`}
+          >
+            <Printer className="w-4 h-4" />
+            <span>Cetak Bukti PMB</span>
+          </Link>
+        ) : (
+          <div
+            title="Menu Cetak Bukti PMB terbuka setelah Uang Muka diverifikasi dan status Lulus Seleksi"
+            className="flex items-center justify-between gap-2 px-3 py-2.5 rounded-xl text-slate-500 bg-slate-800/40 border border-slate-800 cursor-not-allowed select-none"
+          >
+            <div className="flex items-center gap-3">
+              <Printer className="w-4 h-4" />
+              <span>Cetak Bukti PMB</span>
+            </div>
+            <Lock className="w-3.5 h-3.5 text-slate-500 shrink-0" />
+          </div>
+        )}
       </nav>
 
       {/* Logout */}

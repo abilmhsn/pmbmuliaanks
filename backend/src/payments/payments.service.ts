@@ -1,5 +1,8 @@
-
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
@@ -13,6 +16,18 @@ export class PaymentsService {
     file: Express.Multer.File,
     filePath: string,
   ) {
+    const parsedAmount = Number(amount);
+
+    if (!parsedAmount || parsedAmount <= 0) {
+      throw new BadRequestException('Nominal pembayaran tidak valid');
+    }
+
+    if (parsedAmount > 3500000) {
+      throw new BadRequestException(
+        'Nominal Uang Muka (DP) maksimal Rp 3.500.000',
+      );
+    }
+
     const applicant = await this.prisma.applicant.findUnique({
       where: { userId },
       include: { registrations: true },
@@ -27,8 +42,8 @@ export class PaymentsService {
     return this.prisma.payment.create({
       data: {
         registrationId: registration.id,
-        amount: Number(amount),
-        paymentType: paymentType || 'Biaya Pendaftaran',
+        amount: parsedAmount,
+        paymentType: paymentType || 'Uang Muka (DP) Pendaftaran PMB',
         proofUrl: filePath,
       },
     });

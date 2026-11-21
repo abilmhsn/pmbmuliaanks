@@ -33,8 +33,8 @@ export default function SuperAdminLayout({
     <SuperAdminThemeProvider>
       <Suspense
         fallback={
-          <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
-            <div className="w-10 h-10 rounded-full border-4 border-purple-500 border-t-transparent animate-spin" />
+          <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-[#0f172a]">
+            <div className="w-10 h-10 rounded-full border-4 border-[#0f172a] dark:border-sky-400 border-t-transparent animate-spin" />
           </div>
         }
       >
@@ -78,7 +78,7 @@ function SuperAdminLayoutContent({ children }: { children: React.ReactNode }) {
     {
       href: '/super-admin/settings',
       label: 'Pengaturan Global PMB',
-      subtitle: 'Status Buka/Tutup & Bank',
+      subtitle: 'Rekening dan biaya PMB',
       Icon: Settings,
     },
   ];
@@ -86,8 +86,8 @@ function SuperAdminLayoutContent({ children }: { children: React.ReactNode }) {
   const SidebarContent = () => (
     <div
       className={`flex flex-col h-full border-r transition-colors ${isDark
-        ? 'bg-slate-900 border-slate-800/80 text-white'
-        : 'bg-white border-slate-200 text-slate-900 shadow-sm'
+          ? 'bg-[#0f172a] border-slate-800/80 text-white'
+          : 'bg-white border-slate-200 text-[#0f172a] shadow-sm'
         }`}
     >
       {/* Brand Header */}
@@ -98,7 +98,7 @@ function SuperAdminLayoutContent({ children }: { children: React.ReactNode }) {
         <div className="flex items-center space-x-3">
           <div className="w-12 h-12 relative flex items-center justify-center shrink-0">
             <img
-              src="/logo-mulia.png" // 👈 Sesuaikan nama file logo kamu di folder public
+              src="/logo-mulia.png"
               alt="Logo Super Admin"
               className="w-full h-full object-contain rounded-xl"
             />
@@ -107,7 +107,7 @@ function SuperAdminLayoutContent({ children }: { children: React.ReactNode }) {
           <div>
             <div className="flex items-center gap-1">
               <span
-                className={`text-xs font-black tracking-widest uppercase ${isDark ? 'text-white' : 'text-slate-900'
+                className={`text-xs font-black tracking-widest uppercase ${isDark ? 'text-white' : 'text-[#0f172a]'
                   }`}
               >
                 SUPER ADMIN
@@ -124,8 +124,8 @@ function SuperAdminLayoutContent({ children }: { children: React.ReactNode }) {
         <button
           onClick={() => setSidebarOpen(false)}
           className={`md:hidden p-1.5 rounded-lg transition-colors ${isDark
-            ? 'text-slate-400 hover:text-white hover:bg-slate-800'
-            : 'text-slate-500 hover:text-slate-900 hover:bg-slate-100'
+              ? 'text-slate-400 hover:text-white hover:bg-slate-800'
+              : 'text-slate-500 hover:text-[#0f172a] hover:bg-slate-100'
             }`}
           aria-label="Tutup sidebar"
         >
@@ -136,8 +136,8 @@ function SuperAdminLayoutContent({ children }: { children: React.ReactNode }) {
       {/* User Info Bar */}
       <div
         className={`px-4 py-3 mx-4 mt-4 rounded-xl border flex items-center justify-between transition-colors ${isDark
-          ? 'bg-slate-800/50 border-slate-700/50 text-slate-200'
-          : 'bg-slate-50 border-slate-200 text-slate-800'
+            ? 'bg-slate-800/50 border-slate-700/50 text-slate-200'
+            : 'bg-slate-50 border-slate-200 text-slate-800'
           }`}
       >
         <div className="min-w-0 pr-2">
@@ -160,13 +160,13 @@ function SuperAdminLayoutContent({ children }: { children: React.ReactNode }) {
       {/* Theme Toggle Bar (Sidebar Desktop) */}
       <div
         className={`px-3.5 py-2.5 mx-4 mt-3 rounded-xl border flex items-center justify-between transition-colors ${isDark
-          ? 'bg-slate-800/40 border-slate-800 text-slate-300'
-          : 'bg-slate-50 border-slate-200 text-slate-700'
+            ? 'bg-slate-800/40 border-slate-800 text-slate-300'
+            : 'bg-slate-50 border-slate-200 text-slate-700'
           }`}
       >
         <div className="flex items-center gap-2 text-xs font-semibold">
           {isDark ? (
-            <Moon className="w-4 h-4 text-purple-400" />
+            <Moon className="w-4 h-4 text-sky-400" />
           ) : (
             <Sun className="w-4 h-4 text-amber-500" />
           )}
@@ -176,8 +176,8 @@ function SuperAdminLayoutContent({ children }: { children: React.ReactNode }) {
           onClick={toggleTheme}
           type="button"
           className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all flex items-center gap-1.5 active:scale-95 ${isDark
-            ? 'bg-slate-700 hover:bg-slate-600 text-amber-300 border border-slate-600'
-            : 'bg-white hover:bg-slate-100 text-purple-700 border border-slate-200 shadow-sm'
+              ? 'bg-slate-700 hover:bg-slate-600 text-amber-300 border border-slate-600'
+              : 'bg-[#0f172a] hover:bg-slate-800 text-white border border-[#0f172a] shadow-sm'
             }`}
           title={isDark ? 'Ganti ke Mode Terang' : 'Ganti ke Mode Gelap'}
         >
@@ -188,7 +188,7 @@ function SuperAdminLayoutContent({ children }: { children: React.ReactNode }) {
             </>
           ) : (
             <>
-              <Moon className="w-3.5 h-3.5 text-purple-700" />
+              <Moon className="w-3.5 h-3.5 text-amber-400" />
               <span>Gelap</span>
             </>
           )}
@@ -211,28 +211,34 @@ function SuperAdminLayoutContent({ children }: { children: React.ReactNode }) {
               href={href}
               onClick={() => setSidebarOpen(false)}
               className={`flex items-start gap-3 px-3.5 py-2.5 rounded-xl transition-all duration-200 active:scale-95 ${isActive
-                ? 'bg-purple-600 text-white font-bold shadow-md shadow-purple-600/25 translate-x-1'
-                : isDark
-                  ? 'text-slate-400 hover:bg-slate-800/70 hover:text-white hover:translate-x-1'
-                  : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 hover:translate-x-1'
+                  ? isDark
+                    ? 'bg-sky-600 text-white font-bold shadow-md shadow-sky-600/25 translate-x-1'
+                    : 'bg-[#0f172a] text-white font-bold shadow-md shadow-slate-900/25 translate-x-1'
+                  : isDark
+                    ? 'text-slate-400 hover:bg-slate-800/70 hover:text-white hover:translate-x-1'
+                    : 'text-slate-600 hover:bg-slate-100 hover:text-[#0f172a] hover:translate-x-1'
                 }`}
             >
               <Icon
                 className={`w-4 h-4 mt-0.5 flex-shrink-0 ${isActive
-                  ? 'text-white'
-                  : isDark
-                    ? 'text-purple-400'
-                    : 'text-purple-600'
+                    ? isDark
+                      ? 'text-white'
+                      : 'text-amber-400'
+                    : isDark
+                      ? 'text-sky-400'
+                      : 'text-[#0f172a]'
                   }`}
               />
               <div className="leading-snug">
                 <div className="text-xs font-semibold">{label}</div>
                 <div
                   className={`text-[10px] ${isActive
-                    ? 'text-purple-100'
-                    : isDark
-                      ? 'text-slate-500'
-                      : 'text-slate-400'
+                      ? isDark
+                        ? 'text-sky-100'
+                        : 'text-slate-300'
+                      : isDark
+                        ? 'text-slate-500'
+                        : 'text-slate-400'
                     }`}
                 >
                   {subtitle}
@@ -257,8 +263,8 @@ function SuperAdminLayoutContent({ children }: { children: React.ReactNode }) {
             href="/admin/dashboard"
             onClick={() => setSidebarOpen(false)}
             className={`flex items-center justify-between px-3.5 py-2.5 rounded-xl border transition-all text-xs font-semibold group ${isDark
-              ? 'bg-slate-800/40 hover:bg-slate-800 text-amber-300 hover:text-amber-200 border-amber-500/20'
-              : 'bg-amber-50/70 hover:bg-amber-100 text-amber-800 border-amber-200'
+                ? 'bg-slate-800/40 hover:bg-slate-800 text-amber-300 hover:text-amber-200 border-amber-500/20'
+                : 'bg-amber-50/70 hover:bg-amber-100 text-amber-800 border-amber-200'
               }`}
           >
             <div className="flex items-center gap-2.5">
@@ -273,8 +279,8 @@ function SuperAdminLayoutContent({ children }: { children: React.ReactNode }) {
       {/* Logout */}
       <div
         className={`p-4 border-t ${isDark
-          ? 'border-slate-800/80 bg-slate-950/60'
-          : 'border-slate-200 bg-slate-50'
+            ? 'border-slate-800/80 bg-slate-950/60'
+            : 'border-slate-200 bg-slate-50'
           }`}
       >
         <button
@@ -290,39 +296,37 @@ function SuperAdminLayoutContent({ children }: { children: React.ReactNode }) {
 
   return (
     <div
-      className={`min-h-screen flex flex-col selection:bg-purple-500 selection:text-white transition-colors duration-200 ${isDark ? 'bg-slate-950 text-slate-100' : 'bg-slate-100/70 text-slate-900'
+      className={`min-h-screen flex flex-col selection:bg-[#0f172a] selection:text-white transition-colors duration-200 ${isDark ? 'bg-slate-950 text-slate-100' : 'bg-slate-100/70 text-[#0f172a]'
         }`}
     >
       {/* Mobile Top Bar */}
       <header
         className={`md:hidden flex items-center justify-between px-4 py-3 border-b sticky top-0 z-40 backdrop-blur-md transition-colors ${isDark
-          ? 'bg-slate-900/95 border-slate-800 text-white'
-          : 'bg-white/95 border-slate-200 text-slate-900 shadow-sm'
+            ? 'bg-[#0f172a]/95 border-slate-800 text-white'
+            : 'bg-white/95 border-slate-200 text-[#0f172a] shadow-sm'
           }`}
       >
         <div className="flex items-center gap-2.5">
           <button
             onClick={() => setSidebarOpen(true)}
             className={`p-2 rounded-xl transition-colors ${isDark
-              ? 'text-slate-300 hover:text-white hover:bg-slate-800'
-              : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                ? 'text-slate-300 hover:text-white hover:bg-slate-800'
+                : 'text-slate-600 hover:text-[#0f172a] hover:bg-slate-100'
               }`}
             aria-label="Buka navigasi"
           >
             <Menu className="w-5 h-5" />
           </button>
           <div className="flex items-center gap-2">
-
-
             <div>
               <span
-                className={`text-xs h-2 font-black tracking-wider block leading-none ${isDark ? 'text-white' : 'text-slate-900'
+                className={`text-xs h-2 font-black tracking-wider block leading-none ${isDark ? 'text-white' : 'text-[#0f172a]'
                   }`}
               >
                 SUPER ADMIN
               </span>
               <span
-                className={`text-[9px] font-medium leading-none ${isDark ? 'text-purple-300/80' : 'text-purple-600'
+                className={`text-[9px] font-medium leading-none ${isDark ? 'text-sky-300/80' : 'text-slate-600'
                   }`}
               >
                 Mulia Angkasa PMB
@@ -332,14 +336,13 @@ function SuperAdminLayoutContent({ children }: { children: React.ReactNode }) {
         </div>
 
         <div className="flex items-center gap-1.5">
-
           {/* Mobile Theme Toggle Button */}
           <button
             onClick={toggleTheme}
             type="button"
             className={`p-2 rounded-xl transition-all border active:scale-95 ${isDark
-              ? 'bg-slate-800 text-amber-300 border-slate-700 hover:bg-slate-700'
-              : 'bg-slate-100 text-purple-700 border-slate-200 hover:bg-slate-200'
+                ? 'bg-slate-800 text-amber-300 border-slate-700 hover:bg-slate-700'
+                : 'bg-[#0f172a] text-amber-400 border-[#0f172a] hover:bg-slate-800'
               }`}
             title={isDark ? 'Ganti ke Mode Terang' : 'Ganti ke Mode Gelap'}
             aria-label="Toggle tema gelap atau terang"
@@ -350,8 +353,8 @@ function SuperAdminLayoutContent({ children }: { children: React.ReactNode }) {
           <Link
             href="/admin/dashboard"
             className={`px-2.5 py-1 text-[11px] font-bold rounded-lg border flex items-center gap-1 active:scale-95 transition-all ${isDark
-              ? 'bg-amber-400/10 text-amber-300 border-amber-400/20'
-              : 'bg-amber-50 text-amber-800 border-amber-200'
+                ? 'bg-amber-400/10 text-amber-300 border-amber-400/20'
+                : 'bg-amber-50 text-amber-800 border-amber-200'
               }`}
           >
             <ShieldCheck className="w-3.5 h-3.5" />
@@ -372,7 +375,7 @@ function SuperAdminLayoutContent({ children }: { children: React.ReactNode }) {
 
         {/* Desktop Sidebar */}
         <aside
-          className={`hidden md:flex md:w-64 flex-shrink-0 md:sticky md:top-0 md:h-screen flex-col z-30 transition-colors ${isDark ? 'bg-slate-900 text-white' : 'bg-white text-slate-900'
+          className={`hidden md:flex md:w-64 flex-shrink-0 md:sticky md:top-0 md:h-screen flex-col z-30 transition-colors ${isDark ? 'bg-[#0f172a] text-white' : 'bg-white text-[#0f172a]'
             }`}
         >
           <SidebarContent />
@@ -381,7 +384,7 @@ function SuperAdminLayoutContent({ children }: { children: React.ReactNode }) {
         {/* Mobile Drawer */}
         <aside
           className={`fixed top-0 left-0 h-full w-72 max-w-[85vw] flex flex-col z-50 shadow-2xl transition-transform duration-300 ease-in-out md:hidden ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'
-            } ${isDark ? 'bg-slate-900 text-white' : 'bg-white text-slate-900'}`}
+            } ${isDark ? 'bg-[#0f172a] text-white' : 'bg-white text-[#0f172a]'}`}
         >
           <SidebarContent />
         </aside>
@@ -394,7 +397,7 @@ function SuperAdminLayoutContent({ children }: { children: React.ReactNode }) {
           {isLoading ? (
             <div className="min-h-[60vh] flex items-center justify-center">
               <div className="flex flex-col items-center space-y-4">
-                <div className="w-12 h-12 rounded-full border-4 border-purple-500 border-t-transparent animate-spin" />
+                <div className="w-12 h-12 rounded-full border-4 border-[#0f172a] dark:border-sky-400 border-t-transparent animate-spin" />
                 <p
                   className={`text-xs font-semibold ${isDark ? 'text-slate-400' : 'text-slate-500'
                     }`}
@@ -409,7 +412,7 @@ function SuperAdminLayoutContent({ children }: { children: React.ReactNode }) {
                 <Crown className="w-8 h-8" />
               </div>
               <h2
-                className={`text-xl font-bold mb-2 ${isDark ? 'text-white' : 'text-slate-900'
+                className={`text-xl font-bold mb-2 ${isDark ? 'text-white' : 'text-[#0f172a]'
                   }`}
               >
                 Akses Khusus Super Administrator
@@ -431,8 +434,8 @@ function SuperAdminLayoutContent({ children }: { children: React.ReactNode }) {
                 <Link
                   href="/login"
                   className={`px-5 py-2.5 font-bold text-xs rounded-xl transition-all ${isDark
-                    ? 'bg-slate-800 hover:bg-slate-700 text-white'
-                    : 'bg-slate-200 hover:bg-slate-300 text-slate-900'
+                      ? 'bg-slate-800 hover:bg-slate-700 text-white'
+                      : 'bg-slate-200 hover:bg-slate-300 text-[#0f172a]'
                     }`}
                 >
                   Ganti Akun
@@ -448,8 +451,8 @@ function SuperAdminLayoutContent({ children }: { children: React.ReactNode }) {
       {/* Mobile Bottom Navigation Bar */}
       <nav
         className={`md:hidden fixed bottom-0 left-0 right-0 z-40 border-t flex items-center justify-around px-2 py-2 shadow-2xl backdrop-blur-xl transition-colors duration-200 ${isDark
-          ? 'bg-slate-900/95 border-slate-800/90'
-          : 'bg-white/95 border-slate-200 shadow-lg'
+            ? 'bg-[#0f172a]/95 border-slate-800/90'
+            : 'bg-white/95 border-slate-200 shadow-lg'
           }`}
       >
         {navLinks.map(({ href, label, Icon }) => {
@@ -469,30 +472,30 @@ function SuperAdminLayoutContent({ children }: { children: React.ReactNode }) {
               key={href}
               href={href}
               className={`flex flex-col items-center justify-center flex-1 py-1 rounded-xl transition-all ${isActive
-                ? isDark
-                  ? 'text-purple-300 font-extrabold'
-                  : 'text-purple-700 font-extrabold'
-                : isDark
-                  ? 'text-slate-400 hover:text-slate-200 font-medium'
-                  : 'text-slate-500 hover:text-slate-900 font-medium'
+                  ? isDark
+                    ? 'text-sky-300 font-extrabold'
+                    : 'text-[#0f172a] font-extrabold'
+                  : isDark
+                    ? 'text-slate-400 hover:text-slate-200 font-medium'
+                    : 'text-slate-500 hover:text-[#0f172a] font-medium'
                 }`}
             >
               <div
                 className={`p-1.5 rounded-xl transition-all ${isActive
-                  ? isDark
-                    ? 'bg-purple-600/20 text-purple-300 border border-purple-500/30 shadow-sm'
-                    : 'bg-purple-100 text-purple-700 border border-purple-200'
-                  : ''
+                    ? isDark
+                      ? 'bg-sky-500/20 text-sky-300 border border-sky-500/30 shadow-sm'
+                      : 'bg-[#0f172a] text-white border border-[#0f172a]'
+                    : ''
                   }`}
               >
                 <Icon
                   className={`w-4 h-4 ${isActive
-                    ? isDark
-                      ? 'text-purple-300'
-                      : 'text-purple-700'
-                    : isDark
-                      ? 'text-slate-400'
-                      : 'text-slate-500'
+                      ? isDark
+                        ? 'text-sky-300'
+                        : 'text-amber-400'
+                      : isDark
+                        ? 'text-slate-400'
+                        : 'text-slate-500'
                     }`}
                 />
               </div>

@@ -1,11 +1,10 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import api from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
 import { useSuperAdminTheme } from '@/context/SuperAdminThemeContext';
 import {
-  Users,
   UserPlus,
   ShieldCheck,
   Crown,
@@ -51,11 +50,7 @@ export default function SuperAdminUsersPage() {
   const [showPasswordText, setShowPasswordText] = useState(false);
   const [resetSubmitting, setResetSubmitting] = useState(false);
 
-  useEffect(() => {
-    fetchUsers();
-  }, [selectedRole]);
-
-  const fetchUsers = async () => {
+  const fetchUsers = useCallback(async () => {
     try {
       setLoading(true);
       const roleParam = selectedRole !== 'ALL' ? `?role=${selectedRole}` : '';
@@ -66,9 +61,13 @@ export default function SuperAdminUsersPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [selectedRole]);
 
-  // Filtered by search client-side or server
+  useEffect(() => {
+    fetchUsers();
+  }, [fetchUsers]);
+
+  // Filtered by search client-side
   const filteredUsers = users.filter((u) => {
     if (!search.trim()) return true;
     const q = search.toLowerCase();
@@ -163,21 +162,53 @@ export default function SuperAdminUsersPage() {
     }
   };
 
+  const getRoleAvatarClass = (role: string) => {
+    if (role === 'SUPER_ADMIN') {
+      return isDark
+        ? 'bg-sky-500/20 text-sky-300 border border-sky-500/30'
+        : 'bg-[#0f172a] text-white border border-[#0f172a]';
+    }
+    if (role === 'ADMIN') {
+      return isDark
+        ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
+        : 'bg-amber-500/15 text-amber-700 border border-amber-500/30';
+    }
+    return isDark
+      ? 'bg-slate-800 text-slate-300 border border-slate-700'
+      : 'bg-sky-500/15 text-sky-700 border border-sky-500/30';
+  };
+
+  const getRoleBadgeClass = (role: string) => {
+    if (role === 'SUPER_ADMIN') {
+      return isDark
+        ? 'bg-sky-500/20 text-sky-300 border border-sky-500/40'
+        : 'bg-[#0f172a] text-white border border-[#0f172a]';
+    }
+    if (role === 'ADMIN') {
+      return isDark
+        ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
+        : 'bg-amber-500/15 text-amber-700 border border-amber-500/40';
+    }
+    return isDark
+      ? 'bg-slate-800 text-slate-300 border border-slate-700'
+      : 'bg-sky-500/15 text-sky-700 border border-sky-500/40';
+  };
+
   return (
     <div className="space-y-6 max-w-7xl mx-auto pb-12">
       {/* Top Header */}
       <div
         className={`flex p-4 sm:p-6 rounded-2xl flex-col sm:flex-row sm:items-center justify-between gap-4 border transition-colors ${isDark
-            ? 'bg-slate-900 border-slate-800 text-white shadow-2xl'
-            : 'bg-white border-slate-200/80 text-slate-900 shadow-sm'
+            ? 'bg-[#0f172a] border-slate-800 text-white shadow-2xl'
+            : 'bg-white border-slate-200/80 text-[#0f172a] shadow-sm'
           }`}
       >
         <div>
           <h1
-            className={`text-xl sm:text-2xl font-black tracking-tight flex items-center gap-2.5 ${isDark ? 'text-white' : 'text-slate-900'
+            className={`text-xl sm:text-2xl font-black tracking-tight flex items-center gap-2.5 ${isDark ? 'text-white' : 'text-[#0f172a]'
               }`}
           >
-            <span>Manajemen Tim & Hak Akses Pengguna</span>
+            <span>Manajemen Tim &amp; Hak Akses Pengguna</span>
           </h1>
           <p
             className={`text-xs mt-1 ${isDark ? 'text-slate-400' : 'text-slate-600'
@@ -189,7 +220,10 @@ export default function SuperAdminUsersPage() {
 
         <button
           onClick={() => setShowCreateModal(true)}
-          className="w-full sm:w-auto justify-center flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold text-xs shadow-lg shadow-purple-600/20 active:scale-95 transition-all whitespace-nowrap"
+          className={`w-full sm:w-auto justify-center flex items-center gap-2 px-4 py-2.5 rounded-xl text-white font-bold text-xs shadow-lg active:scale-95 transition-all whitespace-nowrap ${isDark
+              ? 'bg-sky-600 hover:bg-sky-500 shadow-sky-600/25'
+              : 'bg-[#0f172a] hover:bg-slate-800 shadow-slate-900/20'
+            }`}
         >
           <UserPlus className="w-4 h-4" />
           <span>Tambah Akun Admin Baru</span>
@@ -199,7 +233,7 @@ export default function SuperAdminUsersPage() {
       {/* Filter and Search Bar */}
       <div
         className={`border p-3 sm:p-4 rounded-2xl flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 sm:gap-4 transition-colors ${isDark
-            ? 'bg-slate-900 border-slate-800'
+            ? 'bg-[#0f172a] border-slate-800'
             : 'bg-white border-slate-200/80 shadow-sm'
           }`}
       >
@@ -220,10 +254,12 @@ export default function SuperAdminUsersPage() {
               key={tab.id}
               onClick={() => setSelectedRole(tab.id as any)}
               className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all text-center ${selectedRole === tab.id
-                  ? 'bg-purple-600 text-white shadow-md shadow-purple-600/20'
+                  ? isDark
+                    ? 'bg-sky-600 text-white shadow-md shadow-sky-600/20'
+                    : 'bg-[#0f172a] text-white shadow-md shadow-slate-900/20'
                   : isDark
                     ? 'text-slate-400 hover:text-white hover:bg-slate-800/60'
-                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/60'
+                    : 'text-slate-600 hover:text-[#0f172a] hover:bg-slate-200/60'
                 }`}
             >
               {tab.label}
@@ -243,21 +279,21 @@ export default function SuperAdminUsersPage() {
               placeholder="Cari email, nama, no HP..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className={`w-full pl-9 pr-4 py-2 border rounded-xl text-xs placeholder-slate-400 focus:outline-none focus:border-purple-500 transition-colors ${isDark
-                  ? 'bg-slate-950 border-slate-800 text-white'
-                  : 'bg-slate-50 border-slate-200 text-slate-900'
+              className={`w-full pl-9 pr-4 py-2 border rounded-xl text-xs placeholder-slate-400 focus:outline-none focus:ring-2 transition-colors ${isDark
+                  ? 'bg-slate-950 border-slate-800 text-white focus:ring-sky-500'
+                  : 'bg-slate-50 border-slate-200 text-[#0f172a] focus:ring-[#0f172a]'
                 }`}
             />
           </div>
           <button
             onClick={fetchUsers}
             className={`p-2.5 rounded-xl transition-colors flex-shrink-0 border ${isDark
-                ? 'bg-slate-800 border-slate-700 hover:bg-slate-700 text-slate-300'
-                : 'bg-slate-100 border-slate-200 hover:bg-slate-200 text-slate-700'
+                ? 'bg-slate-800 border-slate-700 hover:bg-slate-700 text-sky-400'
+                : 'bg-[#0f172a] border-[#0f172a] hover:bg-slate-800 text-white'
               }`}
             title="Muat ulang"
           >
-            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin text-purple-500' : ''}`} />
+            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin text-amber-400' : ''}`} />
           </button>
         </div>
       </div>
@@ -265,7 +301,7 @@ export default function SuperAdminUsersPage() {
       {/* Users Container */}
       <div
         className={`border rounded-2xl overflow-hidden shadow-xl transition-colors ${isDark
-            ? 'bg-slate-900 border-slate-800'
+            ? 'bg-[#0f172a] border-slate-800'
             : 'bg-white border-slate-200/80 shadow-sm'
           }`}
       >
@@ -275,11 +311,11 @@ export default function SuperAdminUsersPage() {
             <thead
               className={`font-bold uppercase tracking-wider text-[10px] border-b transition-colors ${isDark
                   ? 'bg-slate-950/80 text-slate-400 border-slate-800'
-                  : 'bg-slate-50 text-slate-500 border-slate-200'
+                  : 'bg-slate-50 text-[#0f172a] border-slate-200'
                 }`}
             >
               <tr>
-                <th className="py-3.5 px-4">Pengguna & Identitas</th>
+                <th className="py-3.5 px-4">Pengguna &amp; Identitas</th>
                 <th className="py-3.5 px-4">Role Akses</th>
                 <th className="py-3.5 px-4">Keterangan / Prodi</th>
                 <th className="py-3.5 px-4">Tgl Registrasi</th>
@@ -294,7 +330,10 @@ export default function SuperAdminUsersPage() {
                 <tr>
                   <td colSpan={5} className="py-12 text-center text-slate-500">
                     <div className="flex flex-col items-center gap-2">
-                      <div className="w-6 h-6 border-2 border-purple-500 border-t-transparent rounded-full animate-spin" />
+                      <div
+                        className={`w-6 h-6 border-2 border-t-transparent rounded-full animate-spin ${isDark ? 'border-sky-400' : 'border-[#0f172a]'
+                          }`}
+                      />
                       <span>Memuat data pengguna...</span>
                     </div>
                   </td>
@@ -319,12 +358,9 @@ export default function SuperAdminUsersPage() {
                       <td className="py-3 px-4">
                         <div className="flex items-center gap-3">
                           <div
-                            className={`w-9 h-9 rounded-xl flex items-center justify-center font-bold text-xs flex-shrink-0 ${u.role === 'SUPER_ADMIN'
-                                ? 'bg-purple-500/20 text-purple-600 dark:text-purple-300 border border-purple-500/30'
-                                : u.role === 'ADMIN'
-                                  ? 'bg-amber-500/20 text-amber-600 dark:text-amber-300 border border-amber-500/30'
-                                  : 'bg-sky-500/20 text-sky-600 dark:text-sky-300 border border-sky-500/30'
-                              }`}
+                            className={`w-9 h-9 rounded-xl flex items-center justify-center font-bold text-xs flex-shrink-0 ${getRoleAvatarClass(
+                              u.role
+                            )}`}
                           >
                             {u.role === 'SUPER_ADMIN' ? (
                               <Crown className="w-4 h-4" />
@@ -336,12 +372,17 @@ export default function SuperAdminUsersPage() {
                           </div>
                           <div className="min-w-0">
                             <div
-                              className={`font-bold flex items-center gap-2 ${isDark ? 'text-white' : 'text-slate-900'
+                              className={`font-bold flex items-center gap-2 ${isDark ? 'text-white' : 'text-[#0f172a]'
                                 }`}
                             >
                               <span>{u.email}</span>
                               {isCurrent && (
-                                <span className="px-1.5 py-0.2 rounded text-[9px] bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 font-bold">
+                                <span
+                                  className={`px-1.5 py-0.5 rounded text-[9px] border font-bold ${isDark
+                                      ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30'
+                                      : 'bg-emerald-500/15 text-emerald-700 border-emerald-500/30'
+                                    }`}
+                                >
                                   Anda
                                 </span>
                               )}
@@ -360,12 +401,9 @@ export default function SuperAdminUsersPage() {
                       {/* Role Badge */}
                       <td className="py-3 px-4">
                         <span
-                          className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase ${u.role === 'SUPER_ADMIN'
-                              ? 'bg-purple-500/20 text-purple-700 dark:text-purple-300 border border-purple-500/40'
-                              : u.role === 'ADMIN'
-                                ? 'bg-amber-500/20 text-amber-700 dark:text-amber-300 border border-amber-500/40'
-                                : 'bg-sky-500/20 text-sky-700 dark:text-sky-300 border border-sky-500/40'
-                            }`}
+                          className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase ${getRoleBadgeClass(
+                            u.role
+                          )}`}
                         >
                           {u.role}
                         </span>
@@ -379,32 +417,32 @@ export default function SuperAdminUsersPage() {
                         {reg?.studyProgram ? (
                           <div>
                             <span
-                              className={`font-bold ${isDark ? 'text-slate-200' : 'text-slate-900'
+                              className={`font-bold ${isDark ? 'text-slate-200' : 'text-[#0f172a]'
                                 }`}
                             >
                               {reg.studyProgram.code}
                             </span>{' '}
                             - {reg.studyProgram.name}
-                            <span
-                              className={`block text-[10px] ${isDark ? 'text-slate-500' : 'text-slate-500'
-                                }`}
-                            >
+                            <span className="block text-[10px] text-slate-500">
                               Status:{' '}
                               <strong
-                                className={isDark ? 'text-slate-300' : 'text-slate-800'}
+                                className={
+                                  isDark ? 'text-slate-300' : 'text-[#0f172a]'
+                                }
                               >
                                 {reg.status}
                               </strong>
                             </span>
                           </div>
                         ) : u.applicant ? (
-                          <span className="text-amber-600 dark:text-amber-400/80 font-medium">
+                          <span
+                            className={`font-medium ${isDark ? 'text-amber-400/80' : 'text-amber-600'
+                              }`}
+                          >
                             Belum pilih prodi
                           </span>
                         ) : (
-                          <span
-                            className={isDark ? 'text-slate-500' : 'text-slate-500'}
-                          >
+                          <span className="text-slate-500">
                             Akses Pengelola Sistem
                           </span>
                         )}
@@ -434,11 +472,14 @@ export default function SuperAdminUsersPage() {
                             }}
                             className={`px-2.5 py-1.5 rounded-lg transition-colors text-[11px] font-semibold flex items-center gap-1 border ${isDark
                                 ? 'bg-slate-800 border-slate-700 text-slate-300 hover:text-white'
-                                : 'bg-slate-100 border-slate-200 text-slate-700 hover:text-slate-900'
+                                : 'bg-slate-100 border-slate-200 text-[#0f172a] hover:bg-slate-200'
                               }`}
                             title="Ubah Role"
                           >
-                            <ShieldCheck className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
+                            <ShieldCheck
+                              className={`w-3.5 h-3.5 ${isDark ? 'text-sky-400' : 'text-[#0f172a]'
+                                }`}
+                            />
                             <span className="hidden sm:inline">Role</span>
                           </button>
 
@@ -451,11 +492,14 @@ export default function SuperAdminUsersPage() {
                             }}
                             className={`px-2.5 py-1.5 rounded-lg transition-colors text-[11px] font-semibold flex items-center gap-1 border ${isDark
                                 ? 'bg-slate-800 border-slate-700 text-slate-300 hover:text-white'
-                                : 'bg-slate-100 border-slate-200 text-slate-700 hover:text-slate-900'
+                                : 'bg-slate-100 border-slate-200 text-[#0f172a] hover:bg-slate-200'
                               }`}
                             title="Reset Password Pengguna"
                           >
-                            <KeyRound className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
+                            <KeyRound
+                              className={`w-3.5 h-3.5 ${isDark ? 'text-amber-400' : 'text-amber-600'
+                                }`}
+                            />
                             <span className="hidden sm:inline">Reset</span>
                           </button>
 
@@ -463,9 +507,13 @@ export default function SuperAdminUsersPage() {
                           <button
                             onClick={() => handleDeleteUser(u)}
                             disabled={isCurrent}
-                            className={`p-1.5 rounded-lg text-rose-500 dark:text-rose-400 hover:bg-rose-500/20 transition-colors ${isCurrent ? 'opacity-30 cursor-not-allowed' : ''
+                            className={`p-1.5 rounded-lg text-rose-500 hover:bg-rose-500/15 transition-colors ${isCurrent ? 'opacity-30 cursor-not-allowed' : ''
                               }`}
-                            title={isCurrent ? 'Tidak dapat menghapus diri sendiri' : 'Hapus Akun'}
+                            title={
+                              isCurrent
+                                ? 'Tidak dapat menghapus diri sendiri'
+                                : 'Hapus Akun'
+                            }
                           >
                             <Trash2 className="w-3.5 h-3.5" />
                           </button>
@@ -487,7 +535,10 @@ export default function SuperAdminUsersPage() {
           {loading ? (
             <div className="py-12 text-center text-slate-500">
               <div className="flex flex-col items-center gap-2">
-                <div className="w-6 h-6 border-2 border-purple-500 border-t-transparent rounded-full animate-spin" />
+                <div
+                  className={`w-6 h-6 border-2 border-t-transparent rounded-full animate-spin ${isDark ? 'border-sky-400' : 'border-[#0f172a]'
+                    }`}
+                />
                 <span className="text-xs">Memuat data pengguna...</span>
               </div>
             </div>
@@ -504,12 +555,9 @@ export default function SuperAdminUsersPage() {
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex items-center gap-2.5 min-w-0">
                       <div
-                        className={`w-9 h-9 rounded-xl flex items-center justify-center font-bold text-xs flex-shrink-0 ${u.role === 'SUPER_ADMIN'
-                            ? 'bg-purple-500/20 text-purple-600 dark:text-purple-300 border border-purple-500/30'
-                            : u.role === 'ADMIN'
-                              ? 'bg-amber-500/20 text-amber-600 dark:text-amber-300 border border-amber-500/30'
-                              : 'bg-sky-500/20 text-sky-600 dark:text-sky-300 border border-sky-500/30'
-                          }`}
+                        className={`w-9 h-9 rounded-xl flex items-center justify-center font-bold text-xs flex-shrink-0 ${getRoleAvatarClass(
+                          u.role
+                        )}`}
                       >
                         {u.role === 'SUPER_ADMIN' ? (
                           <Crown className="w-4 h-4" />
@@ -521,12 +569,17 @@ export default function SuperAdminUsersPage() {
                       </div>
                       <div className="min-w-0">
                         <div
-                          className={`font-bold text-xs flex items-center gap-1.5 ${isDark ? 'text-white' : 'text-slate-900'
+                          className={`font-bold text-xs flex items-center gap-1.5 ${isDark ? 'text-white' : 'text-[#0f172a]'
                             }`}
                         >
                           <span className="truncate">{u.email}</span>
                           {isCurrent && (
-                            <span className="px-1.5 py-0.2 rounded text-[9px] bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 font-bold flex-shrink-0">
+                            <span
+                              className={`px-1.5 py-0.5 rounded text-[9px] border font-bold flex-shrink-0 ${isDark
+                                  ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30'
+                                  : 'bg-emerald-500/15 text-emerald-700 border-emerald-500/30'
+                                }`}
+                            >
                               Anda
                             </span>
                           )}
@@ -542,12 +595,9 @@ export default function SuperAdminUsersPage() {
                     </div>
 
                     <span
-                      className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase flex-shrink-0 ${u.role === 'SUPER_ADMIN'
-                          ? 'bg-purple-500/20 text-purple-700 dark:text-purple-300 border border-purple-500/40'
-                          : u.role === 'ADMIN'
-                            ? 'bg-amber-500/20 text-amber-700 dark:text-amber-300 border border-amber-500/40'
-                            : 'bg-sky-500/20 text-sky-700 dark:text-sky-300 border border-sky-500/40'
-                        }`}
+                      className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase flex-shrink-0 ${getRoleBadgeClass(
+                        u.role
+                      )}`}
                     >
                       {u.role}
                     </span>
@@ -563,7 +613,7 @@ export default function SuperAdminUsersPage() {
                     {reg?.studyProgram ? (
                       <div>
                         <span
-                          className={`font-bold ${isDark ? 'text-white' : 'text-slate-900'
+                          className={`font-bold ${isDark ? 'text-white' : 'text-[#0f172a]'
                             }`}
                         >
                           {reg.studyProgram.code}
@@ -575,14 +625,19 @@ export default function SuperAdminUsersPage() {
                         >
                           Status:{' '}
                           <strong
-                            className={isDark ? 'text-slate-200' : 'text-slate-800'}
+                            className={
+                              isDark ? 'text-slate-200' : 'text-[#0f172a]'
+                            }
                           >
                             {reg.status}
                           </strong>
                         </div>
                       </div>
                     ) : u.applicant ? (
-                      <span className="text-amber-600 dark:text-amber-400/90 font-medium">
+                      <span
+                        className={`font-medium ${isDark ? 'text-amber-400/90' : 'text-amber-600'
+                          }`}
+                      >
                         Belum memilih program studi
                       </span>
                     ) : (
@@ -615,10 +670,13 @@ export default function SuperAdminUsersPage() {
                       }}
                       className={`py-2 px-2 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors border ${isDark
                           ? 'bg-slate-800 border-slate-700/50 text-slate-200 hover:bg-slate-700'
-                          : 'bg-slate-100 border-slate-200 text-slate-700 hover:bg-slate-200'
+                          : 'bg-slate-100 border-slate-200 text-[#0f172a] hover:bg-slate-200'
                         }`}
                     >
-                      <ShieldCheck className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
+                      <ShieldCheck
+                        className={`w-3.5 h-3.5 ${isDark ? 'text-sky-400' : 'text-[#0f172a]'
+                          }`}
+                      />
                       <span>Role</span>
                     </button>
 
@@ -630,17 +688,20 @@ export default function SuperAdminUsersPage() {
                       }}
                       className={`py-2 px-2 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors border ${isDark
                           ? 'bg-slate-800 border-slate-700/50 text-slate-200 hover:bg-slate-700'
-                          : 'bg-slate-100 border-slate-200 text-slate-700 hover:bg-slate-200'
+                          : 'bg-slate-100 border-slate-200 text-[#0f172a] hover:bg-slate-200'
                         }`}
                     >
-                      <KeyRound className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
+                      <KeyRound
+                        className={`w-3.5 h-3.5 ${isDark ? 'text-amber-400' : 'text-amber-600'
+                          }`}
+                      />
                       <span>Reset</span>
                     </button>
 
                     <button
                       onClick={() => handleDeleteUser(u)}
                       disabled={isCurrent}
-                      className={`py-2 px-2 rounded-xl text-rose-600 dark:text-rose-400 bg-rose-500/10 hover:bg-rose-500/20 text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors border border-rose-500/20 ${isCurrent ? 'opacity-30 cursor-not-allowed' : ''
+                      className={`py-2 px-2 rounded-xl text-rose-500 bg-rose-500/10 hover:bg-rose-500/20 text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors border border-rose-500/20 ${isCurrent ? 'opacity-30 cursor-not-allowed' : ''
                         }`}
                     >
                       <Trash2 className="w-3.5 h-3.5" />
@@ -659,24 +720,29 @@ export default function SuperAdminUsersPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
           <div
             className={`border rounded-2xl sm:rounded-3xl max-w-md w-full p-4 sm:p-6 max-h-[90vh] overflow-y-auto shadow-2xl relative transition-colors ${isDark
-                ? 'bg-slate-900 border-slate-700 text-white'
-                : 'bg-white border-slate-200 text-slate-900'
+                ? 'bg-[#0f172a] border-slate-700 text-white'
+                : 'bg-white border-slate-200 text-[#0f172a]'
               }`}
           >
             <button
               onClick={() => setShowCreateModal(false)}
-              className={`absolute top-5 right-5 p-1 transition-colors ${isDark ? 'text-slate-400 hover:text-white' : 'text-slate-500 hover:text-slate-900'
+              className={`absolute top-5 right-5 p-1 transition-colors ${isDark ? 'text-slate-400 hover:text-white' : 'text-slate-500 hover:text-[#0f172a]'
                 }`}
             >
               <X className="w-5 h-5" />
             </button>
 
             <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-2xl bg-purple-600/20 text-purple-600 dark:text-purple-400 border border-purple-500/30 flex items-center justify-center">
+              <div
+                className={`w-10 h-10 rounded-2xl border flex items-center justify-center ${isDark
+                    ? 'bg-sky-500/20 text-sky-400 border-sky-500/30'
+                    : 'bg-[#0f172a]/10 text-[#0f172a] border-[#0f172a]/20'
+                  }`}
+              >
                 <UserPlus className="w-5 h-5" />
               </div>
               <div>
-                <h3 className={`text-base font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                <h3 className={`text-base font-bold ${isDark ? 'text-white' : 'text-[#0f172a]'}`}>
                   Tambah Akun Pengelola Baru
                 </h3>
                 <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
@@ -699,9 +765,9 @@ export default function SuperAdminUsersPage() {
                   placeholder="panitia.pmb@muliaangkasa.ac.id"
                   value={createForm.email}
                   onChange={(e) => setCreateForm({ ...createForm, email: e.target.value })}
-                  className={`w-full px-3.5 py-2.5 border rounded-xl text-xs placeholder-slate-400 focus:outline-none focus:border-purple-500 transition-colors ${isDark
-                      ? 'bg-slate-950 border-slate-700 text-white'
-                      : 'bg-slate-50 border-slate-300 text-slate-900'
+                  className={`w-full px-3.5 py-2.5 border rounded-xl text-xs placeholder-slate-400 focus:outline-none focus:ring-2 transition-colors ${isDark
+                      ? 'bg-slate-950 border-slate-700 text-white focus:ring-sky-500'
+                      : 'bg-slate-50 border-slate-300 text-[#0f172a] focus:ring-[#0f172a]'
                     }`}
                 />
               </div>
@@ -719,9 +785,9 @@ export default function SuperAdminUsersPage() {
                   placeholder="Minimal 6 karakter..."
                   value={createForm.password}
                   onChange={(e) => setCreateForm({ ...createForm, password: e.target.value })}
-                  className={`w-full px-3.5 py-2.5 border rounded-xl text-xs placeholder-slate-400 focus:outline-none focus:border-purple-500 transition-colors ${isDark
-                      ? 'bg-slate-950 border-slate-700 text-white'
-                      : 'bg-slate-50 border-slate-300 text-slate-900'
+                  className={`w-full px-3.5 py-2.5 border rounded-xl text-xs placeholder-slate-400 focus:outline-none focus:ring-2 transition-colors ${isDark
+                      ? 'bg-slate-950 border-slate-700 text-white focus:ring-sky-500'
+                      : 'bg-slate-50 border-slate-300 text-[#0f172a] focus:ring-[#0f172a]'
                     }`}
                 />
               </div>
@@ -738,20 +804,24 @@ export default function SuperAdminUsersPage() {
                     type="button"
                     onClick={() => setCreateForm({ ...createForm, role: 'ADMIN' })}
                     className={`p-3 rounded-xl border text-left transition-all ${createForm.role === 'ADMIN'
-                        ? 'bg-amber-500/10 border-amber-500/40 text-amber-700 dark:text-amber-300 font-bold'
+                        ? isDark
+                          ? 'bg-amber-500/15 border-amber-500/50 text-amber-300 font-bold'
+                          : 'bg-amber-500/10 border-amber-500 text-amber-800 font-bold'
                         : isDark
                           ? 'bg-slate-950 border-slate-800 text-slate-400'
                           : 'bg-slate-50 border-slate-200 text-slate-600'
                       }`}
                   >
                     <div className="text-xs">Admin Panitia</div>
-                    <div className="text-[10px] mt-0.5 opacity-80">Verifikasi berkas & pendaftaran</div>
+                    <div className="text-[10px] mt-0.5 opacity-80">Verifikasi berkas &amp; pendaftaran</div>
                   </button>
                   <button
                     type="button"
                     onClick={() => setCreateForm({ ...createForm, role: 'SUPER_ADMIN' })}
                     className={`p-3 rounded-xl border text-left transition-all ${createForm.role === 'SUPER_ADMIN'
-                        ? 'bg-purple-500/10 border-purple-500/40 text-purple-700 dark:text-purple-300 font-bold'
+                        ? isDark
+                          ? 'bg-sky-500/15 border-sky-500/50 text-sky-300 font-bold'
+                          : 'bg-[#0f172a]/10 border-[#0f172a] text-[#0f172a] font-bold'
                         : isDark
                           ? 'bg-slate-950 border-slate-800 text-slate-400'
                           : 'bg-slate-50 border-slate-200 text-slate-600'
@@ -767,7 +837,7 @@ export default function SuperAdminUsersPage() {
                 <button
                   type="button"
                   onClick={() => setShowCreateModal(false)}
-                  className={`px-4 py-2 rounded-xl text-xs font-semibold ${isDark ? 'text-slate-400 hover:text-white' : 'text-slate-600 hover:text-slate-900'
+                  className={`px-4 py-2 rounded-xl text-xs font-semibold ${isDark ? 'text-slate-400 hover:text-white' : 'text-slate-600 hover:text-[#0f172a]'
                     }`}
                 >
                   Batal
@@ -775,7 +845,10 @@ export default function SuperAdminUsersPage() {
                 <button
                   type="submit"
                   disabled={createSubmitting}
-                  className="px-5 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs shadow-lg shadow-purple-600/20 active:scale-95 disabled:opacity-50"
+                  className={`px-5 py-2.5 rounded-xl text-white font-bold text-xs shadow-lg active:scale-95 disabled:opacity-50 ${isDark
+                      ? 'bg-sky-600 hover:bg-sky-500 shadow-sky-600/25'
+                      : 'bg-[#0f172a] hover:bg-slate-800 shadow-slate-900/20'
+                    }`}
                 >
                   {createSubmitting ? 'Menyimpan...' : 'Buat Akun'}
                 </button>
@@ -790,24 +863,29 @@ export default function SuperAdminUsersPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
           <div
             className={`border rounded-2xl sm:rounded-3xl max-w-md w-full p-4 sm:p-6 max-h-[90vh] overflow-y-auto shadow-2xl relative transition-colors ${isDark
-                ? 'bg-slate-900 border-slate-700 text-white'
-                : 'bg-white border-slate-200 text-slate-900'
+                ? 'bg-[#0f172a] border-slate-700 text-white'
+                : 'bg-white border-slate-200 text-[#0f172a]'
               }`}
           >
             <button
               onClick={() => setShowRoleModal(false)}
-              className={`absolute top-5 right-5 p-1 transition-colors ${isDark ? 'text-slate-400 hover:text-white' : 'text-slate-500 hover:text-slate-900'
+              className={`absolute top-5 right-5 p-1 transition-colors ${isDark ? 'text-slate-400 hover:text-white' : 'text-slate-500 hover:text-[#0f172a]'
                 }`}
             >
               <X className="w-5 h-5" />
             </button>
 
             <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-2xl bg-indigo-600/20 text-indigo-600 dark:text-indigo-400 border border-indigo-500/30 flex items-center justify-center">
+              <div
+                className={`w-10 h-10 rounded-2xl border flex items-center justify-center ${isDark
+                    ? 'bg-sky-500/20 text-sky-400 border-sky-500/30'
+                    : 'bg-[#0f172a]/10 text-[#0f172a] border-[#0f172a]/20'
+                  }`}
+              >
                 <ShieldCheck className="w-5 h-5" />
               </div>
               <div>
-                <h3 className={`text-base font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                <h3 className={`text-base font-bold ${isDark ? 'text-white' : 'text-[#0f172a]'}`}>
                   Ubah Peran / Role Akses
                 </h3>
                 <p className={`text-xs truncate max-w-xs ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
@@ -818,36 +896,47 @@ export default function SuperAdminUsersPage() {
 
             <div className="space-y-3 my-5">
               {[
-                { role: 'SUPER_ADMIN', title: 'Super Admin', desc: 'Hak akses eksekutif penuh, audit log, kelola user & pengaturan PMB' },
-                { role: 'ADMIN', title: 'Admin Panitia PMB', desc: 'Hak verifikasi berkas, validasi pembayaran, dan seleksi pendaftar' },
-                { role: 'APPLICANT', title: 'Mahasiswa / Pelamar', desc: 'Pengguna portal biasa untuk pendaftaran dan unggah berkas' },
+                {
+                  role: 'SUPER_ADMIN',
+                  title: 'Super Admin',
+                  desc: 'Hak akses eksekutif penuh, audit log, kelola user & pengaturan PMB',
+                },
+                {
+                  role: 'ADMIN',
+                  title: 'Admin Panitia PMB',
+                  desc: 'Hak verifikasi berkas, validasi pembayaran, dan seleksi pendaftar',
+                },
+                {
+                  role: 'APPLICANT',
+                  title: 'Mahasiswa / Pelamar',
+                  desc: 'Pengguna portal biasa untuk pendaftaran dan unggah berkas',
+                },
               ].map((opt) => (
                 <button
                   key={opt.role}
                   type="button"
                   onClick={() => setNewRoleSelect(opt.role as any)}
                   className={`w-full p-3.5 rounded-xl border text-left transition-all ${newRoleSelect === opt.role
-                      ? 'bg-purple-600/10 border-purple-500 text-purple-700 dark:text-purple-200 font-bold'
+                      ? isDark
+                        ? 'bg-sky-500/15 border-sky-500 text-sky-200 font-bold'
+                        : 'bg-[#0f172a]/10 border-[#0f172a] text-[#0f172a] font-bold'
                       : isDark
                         ? 'bg-slate-950 border-slate-800 text-slate-400 hover:border-slate-700'
                         : 'bg-slate-50 border-slate-200 text-slate-600 hover:border-slate-300'
                     }`}
                 >
                   <div className="flex items-center justify-between">
-                    <span
-                      className={`text-xs font-bold ${isDark ? 'text-white' : 'text-slate-900'
-                        }`}
-                    >
+                    <span className={`text-xs font-bold ${isDark ? 'text-white' : 'text-[#0f172a]'}`}>
                       {opt.title}
                     </span>
                     {newRoleSelect === opt.role && (
-                      <Check className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+                      <Check
+                        className={`w-4 h-4 ${isDark ? 'text-sky-400' : 'text-[#0f172a]'
+                          }`}
+                      />
                     )}
                   </div>
-                  <p
-                    className={`text-[11px] mt-1 ${isDark ? 'text-slate-400' : 'text-slate-500'
-                      }`}
-                  >
+                  <p className={`text-[11px] mt-1 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
                     {opt.desc}
                   </p>
                 </button>
@@ -858,7 +947,7 @@ export default function SuperAdminUsersPage() {
               <button
                 type="button"
                 onClick={() => setShowRoleModal(false)}
-                className={`px-4 py-2 rounded-xl text-xs font-semibold ${isDark ? 'text-slate-400 hover:text-white' : 'text-slate-600 hover:text-slate-900'
+                className={`px-4 py-2 rounded-xl text-xs font-semibold ${isDark ? 'text-slate-400 hover:text-white' : 'text-slate-600 hover:text-[#0f172a]'
                   }`}
               >
                 Batal
@@ -866,7 +955,10 @@ export default function SuperAdminUsersPage() {
               <button
                 onClick={handleChangeRole}
                 disabled={roleSubmitting}
-                className="px-5 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs shadow-lg shadow-purple-600/20 active:scale-95 disabled:opacity-50"
+                className={`px-5 py-2.5 rounded-xl text-white font-bold text-xs shadow-lg active:scale-95 disabled:opacity-50 ${isDark
+                    ? 'bg-sky-600 hover:bg-sky-500 shadow-sky-600/25'
+                    : 'bg-[#0f172a] hover:bg-slate-800 shadow-slate-900/20'
+                  }`}
               >
                 {roleSubmitting ? 'Menyimpan...' : 'Perbarui Role'}
               </button>
@@ -880,24 +972,29 @@ export default function SuperAdminUsersPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
           <div
             className={`border rounded-2xl sm:rounded-3xl max-w-md w-full p-4 sm:p-6 max-h-[90vh] overflow-y-auto shadow-2xl relative transition-colors ${isDark
-                ? 'bg-slate-900 border-slate-700 text-white'
-                : 'bg-white border-slate-200 text-slate-900'
+                ? 'bg-[#0f172a] border-slate-700 text-white'
+                : 'bg-white border-slate-200 text-[#0f172a]'
               }`}
           >
             <button
               onClick={() => setShowResetModal(false)}
-              className={`absolute top-5 right-5 p-1 transition-colors ${isDark ? 'text-slate-400 hover:text-white' : 'text-slate-500 hover:text-slate-900'
+              className={`absolute top-5 right-5 p-1 transition-colors ${isDark ? 'text-slate-400 hover:text-white' : 'text-slate-500 hover:text-[#0f172a]'
                 }`}
             >
               <X className="w-5 h-5" />
             </button>
 
             <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-2xl bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/30 flex items-center justify-center">
+              <div
+                className={`w-10 h-10 rounded-2xl border flex items-center justify-center ${isDark
+                    ? 'bg-amber-500/20 text-amber-400 border-amber-500/30'
+                    : 'bg-amber-500/15 text-amber-600 border-amber-500/30'
+                  }`}
+              >
                 <KeyRound className="w-5 h-5" />
               </div>
               <div>
-                <h3 className={`text-base font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                <h3 className={`text-base font-bold ${isDark ? 'text-white' : 'text-[#0f172a]'}`}>
                   Reset Kata Sandi Akun
                 </h3>
                 <p className={`text-xs truncate max-w-xs ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
@@ -919,15 +1016,15 @@ export default function SuperAdminUsersPage() {
                   placeholder="Minimal 6 karakter..."
                   value={newPasswordInput}
                   onChange={(e) => setNewPasswordInput(e.target.value)}
-                  className={`w-full px-3.5 py-2.5 pr-10 border rounded-xl text-xs placeholder-slate-400 focus:outline-none focus:border-amber-500 transition-colors ${isDark
-                      ? 'bg-slate-950 border-slate-700 text-white'
-                      : 'bg-slate-50 border-slate-300 text-slate-900'
+                  className={`w-full px-3.5 py-2.5 pr-10 border rounded-xl text-xs placeholder-slate-400 focus:outline-none focus:ring-2 transition-colors ${isDark
+                      ? 'bg-slate-950 border-slate-700 text-white focus:ring-amber-500'
+                      : 'bg-slate-50 border-slate-300 text-[#0f172a] focus:ring-amber-500'
                     }`}
                 />
                 <button
                   type="button"
                   onClick={() => setShowPasswordText(!showPasswordText)}
-                  className={`absolute right-3 top-1/2 -translate-y-1/2 ${isDark ? 'text-slate-400 hover:text-white' : 'text-slate-500 hover:text-slate-800'
+                  className={`absolute right-3 top-1/2 -translate-y-1/2 ${isDark ? 'text-slate-400 hover:text-white' : 'text-slate-500 hover:text-[#0f172a]'
                     }`}
                 >
                   {showPasswordText ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -937,7 +1034,10 @@ export default function SuperAdminUsersPage() {
                 className={`text-[11px] mt-2 flex items-center gap-1.5 ${isDark ? 'text-slate-400' : 'text-slate-600'
                   }`}
               >
-                <AlertCircle className="w-3.5 h-3.5 text-amber-500 dark:text-amber-400 flex-shrink-0" />
+                <AlertCircle
+                  className={`w-3.5 h-3.5 flex-shrink-0 ${isDark ? 'text-amber-400' : 'text-amber-500'
+                    }`}
+                />
                 <span>Pengguna dapat langsung masuk dengan kata sandi baru ini.</span>
               </p>
             </div>
@@ -946,7 +1046,7 @@ export default function SuperAdminUsersPage() {
               <button
                 type="button"
                 onClick={() => setShowResetModal(false)}
-                className={`px-4 py-2 rounded-xl text-xs font-semibold ${isDark ? 'text-slate-400 hover:text-white' : 'text-slate-600 hover:text-slate-900'
+                className={`px-4 py-2 rounded-xl text-xs font-semibold ${isDark ? 'text-slate-400 hover:text-white' : 'text-slate-600 hover:text-[#0f172a]'
                   }`}
               >
                 Batal

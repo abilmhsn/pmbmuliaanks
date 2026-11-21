@@ -62,34 +62,33 @@ export default function StudentDashboard() {
 
   const isPersonalCompleted = Boolean(
     savedPersonal &&
-      savedPersonal.nik?.trim() &&
-      savedPersonal.birthPlace?.trim() &&
-      savedPersonal.birthDate &&
-      savedPersonal.address?.trim() &&
-      savedPersonal.city?.trim() &&
-      savedPersonal.province?.trim() &&
-      savedPersonal.district?.trim() &&
-      savedPersonal.subDistrict?.trim() &&
-      savedPersonal.rtRw?.trim() &&
-      savedPersonal.postalCode?.trim() &&
-      applicant?.phone?.trim()
+    savedPersonal.nik?.trim() &&
+    savedPersonal.birthPlace?.trim() &&
+    savedPersonal.birthDate &&
+    savedPersonal.address?.trim() &&
+    savedPersonal.city?.trim() &&
+    savedPersonal.province?.trim() &&
+    savedPersonal.district?.trim() &&
+    savedPersonal.subDistrict?.trim() &&
+    savedPersonal.rtRw?.trim() &&
+    savedPersonal.postalCode?.trim() &&
+    applicant?.phone?.trim()
   );
 
   const isEducationCompleted = Boolean(
     savedEducation &&
-      savedEducation.schoolName?.trim() &&
-      savedEducation.npsn?.trim() &&
-      savedEducation.major?.trim() &&
-      savedEducation.graduationYear
+    savedEducation.schoolName?.trim() &&
+    savedEducation.npsn?.trim() &&
+    savedEducation.major?.trim() &&
+    savedEducation.graduationYear
   );
 
   const isProgramCompleted = Boolean(savedRegistration?.studyProgramId);
 
   const requiredDocuments = ['FOTO', 'KTP', 'IJAZAH', 'TRANSKRIP'];
 
-  const isDocumentsCompleted = requiredDocuments.every((type) =>
-    savedDocuments.some((doc) => doc.type === type)
-  );
+  // Minimal 2 dokumen sudah cukup untuk membuka tahap pembayaran (sisanya opsional)
+  const isDocumentsCompleted = savedDocuments.length >= 2;
 
   const tabOrder: TabType[] = [
     'personal',
@@ -99,10 +98,7 @@ export default function StudentDashboard() {
     'payment',
   ];
 
-  // ==========================================
   // FORM STATES
-  // ==========================================
-
   const [personalForm, setPersonalForm] = useState<PersonalFormData>({
     nik: '',
     birthPlace: '',
@@ -173,27 +169,27 @@ export default function StudentDashboard() {
 
   const isPersonalFormSaved = Boolean(
     isPersonalCompleted &&
-      personalForm.nik === (savedPersonal?.nik || '').replace(/\D/g, '').slice(0, 16) &&
-      personalForm.birthPlace === (savedPersonal?.birthPlace || '') &&
-      personalForm.birthDate === savedBirthDate &&
-      personalForm.gender === (savedPersonal?.gender || 'Laki-laki') &&
-      personalForm.address === (savedPersonal?.address || '') &&
-      personalForm.rt === savedRt &&
-      personalForm.rw === savedRw &&
-      personalForm.postalCode === (savedPersonal?.postalCode || '').replace(/\D/g, '').slice(0, 5) &&
-      personalForm.district === (savedPersonal?.district || '') &&
-      personalForm.subDistrict === (savedPersonal?.subDistrict || '') &&
-      personalForm.city === (savedPersonal?.city || '') &&
-      personalForm.province === (savedPersonal?.province || '') &&
-      personalForm.phone === (applicant?.phone || '').replace(/\D/g, '')
+    personalForm.nik === (savedPersonal?.nik || '').replace(/\D/g, '').slice(0, 16) &&
+    personalForm.birthPlace === (savedPersonal?.birthPlace || '') &&
+    personalForm.birthDate === savedBirthDate &&
+    personalForm.gender === (savedPersonal?.gender || 'Laki-laki') &&
+    personalForm.address === (savedPersonal?.address || '') &&
+    personalForm.rt === savedRt &&
+    personalForm.rw === savedRw &&
+    personalForm.postalCode === (savedPersonal?.postalCode || '').replace(/\D/g, '').slice(0, 5) &&
+    personalForm.district === (savedPersonal?.district || '') &&
+    personalForm.subDistrict === (savedPersonal?.subDistrict || '') &&
+    personalForm.city === (savedPersonal?.city || '') &&
+    personalForm.province === (savedPersonal?.province || '') &&
+    personalForm.phone === (applicant?.phone || '').replace(/\D/g, '')
   );
 
   const isEducationFormSaved = Boolean(
     isEducationCompleted &&
-      educationForm.schoolName === (savedEducation?.schoolName || '') &&
-      educationForm.npsn === (savedEducation?.npsn || '') &&
-      educationForm.major === (savedEducation?.major || '') &&
-      Number(educationForm.graduationYear) === Number(savedEducation?.graduationYear)
+    educationForm.schoolName === (savedEducation?.schoolName || '') &&
+    educationForm.npsn === (savedEducation?.npsn || '') &&
+    educationForm.major === (savedEducation?.major || '') &&
+    Number(educationForm.graduationYear) === Number(savedEducation?.graduationYear)
   );
 
   const isProgramFormSaved = Boolean(
@@ -321,7 +317,7 @@ export default function StudentDashboard() {
           registrationFee: fee,
         });
 
-        setPaymentAmount(String(fee));
+        setPaymentAmount(String(Math.min(3500000, fee)));
       }
     } catch (err) {
       console.error('Gagal memuat pengaturan global bank:', err);
@@ -654,10 +650,10 @@ export default function StudentDashboard() {
       return;
     }
 
-    if (docFile.size > 5 * 1024 * 1024) {
+    if (docFile.size > 1 * 1024 * 1024) {
       setMessage({
         type: 'error',
-        text: 'Ukuran file maksimal 5 MB.',
+        text: 'Ukuran file maksimal 1 MB.',
       });
       return;
     }
@@ -718,10 +714,18 @@ export default function StudentDashboard() {
       return;
     }
 
+    if (Number(paymentAmount) > 3500000) {
+      setMessage({
+        type: 'error',
+        text: 'Nominal Uang Muka (DP) maksimal Rp 3.500.000.',
+      });
+      return;
+    }
+
     const formData = new FormData();
     formData.append('proof', paymentFile);
     formData.append('amount', paymentAmount);
-    formData.append('paymentType', 'Biaya Pendaftaran PMB');
+    formData.append('paymentType', 'Uang Muka (DP) Pendaftaran PMB');
 
     try {
       setLoading(true);
@@ -735,7 +739,7 @@ export default function StudentDashboard() {
 
       setMessage({
         type: 'success',
-        text: 'Bukti pembayaran berhasil diunggah! Menunggu verifikasi admin.',
+        text: 'Bukti pembayaran uang muka berhasil diunggah! Menunggu verifikasi admin.',
       });
 
       setPaymentFile(null);
@@ -789,11 +793,10 @@ export default function StudentDashboard() {
       {/* PESAN NOTIFIKASI */}
       {message.text && (
         <div
-          className={`p-4 rounded-xl border text-sm font-medium flex items-center gap-3 ${
-            message.type === 'success'
+          className={`p-4 rounded-xl border text-sm font-medium flex items-center gap-3 ${message.type === 'success'
               ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
               : 'bg-rose-50 text-rose-800 border-rose-200'
-          }`}
+            }`}
         >
           {message.type === 'success' ? (
             <CheckCircle2 className="w-5 h-5 text-emerald-600 flex-shrink-0" />

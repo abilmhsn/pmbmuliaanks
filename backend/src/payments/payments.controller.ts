@@ -1,4 +1,3 @@
-
 import {
   Controller,
   Post,
@@ -33,7 +32,7 @@ export class PaymentsController {
   @UseInterceptors(
     FileInterceptor('proof', {
       storage: memoryStorage(),
-      limits: { fileSize: 5 * 1024 * 1024 },
+      limits: { fileSize: 1 * 1024 * 1024 },
     }),
   )
   async uploadPaymentProof(
@@ -47,7 +46,6 @@ export class PaymentsController {
     }
 
     const filePath = await this.storageService.uploadFile(file, 'payments');
-
 
     return this.paymentsService.submitPaymentProof(
       userId,

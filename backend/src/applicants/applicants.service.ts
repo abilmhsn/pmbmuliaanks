@@ -206,6 +206,9 @@ export class ApplicantsService {
       }
 
       return regResult;
+    }, {
+      maxWait: 10000,
+      timeout: 15000,
     });
 
     await this.checkAndUpdateStatus(applicant.id);
