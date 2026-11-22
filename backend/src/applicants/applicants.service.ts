@@ -15,14 +15,15 @@ export class ApplicantsService {
       include: {
         personalData: true,
         educationData: true,
-        registrations: true,
+        registrations: {
+          orderBy: { registeredAt: 'desc' },
+        },
         documents: true,
       },
     });
 
     if (!applicant) return;
 
-    // Check if personal, education, study program are provided
     const hasPersonal = !!applicant.personalData;
     const hasEducation = !!applicant.educationData;
     const registration = applicant.registrations[0];
@@ -127,25 +128,37 @@ export class ApplicantsService {
       throw new NotFoundException('Data pendaftar tidak ditemukan');
     }
 
-    // Get active PMB period
-    let activePeriod = await this.prisma.pmbPeriod.findFirst({
+    // Ambil gelombang aktif yang diatur admin dari database (tanpa hardcode tahun/tanggal)
+    const activePeriod = await this.prisma.pmbPeriod.findFirst({
       where: { isActive: true },
+      orderBy: { createdAt: 'desc' },
     });
 
     if (!activePeriod) {
-      // Fallback: create standard period if none active
-      activePeriod = await this.prisma.pmbPeriod.create({
-        data: {
-          year: '2027/2028',
-          name: 'PMB Gelombang I 2027/2028',
-          startDate: new Date(),
-          endDate: new Date('2027-12-31'),
-          isActive: true,
-        },
-      });
+      throw new BadRequestException(
+        'Saat ini belum ada gelombang pendaftaran PMB yang dibuka. Silakan hubungi panitia PMB.',
+      );
     }
 
-    // [TAMBAHAN 1] Cek prodi tujuan dan pastikan kuotanya mencukupi
+    // Validasi rentang tanggal gelombang aktif (toleransi sampai akhir hari endDate)
+    const now = new Date();
+    const startDate = new Date(activePeriod.startDate);
+    startDate.setHours(0, 0, 0, 0);
+    const endDate = new Date(activePeriod.endDate);
+    endDate.setHours(23, 59, 59, 999);
+
+    if (now < startDate) {
+      throw new BadRequestException(
+        `Pendaftaran ${activePeriod.name} (${activePeriod.year}) baru dibuka pada ${startDate.toLocaleDateString('id-ID')}.`,
+      );
+    }
+
+    if (now > endDate) {
+      throw new BadRequestException(
+        `Masa pendaftaran ${activePeriod.name} (${activePeriod.year}) telah berakhir pada ${endDate.toLocaleDateString('id-ID')}.`,
+      );
+    }
+
     const targetProgram = await this.prisma.studyProgram.findUnique({
       where: { id: dto.studyProgramId },
     });
@@ -154,47 +167,70 @@ export class ApplicantsService {
       throw new NotFoundException('Program studi tidak ditemukan');
     }
 
-    const existingReg = await this.prisma.registration.findFirst({
-      where: { applicantId: applicant.id },
+    // Cek pendaftaran pada periode aktif saja agar arsip tahun sebelumnya tetap utuh
+    const existingRegInActivePeriod = await this.prisma.registration.findFirst({
+      where: {
+        applicantId: applicant.id,
+        periodId: activePeriod.id,
+      },
     });
 
-    // [TAMBAHAN 2] Gunakan transaksi database agar sinkron antara tabel registration dan studyProgram
-    const registration = await this.prisma.$transaction(async (tx) => {
-      // Jika mahasiswa mengganti pilihan dari prodi lama ke prodi baru, kembalikan kuota prodi lama
-      if (existingReg && existingReg.studyProgramId && existingReg.studyProgramId !== dto.studyProgramId) {
-        await tx.studyProgram.update({
-          where: { id: existingReg.studyProgramId },
-          data: { quota: { increment: 1 } },
-        });
-      }
-
-      // Jika pendaftaran baru, pastikan kuota masih ada (> 0)
-      if (!existingReg || !existingReg.studyProgramId) {
-        if (targetProgram.quota <= 0) {
-          throw new BadRequestException(`Mohon maaf, kuota untuk Program Studi ${targetProgram.name} sudah penuh.`);
+    const registration = await this.prisma.$transaction(
+      async (tx) => {
+        // Jika mengganti pilihan prodi pada periode aktif, kembalikan kuota prodi lama
+        if (
+          existingRegInActivePeriod &&
+          existingRegInActivePeriod.studyProgramId &&
+          existingRegInActivePeriod.studyProgramId !== dto.studyProgramId
+        ) {
+          await tx.studyProgram.update({
+            where: { id: existingRegInActivePeriod.studyProgramId },
+            data: { quota: { increment: 1 } },
+          });
         }
-      }
 
-      // Kurangi kuota prodi yang dipilih (-1)
-      if (!existingReg || existingReg.studyProgramId !== dto.studyProgramId) {
-        await tx.studyProgram.update({
-          where: { id: dto.studyProgramId },
-          data: { quota: { decrement: 1 } },
-        });
-      }
+        // Jika pilihan baru, pastikan kuota masih tersedia (atomic check-and-decrement)
+        if (
+          !existingRegInActivePeriod ||
+          existingRegInActivePeriod.studyProgramId !== dto.studyProgramId
+        ) {
+          // Re-read di dalam tx untuk mencegah race condition
+          const programInTx = await tx.studyProgram.findUnique({
+            where: { id: dto.studyProgramId },
+            select: { quota: true, name: true },
+          });
 
-      let regResult;
-      if (existingReg) {
-        regResult = await tx.registration.update({
-          where: { id: existingReg.id },
-          data: {
-            studyProgramId: dto.studyProgramId,
-            periodId: activePeriod.id,
-          },
-          include: { studyProgram: true, period: true },
-        });
-      } else {
-        regResult = await tx.registration.create({
+          if (!programInTx || programInTx.quota <= 0) {
+            throw new BadRequestException(
+              `Mohon maaf, kuota untuk Program Studi ${programInTx?.name ?? dto.studyProgramId} sudah penuh.`,
+            );
+          }
+
+          // Atomic decrement — hanya berhasil jika quota > 0 saat update berlangsung
+          const updated = await tx.studyProgram.updateMany({
+            where: { id: dto.studyProgramId, quota: { gt: 0 } },
+            data: { quota: { decrement: 1 } },
+          });
+
+          if (updated.count === 0) {
+            throw new BadRequestException(
+              `Mohon maaf, kuota Program Studi sudah penuh (sesi bersamaan terdeteksi).`,
+            );
+          }
+        }
+
+        if (existingRegInActivePeriod) {
+          return tx.registration.update({
+            where: { id: existingRegInActivePeriod.id },
+            data: {
+              studyProgramId: dto.studyProgramId,
+              periodId: activePeriod.id,
+            },
+            include: { studyProgram: true, period: true },
+          });
+        }
+
+        return tx.registration.create({
           data: {
             applicantId: applicant.id,
             studyProgramId: dto.studyProgramId,
@@ -203,13 +239,12 @@ export class ApplicantsService {
           },
           include: { studyProgram: true, period: true },
         });
-      }
-
-      return regResult;
-    }, {
-      maxWait: 10000,
-      timeout: 15000,
-    });
+      },
+      {
+        maxWait: 10000,
+        timeout: 15000,
+      },
+    );
 
     await this.checkAndUpdateStatus(applicant.id);
     return { message: 'Pilihan Program Studi berhasil disimpan', registration };
@@ -222,6 +257,7 @@ export class ApplicantsService {
         personalData: true,
         educationData: true,
         registrations: {
+          orderBy: { registeredAt: 'desc' },
           include: {
             studyProgram: true,
             period: true,
@@ -246,6 +282,7 @@ export class ApplicantsService {
         personalData: true,
         educationData: true,
         registrations: {
+          orderBy: { registeredAt: 'desc' },
           include: {
             studyProgram: true,
             period: true,
@@ -283,11 +320,14 @@ export class ApplicantsService {
       registrationNumber: applicant.registrationNumber,
       registeredAt: registration.registeredAt,
       applicantName: applicant.fullName,
-      email: applicant.phone, // phone stored in applicant
+      email: applicant.phone,
       phone: applicant.phone,
       nik: applicant.personalData?.nik || '-',
       gender: applicant.personalData?.gender || '-',
-      birthInfo: `${applicant.personalData?.birthPlace || '-'}, ${applicant.personalData?.birthDate ? new Date(applicant.personalData.birthDate).toLocaleDateString('id-ID') : '-'}`,
+      birthInfo: `${applicant.personalData?.birthPlace || '-'}, ${applicant.personalData?.birthDate
+          ? new Date(applicant.personalData.birthDate).toLocaleDateString('id-ID')
+          : '-'
+        }`,
       address: fullAddress,
       schoolName: applicant.educationData?.schoolName || '-',
       npsn: applicant.educationData?.npsn || '-',
@@ -295,11 +335,11 @@ export class ApplicantsService {
       studyProgramName: registration.studyProgram.name,
       studyProgramCode: registration.studyProgram.code,
       periodName: registration.period.name,
+      periodYear: registration.period.year,
       status: registration.status,
     };
   }
 
-  // 1. Memindahkan pendaftar ke Trash (Soft Delete)
   async softDeleteApplicant(id: string) {
     const applicant = await this.prisma.applicant.findUnique({ where: { id } });
     if (!applicant) {
@@ -312,7 +352,6 @@ export class ApplicantsService {
     });
   }
 
-  // 2. Mengambil daftar pendaftar yang berada di Trash
   async getTrashApplicants() {
     return await this.prisma.applicant.findMany({
       where: { deletedAt: { not: null } },
@@ -323,6 +362,7 @@ export class ApplicantsService {
         registrations: {
           include: {
             studyProgram: true,
+            period: true,
           },
         },
       },
@@ -330,7 +370,6 @@ export class ApplicantsService {
     });
   }
 
-  // 3. Memulihkan data dari Trash (Restore)
   async restoreApplicant(id: string) {
     const applicant = await this.prisma.applicant.findUnique({ where: { id } });
     if (!applicant) {

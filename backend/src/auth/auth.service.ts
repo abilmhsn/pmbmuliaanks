@@ -25,28 +25,50 @@ export class AuthService {
     // Hash password with bcrypt
     const hashedPassword = await bcrypt.hash(dto.password, 10);
 
-    // Generate unique registration number PMB-2027-XXXX
-    const randomNum = Math.floor(1000 + Math.random() * 9000);
-    const regNumber = `PMB-2027-${randomNum}`;
+    // Generate unique registration number PMB-{YEAR}-{RANDOM} dengan retry untuk mencegah collision
+    const year = new Date().getFullYear();
+    let user: any = null;
+    let lastError: any = null;
 
-    // Create user & applicant in a transaction
-    const user = await this.prisma.user.create({
-      data: {
-        email: dto.email,
-        password: hashedPassword,
-        role: Role.APPLICANT,
-        applicant: {
-          create: {
-            fullName: dto.fullName,
-            phone: dto.phone,
-            registrationNumber: regNumber,
+    for (let attempt = 0; attempt < 5; attempt++) {
+      const randomNum = Math.floor(100000 + Math.random() * 900000); // 6 digit → 900.000 kombinasi
+      const regNumber = `PMB-${year}-${randomNum}`;
+
+      try {
+        // Create user & applicant in a transaction
+        user = await this.prisma.user.create({
+          data: {
+            email: dto.email,
+            password: hashedPassword,
+            role: Role.APPLICANT,
+            applicant: {
+              create: {
+                fullName: dto.fullName,
+                phone: dto.phone,
+                registrationNumber: regNumber,
+              },
+            },
           },
-        },
-      },
-      include: {
-        applicant: true,
-      },
-    });
+          include: {
+            applicant: true,
+          },
+        });
+        break; // sukses, keluar dari loop
+      } catch (err: any) {
+        // P2002 = unique constraint violation (nomor pendaftaran tabrakan)
+        if (err?.code === 'P2002') {
+          lastError = err;
+          continue; // coba lagi dengan nomor baru
+        }
+        throw err; // error lain langsung lempar
+      }
+    }
+
+    if (!user) {
+      throw new BadRequestException(
+        'Gagal membuat akun: nomor pendaftaran tidak bisa di-generate. Silakan coba lagi.',
+      );
+    }
 
     // Sign JWT token
     const token = this.jwtService.sign({

@@ -41,6 +41,7 @@ export default function LandingPage() {
   const [programs, setPrograms] = useState<any[]>([]);
   const [announcements, setAnnouncements] = useState<any[]>([]);
   const [newsList, setNewsList] = useState<any[]>([]);
+  const [activePeriod, setActivePeriod] = useState<any | null>(null);
 
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isAutoPlaying, setIsAutoPlaying] = useState(true);
@@ -57,10 +58,11 @@ export default function LandingPage() {
     let isMounted = true;
     const fetchData = async () => {
       try {
-        const [progRes, annRes, newsRes] = await Promise.allSettled([
+        const [progRes, annRes, newsRes, periodRes] = await Promise.allSettled([
           api.get('/study-programs'),
           api.get('/announcements'),
           api.get('/news?limit=3'),
+          api.get('/pmb-periods/active'),
         ]);
         if (!isMounted) return;
         if (progRes.status === 'fulfilled' && progRes.value?.data) {
@@ -71,6 +73,9 @@ export default function LandingPage() {
         }
         if (newsRes.status === 'fulfilled' && newsRes.value?.data?.data) {
           setNewsList(newsRes.value.data.data);
+        }
+        if (periodRes.status === 'fulfilled' && periodRes.value?.data) {
+          setActivePeriod(periodRes.value.data);
         }
       } catch (err) {
         console.warn('Error fetching public landing data:', err);
@@ -221,8 +226,22 @@ export default function LandingPage() {
               transition={{ duration: 0.8, ease: "easeOut" }}
               className="lg:col-span-10 lg:col-start-2 space-y-6 text-center"
             >
-              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-400 border border-amber-500/20 text-slate-900 text-xs font-semibold mx-auto">
-                Penerimaan Mahasiswa Baru T.A 2027/2028
+              <div className="inline-flex flex-wrap items-center justify-center gap-2 px-4 py-1.5 rounded-full bg-amber-400 border border-amber-500/20 text-slate-900 text-xs font-bold mx-auto shadow-md">
+                <span className="w-2 h-2 rounded-full bg-emerald-700 animate-pulse" />
+                <span>
+                  Penerimaan Mahasiswa Baru{' '}
+                  {activePeriod ? `T.A ${activePeriod.year} - ${activePeriod.name}` : 'Tahun Ini'}
+                </span>
+                {activePeriod?.endDate && (
+                  <span className="hidden sm:inline text-[11px] font-semibold text-slate-800 bg-amber-300/80 px-2 py-0.5 rounded-full">
+                    Batas Pendaftaran:{' '}
+                    {new Date(activePeriod.endDate).toLocaleDateString('id-ID', {
+                      day: 'numeric',
+                      month: 'short',
+                      year: 'numeric',
+                    })}
+                  </span>
+                )}
               </div>
 
               <h1 className="text-3xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-amber-400 leading-tight drop-shadow-md">
@@ -833,7 +852,7 @@ export default function LandingPage() {
           </div>
 
           <div className="pt-12 mt-12 border-t border-slate-900 text-center text-xs text-slate-500">
-            © 2027 Kampus Mulia Angkasa Akademi. All rights reserved. Penerimaan Mahasiswa Baru System.
+            &copy; {new Date().getFullYear()} Kampus Mulia Angkasa Akademi. All rights reserved. Penerimaan Mahasiswa Baru System.
           </div>
         </div>
       </footer>

@@ -34,8 +34,17 @@ export class AdminController {
     @Query('status') status?: RegistrationStatus,
     @Query('studyProgramId') studyProgramId?: string,
     @Query('periodId') periodId?: string,
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
   ) {
-    return this.adminService.getApplicants(search, status, studyProgramId, periodId);
+    return this.adminService.getApplicants(
+      search,
+      status,
+      studyProgramId,
+      periodId,
+      page ? parseInt(page, 10) : 1,
+      limit ? parseInt(limit, 10) : 25,
+    );
   }
 
   // ENDPOINT GET TRASH (harus di atas /:id agar tidak di-intercept)

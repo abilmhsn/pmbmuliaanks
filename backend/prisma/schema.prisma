@@ -34,6 +34,9 @@ model Applicant {
   educationData      EducationData?
   personalData       PersonalData?
   registrations      Registration[]
+
+  @@index([deletedAt])
+  @@index([createdAt])
 }
 
 model PersonalData {
@@ -99,6 +102,12 @@ model Registration {
   applicant      Applicant          @relation(fields: [applicantId], references: [id], onDelete: Cascade)
   period         PmbPeriod          @relation(fields: [periodId], references: [id])
   studyProgram   StudyProgram       @relation(fields: [studyProgramId], references: [id])
+
+  @@index([applicantId])
+  @@index([periodId])
+  @@index([studyProgramId])
+  @@index([status])
+  @@index([registeredAt])
 }
 
 model Document {
@@ -112,6 +121,9 @@ model Document {
   notes       String?
   createdAt   DateTime     @default(now())
   applicant   Applicant    @relation(fields: [applicantId], references: [id], onDelete: Cascade)
+
+  @@index([applicantId])
+  @@index([type])
 }
 
 model Payment {
@@ -125,6 +137,9 @@ model Payment {
   verifiedAt     DateTime?
   createdAt      DateTime      @default(now())
   registration   Registration  @relation(fields: [registrationId], references: [id], onDelete: Cascade)
+
+  @@index([registrationId])
+  @@index([status])
 }
 
 model Announcement {

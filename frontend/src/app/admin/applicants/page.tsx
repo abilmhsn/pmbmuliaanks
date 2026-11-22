@@ -33,6 +33,10 @@ export default function AdminApplicantsPage() {
   const [activeTab, setActiveTab] = useState<'ACTIVE' | 'TRASH'>('ACTIVE');
 
   const [search, setSearch] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
   const [statusFilter, setStatusFilter] = useState('');
   const [programFilter, setProgramFilter] = useState('');
   const [periodFilter, setPeriodFilter] = useState('');
@@ -40,6 +44,15 @@ export default function AdminApplicantsPage() {
   const [selectedApplicant, setSelectedApplicant] = useState<any | null>(null);
   const [statusInput, setStatusInput] = useState('');
   const [notesInput, setNotesInput] = useState('');
+
+  // Debounce search input (400ms) untuk mencegah request berlebihan saat mengetik
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearch(search);
+      setCurrentPage(1);
+    }, 400);
+    return () => clearTimeout(handler);
+  }, [search]);
 
   // Fetch Gelombang & Prodi saat pertama kali mount
   useEffect(() => {
@@ -57,19 +70,32 @@ export default function AdminApplicantsPage() {
         if (activeTab === 'ACTIVE') {
           const res = await api.get('/admin/applicants', {
             params: {
-              search: search || undefined,
+              search: debouncedSearch || undefined,
               status: statusFilter || undefined,
               studyProgramId: programFilter || undefined,
               periodId: periodFilter || undefined,
+              page: currentPage,
+              limit: 25,
             },
             signal: controller.signal,
           });
-          setApplicants(res.data);
+          if (Array.isArray(res.data)) {
+            setApplicants(res.data);
+            setTotalCount(res.data.length);
+            setTotalPages(1);
+          } else {
+            setApplicants(res.data?.data || []);
+            setTotalCount(res.data?.total || 0);
+            setTotalPages(res.data?.totalPages || 1);
+          }
         } else {
           const res = await api.get('/admin/applicants/trash', {
             signal: controller.signal,
           });
-          setApplicants(res.data);
+          const trashData = Array.isArray(res.data) ? res.data : (res.data?.data || []);
+          setApplicants(trashData);
+          setTotalCount(trashData.length);
+          setTotalPages(1);
         }
       } catch (err: any) {
         if (err.name !== 'CanceledError' && err.code !== 'ERR_CANCELED') {
@@ -85,7 +111,7 @@ export default function AdminApplicantsPage() {
     return () => {
       controller.abort();
     };
-  }, [search, statusFilter, programFilter, periodFilter, activeTab]);
+  }, [debouncedSearch, statusFilter, programFilter, periodFilter, activeTab, currentPage]);
 
   const fetchPeriods = async () => {
     try {
@@ -115,16 +141,29 @@ export default function AdminApplicantsPage() {
       if (activeTab === 'ACTIVE') {
         const res = await api.get('/admin/applicants', {
           params: {
-            search: search || undefined,
+            search: debouncedSearch || undefined,
             status: statusFilter || undefined,
             studyProgramId: programFilter || undefined,
             periodId: periodFilter || undefined,
+            page: currentPage,
+            limit: 25,
           },
         });
-        setApplicants(res.data);
+        if (Array.isArray(res.data)) {
+          setApplicants(res.data);
+          setTotalCount(res.data.length);
+          setTotalPages(1);
+        } else {
+          setApplicants(res.data?.data || []);
+          setTotalCount(res.data?.total || 0);
+          setTotalPages(res.data?.totalPages || 1);
+        }
       } else {
         const res = await api.get('/admin/applicants/trash');
-        setApplicants(res.data);
+        const trashData = Array.isArray(res.data) ? res.data : (res.data?.data || []);
+        setApplicants(trashData);
+        setTotalCount(trashData.length);
+        setTotalPages(1);
       }
     } catch (err) {
       console.error(err);
@@ -296,7 +335,7 @@ export default function AdminApplicantsPage() {
                 <option value="">Semua Gelombang</option>
                 {periods.map((p) => (
                   <option key={p.id} value={p.id}>
-                    {p.name} {p.isActive ? '(AKTIF)' : ''}
+                    T.A {p.year || p.academicYear || ''} - {p.name} {p.isActive ? '(AKTIF)' : ''}
                   </option>
                 ))}
               </select>
@@ -388,6 +427,11 @@ export default function AdminApplicantsPage() {
                       <td className="p-4 text-slate-300">{app.educationData?.schoolName || '-'}</td>
                       <td className="p-4 font-semibold text-sky-400">
                         {reg?.studyProgram?.name || 'Belum Memilih'}
+                        {reg?.period && (
+                          <span className="block text-[10px] text-amber-400/90 font-mono font-normal">
+                            T.A {reg.period.year} - {reg.period.name}
+                          </span>
+                        )}
                       </td>
                       <td className="p-4">
                         <span
@@ -455,6 +499,34 @@ export default function AdminApplicantsPage() {
             </tbody>
           </table>
         </div>
+
+        {/* Pagination & Info Bar */}
+        <div className="p-4 bg-slate-950/80 border-t border-slate-800 flex flex-col sm:flex-row justify-between items-center gap-3 text-xs text-slate-400">
+          <div>
+            Total data: <span className="font-bold text-white">{totalCount}</span> pendaftar
+            {totalPages > 1 && (
+              <span> &bull; Halaman <span className="font-bold text-white">{currentPage}</span> dari <span className="font-bold text-white">{totalPages}</span></span>
+            )}
+          </div>
+          {totalPages > 1 && (
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                disabled={currentPage <= 1 || loading}
+                className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed text-white font-medium transition-colors"
+              >
+                &larr; Sebelumnya
+              </button>
+              <button
+                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                disabled={currentPage >= totalPages || loading}
+                className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed text-white font-medium transition-colors"
+              >
+                Selanjutnya &rarr;
+              </button>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* DETAIL MODAL */}
@@ -463,7 +535,14 @@ export default function AdminApplicantsPage() {
           <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-4xl w-full max-h-[90vh] flex flex-col overflow-hidden shadow-2xl">
             <div className="p-4 sm:p-6 bg-slate-950 border-b border-slate-800 flex justify-between items-center">
               <div>
-                <span className="text-xs font-mono text-amber-400 font-bold">{selectedApplicant.registrationNumber}</span>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-mono text-amber-400 font-bold">{selectedApplicant.registrationNumber}</span>
+                  {selectedApplicant.registrations?.[0]?.period && (
+                    <span className="px-2 py-0.5 rounded text-[10px] font-mono font-semibold bg-slate-800 text-sky-400 border border-slate-700">
+                      T.A {selectedApplicant.registrations[0].period.year} &bull; {selectedApplicant.registrations[0].period.name}
+                    </span>
+                  )}
+                </div>
                 <h3 className="text-lg sm:text-xl font-bold text-white">{selectedApplicant.fullName}</h3>
               </div>
               <button

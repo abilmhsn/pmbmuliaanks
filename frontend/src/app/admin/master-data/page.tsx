@@ -12,6 +12,7 @@ import {
   X,
   Save,
   CheckCircle2,
+  Lock,
 } from 'lucide-react';
 
 export default function AdminMasterDataPage() {
@@ -53,18 +54,6 @@ export default function AdminMasterDataPage() {
       console.error('Error fetching master data:', err);
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleActivatePeriod = async (id: string, name: string) => {
-    if (!confirm(`Aktifkan ${name}? Statistik dashboard dan data pendaftar baru akan beralih khusus ke gelombang ini.`)) return;
-
-    try {
-      await api.put(`/pmb-periods/${id}/activate`).catch(() => api.put(`/pmb-periods/${id}`, { isActive: true }));
-      alert(`${name} berhasil diaktifkan! Data dashboard kini khusus untuk gelombang ini.`);
-      fetchMasterData();
-    } catch (err: any) {
-      alert(err.response?.data?.message || 'Gagal mengubah gelombang aktif');
     }
   };
 
@@ -237,43 +226,57 @@ export default function AdminMasterDataPage() {
           <div className="space-y-6">
             {/* SECTION 2: PERIODE GELOMBANG PMB */}
             <div className="bg-slate-900 p-5 sm:p-6 rounded-2xl border border-slate-800 space-y-4">
-              <div className="flex items-center gap-2.5 border-b border-slate-800 pb-3.5">
-                <Calendar className="w-5 h-5 text-sky-400 shrink-0" />
-                <h3 className="text-base font-bold text-white">Periode Gelombang PMB (1 & 2)</h3>
+              <div className="flex items-center justify-between border-b border-slate-800 pb-3.5">
+                <div className="flex items-center gap-2.5">
+                  <Calendar className="w-5 h-5 text-sky-400 shrink-0" />
+                  <h3 className="text-base font-bold text-white">Status Gelombang PMB</h3>
+                </div>
+                <span className="text-[11px] px-2.5 py-0.5 rounded-full bg-slate-800 text-slate-300 border border-slate-700 flex items-center gap-1 font-mono">
+                  <Lock className="w-3 h-3 text-amber-400" /> Kelola via Super Admin
+                </span>
               </div>
 
               <p className="text-xs text-slate-400 leading-relaxed">
-                Pilih gelombang aktif. Data pendaftar, statistik dashboard, dan hasil export CSV akan terisolasi khusus sesuai gelombang yang diaktifkan.
+                Informasi periode &amp; gelombang PMB saat ini. Pengaturan jadwal dan aktivasi gelombang dikelola secara terpusat oleh Super Admin.
               </p>
 
               <div className="space-y-3 pt-1">
-                {periods.slice(0, 2).map((per) => (
-                  <div
-                    key={per.id}
-                    className={`p-4 bg-slate-950 rounded-xl border flex flex-col sm:flex-row sm:items-center justify-between gap-3 transition-all ${per.isActive ? 'border-emerald-500/40' : 'border-slate-800'
+                {periods.length === 0 ? (
+                  <p className="text-xs text-slate-500 italic py-2">Belum ada gelombang terdaftar.</p>
+                ) : (
+                  periods.slice(0, 5).map((per) => (
+                    <div
+                      key={per.id}
+                      className={`p-4 bg-slate-950 rounded-xl border flex flex-col sm:flex-row sm:items-center justify-between gap-3 transition-all ${
+                        per.isActive ? 'border-emerald-500/40 bg-emerald-950/10' : 'border-slate-800'
                       }`}
-                  >
-                    <div className="space-y-0.5">
-                      <h4 className="font-bold text-white text-sm">{per.name}</h4>
-                      <p className="text-xs text-slate-400 font-mono">T.A {per.year || per.academicYear || '2027/2028'}</p>
-                    </div>
+                    >
+                      <div className="space-y-0.5">
+                        <div className="flex items-center gap-2">
+                          <h4 className="font-bold text-white text-sm">{per.name}</h4>
+                          <span className="text-xs text-amber-400 font-mono font-semibold">T.A {per.year || per.academicYear}</span>
+                        </div>
+                        {per.startDate && per.endDate && (
+                          <p className="text-[11px] text-slate-400">
+                            {new Date(per.startDate).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })} &ndash; {new Date(per.endDate).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
+                          </p>
+                        )}
+                      </div>
 
-                    <div className="shrink-0">
-                      {per.isActive ? (
-                        <span className="w-full sm:w-auto justify-center px-3.5 py-2 bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 text-xs font-extrabold rounded-xl flex items-center gap-1.5">
-                          <CheckCircle2 className="w-3.5 h-3.5" /> AKTIF
-                        </span>
-                      ) : (
-                        <button
-                          onClick={() => handleActivatePeriod(per.id, per.name)}
-                          className="w-full sm:w-auto px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold rounded-xl transition-all border border-slate-700 whitespace-nowrap"
-                        >
-                          Aktifkan Gelombang Ini
-                        </button>
-                      )}
+                      <div className="shrink-0">
+                        {per.isActive ? (
+                          <span className="w-full sm:w-auto justify-center px-3.5 py-1.5 bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 text-xs font-bold rounded-xl flex items-center gap-1.5">
+                            <CheckCircle2 className="w-3.5 h-3.5" /> AKTIF
+                          </span>
+                        ) : (
+                          <span className="w-full sm:w-auto justify-center px-3 py-1.5 bg-slate-800/80 text-slate-400 border border-slate-700/60 text-xs font-semibold rounded-xl flex items-center">
+                            Non-Aktif
+                          </span>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))
+                )}
               </div>
             </div>
 

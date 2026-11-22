@@ -139,7 +139,7 @@ export default function SuperAdminDashboardPage() {
                   value={p.id}
                   className="bg-[#0f172a] text-white"
                 >
-                  {p.name} {p.isActive ? '(Aktif)' : ''}
+                  T.A {p.year || p.academicYear || ''} - {p.name} {p.isActive ? '(Aktif)' : ''}
                 </option>
               ))}
             </select>

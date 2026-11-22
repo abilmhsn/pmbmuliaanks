@@ -131,7 +131,14 @@ export class AdminService {
     };
   }
 
-  async getApplicants(search?: string, status?: RegistrationStatus, studyProgramId?: string, periodId?: string) {
+  async getApplicants(
+    search?: string,
+    status?: RegistrationStatus,
+    studyProgramId?: string,
+    periodId?: string,
+    page: number = 1,
+    limit: number = 25,
+  ) {
     // Selalu filter pendaftar yang TIDAK DIHAPUS (deletedAt: null)
     const where: any = {
       deletedAt: null,
@@ -156,23 +163,40 @@ export class AdminService {
       };
     }
 
-    return this.prisma.applicant.findMany({
-      where,
-      include: {
-        user: { select: { email: true } },
-        personalData: true,
-        educationData: true,
-        registrations: {
-          include: {
-            studyProgram: true,
-            period: true,
-            payments: true,
+    const safePage = Math.max(1, page);
+    const safeLimit = Math.min(100, Math.max(1, limit)); // max 100 per halaman
+    const skip = (safePage - 1) * safeLimit;
+
+    const [data, total] = await Promise.all([
+      this.prisma.applicant.findMany({
+        where,
+        include: {
+          user: { select: { email: true } },
+          personalData: true,
+          educationData: true,
+          registrations: {
+            include: {
+              studyProgram: true,
+              period: true,
+              payments: true,
+            },
           },
+          documents: true,
         },
-        documents: true,
-      },
-      orderBy: { createdAt: 'desc' },
-    });
+        orderBy: { createdAt: 'desc' },
+        take: safeLimit,
+        skip,
+      }),
+      this.prisma.applicant.count({ where }),
+    ]);
+
+    return {
+      data,
+      total,
+      page: safePage,
+      limit: safeLimit,
+      totalPages: Math.ceil(total / safeLimit),
+    };
   }
 
   async getApplicantDetail(id: string) {

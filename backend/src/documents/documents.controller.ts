@@ -33,7 +33,26 @@ export class DocumentsController {
   @UseInterceptors(
     FileInterceptor('file', {
       storage: memoryStorage(),
-      limits: { fileSize: 1 * 1024 * 1024 },
+      limits: { fileSize: 2 * 1024 * 1024 }, // 2MB
+      fileFilter: (_req, file, cb) => {
+        const allowedMimeTypes = [
+          'image/jpeg',
+          'image/jpg',
+          'image/png',
+          'image/webp',
+          'application/pdf',
+        ];
+        if (allowedMimeTypes.includes(file.mimetype)) {
+          cb(null, true);
+        } else {
+          cb(
+            new BadRequestException(
+              'Format file tidak didukung. Hanya JPG, PNG, WEBP, dan PDF yang diperbolehkan.',
+            ),
+            false,
+          );
+        }
+      },
     }),
   )
   async uploadFile(

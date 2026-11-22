@@ -17,6 +17,7 @@ import {
   ExternalLink,
   Sun,
   Moon,
+  CalendarRange,
 } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import {
@@ -56,6 +57,12 @@ function SuperAdminLayoutContent({ children }: { children: React.ReactNode }) {
       label: 'Executive Overview',
       subtitle: 'Statistik & Keuangan',
       Icon: LayoutDashboard,
+    },
+    {
+      href: '/super-admin/periods',
+      label: 'Tahun Akademik & Gelombang',
+      subtitle: 'Periode & Jadwal PMB',
+      Icon: CalendarRange,
     },
     {
       href: '/super-admin/news',
@@ -460,13 +467,15 @@ function SuperAdminLayoutContent({ children }: { children: React.ReactNode }) {
           const shortLabel =
             href.includes('dashboard')
               ? 'Ikhtisar'
-              : href.includes('news')
-                ? 'Berita'
-                : href.includes('users')
-                  ? 'Tim & Akun'
-                  : href.includes('audit-logs')
-                    ? 'Audit Log'
-                    : 'Pengaturan';
+              : href.includes('periods')
+                ? 'Periode'
+                : href.includes('news')
+                  ? 'Berita'
+                  : href.includes('users')
+                    ? 'Tim & Akun'
+                    : href.includes('audit-logs')
+                      ? 'Audit Log'
+                      : 'Pengaturan';
           return (
             <Link
               key={href}

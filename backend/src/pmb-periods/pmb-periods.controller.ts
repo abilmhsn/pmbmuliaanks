@@ -20,31 +20,30 @@ export class PmbPeriodsController {
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(Role.ADMIN)
+  @Roles(Role.ADMIN, Role.SUPER_ADMIN)
   @Get('admin/all')
   async getAll() {
     return this.pmbPeriodsService.getAll();
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(Role.ADMIN)
+  @Roles(Role.SUPER_ADMIN)
   @Post()
   async create(@Body() data: any) {
     return this.pmbPeriodsService.create(data);
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(Role.ADMIN)
+  @Roles(Role.SUPER_ADMIN)
   @Put(':id')
   async update(@Param('id') id: string, @Body() data: any) {
     return this.pmbPeriodsService.update(id, data);
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(Role.ADMIN)
+  @Roles(Role.SUPER_ADMIN)
   @Put(':id/activate')
   async activate(@Param('id') id: string) {
     return this.pmbPeriodsService.update(id, { isActive: true });
   }
 }
-

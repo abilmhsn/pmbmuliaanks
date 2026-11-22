@@ -277,7 +277,7 @@ export default function AdminDashboardPage() {
               <option value="" className="bg-slate-900 text-slate-200">Semua Gelombang</option>
               {periods.map((p) => (
                 <option key={p.id} value={p.id} className="bg-slate-900 text-amber-400">
-                  {p.name} {p.isActive ? '(AKTIF)' : ''}
+                  T.A {p.year || p.academicYear || ''} - {p.name} {p.isActive ? '(AKTIF)' : ''}
                 </option>
               ))}
             </select>
