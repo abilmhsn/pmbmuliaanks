@@ -235,7 +235,7 @@ export default function LandingPage() {
                   {activePeriod ? `T.A ${activePeriod.year} - ${activePeriod.name}` : 'Tahun Ini'}
                 </span>
                 {activePeriod?.endDate && (
-                  <span className="hidden sm:inline text-[11px] font-semibold text-slate-800 bg-amber-300/80 px-2 py-0.5 rounded-full">
+                  <span className="hidden sm:inline text-[11px] font-semibold text-slate-800 px-2 py-0.5 rounded-full">
                     Batas Pendaftaran:{' '}
                     {new Date(activePeriod.endDate).toLocaleDateString('id-ID', {
                       day: 'numeric',
