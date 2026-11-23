@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
@@ -24,8 +25,8 @@ interface AuthContextType {
   user: User | null;
   token: string | null;
   isLoading: boolean;
-  login: (data: any) => Promise<void>;
-  register: (data: any) => Promise<void>;
+  login: (data: { email: string; password: string }) => Promise<void>;
+  register: (data: any) => Promise<any>;
   logout: () => void;
   refreshUser: () => Promise<void>;
 }
@@ -35,12 +36,29 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
 
-  const fetchProfile = async () => {
+  const fetchProfile = async (authToken?: string) => {
     try {
-      const response = await api.get('/auth/me');
+      const activeToken =
+        authToken ||
+        token ||
+        (typeof window !== 'undefined'
+          ? sessionStorage.getItem('pmb_token')
+          : null);
+
+      if (!activeToken) {
+        setIsLoading(false);
+        return;
+      }
+
+      const response = await api.get('/auth/me', {
+        headers: {
+          Authorization: `Bearer ${activeToken}`,
+        },
+      });
+
       setUser(response.data);
     } catch (error) {
       console.error('Failed to load profile:', error);
@@ -51,25 +69,37 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   useEffect(() => {
-    const savedToken = localStorage.getItem('pmb_token');
+    const savedToken =
+      typeof window !== 'undefined'
+        ? sessionStorage.getItem('pmb_token')
+        : null;
+
     if (savedToken) {
       setToken(savedToken);
-      fetchProfile();
+      fetchProfile(savedToken);
     } else {
       setIsLoading(false);
     }
   }, []);
 
-  const login = async (credentials: any) => {
+  const login = async (credentials: { email: string; password: string }) => {
     const res = await api.post('/auth/login', credentials);
-    const { token: jwtToken, user: userData } = res.data;
-    localStorage.setItem('pmb_token', jwtToken);
-    setToken(jwtToken);
+    const accessToken = res.data?.token;
+    const userData = res.data?.user;
+
+    if (!accessToken) {
+      throw new Error('Gagal mendapatkan sesi login');
+    }
+
+    if (typeof window !== 'undefined') {
+      sessionStorage.setItem('pmb_token', accessToken);
+    }
+    setToken(accessToken);
     setUser(userData);
 
-    if (userData.role === 'SUPER_ADMIN') {
+    if (userData?.role === 'SUPER_ADMIN') {
       router.push('/super-admin/dashboard');
-    } else if (userData.role === 'ADMIN') {
+    } else if (userData?.role === 'ADMIN') {
       router.push('/admin/dashboard');
     } else {
       router.push('/dashboard');
@@ -78,28 +108,34 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const register = async (formData: any) => {
     const res = await api.post('/auth/register', formData);
-    const { token: jwtToken, user: userData } = res.data;
-    localStorage.setItem('pmb_token', jwtToken);
-    setToken(jwtToken);
-    setUser(userData);
-    router.push('/dashboard');
+    return res.data;
   };
 
   const logout = () => {
-    localStorage.removeItem('pmb_token');
+    if (typeof window !== 'undefined') {
+      sessionStorage.removeItem('pmb_token');
+    }
     setToken(null);
     setUser(null);
     router.push('/login');
   };
 
   const refreshUser = async () => {
-    if (token) {
-      await fetchProfile();
+    const activeToken =
+      token ||
+      (typeof window !== 'undefined'
+        ? sessionStorage.getItem('pmb_token')
+        : null);
+
+    if (activeToken) {
+      await fetchProfile(activeToken);
     }
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, isLoading, login, register, logout, refreshUser }}>
+    <AuthContext.Provider
+      value={{ user, token, isLoading, login, register, logout, refreshUser }}
+    >
       {children}
     </AuthContext.Provider>
   );
@@ -107,8 +143,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
+
   if (!context) {
     throw new Error('useAuth must be used within an AuthProvider');
   }
+
   return context;
 };

@@ -5,7 +5,6 @@ import api from '@/lib/api';
 import { useSuperAdminTheme } from '@/context/SuperAdminThemeContext';
 import {
   CalendarRange,
-  Plus,
   Edit2,
   CheckCircle2,
   AlertTriangle,
@@ -324,16 +323,7 @@ export default function SuperAdminPeriodsPage() {
             <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
           </button>
 
-          <button
-            onClick={() => handleOpenCreate()}
-            className={`flex items-center space-x-2 px-4 py-2.5 text-white text-xs font-bold rounded-xl shadow-md transition-all active:scale-95 ${isDark
-                ? 'bg-sky-600 hover:bg-sky-500 shadow-sky-600/20'
-                : 'bg-[#0f172a] hover:bg-slate-800 shadow-slate-900/20'
-              }`}
-          >
-            <Plus className="w-4 h-4" />
-            <span>Tambah Gelombang Baru</span>
-          </button>
+
         </div>
       </div>
 
@@ -594,13 +584,7 @@ export default function SuperAdminPeriodsPage() {
               ? 'Tidak ada data gelombang atau tahun akademik yang sesuai dengan kata kunci pencarian.'
               : 'Belum ada tahun akademik yang dibuat. Mulai dengan membuat tahun akademik baru.'}
           </p>
-          <button
-            onClick={() => handleOpenCreate()}
-            className={`px-4 py-2 text-white text-xs font-bold rounded-xl transition-all shadow-sm ${isDark ? 'bg-sky-600 hover:bg-sky-500' : 'bg-[#0f172a] hover:bg-slate-800'
-              }`}
-          >
-            Buat Gelombang Pertama
-          </button>
+
         </div>
       ) : (
         <div className="space-y-6">
@@ -670,16 +654,7 @@ export default function SuperAdminPeriodsPage() {
                     </div>
                   </div>
 
-                  <button
-                    onClick={() => handleOpenCreate(year)}
-                    className={`flex items-center space-x-1.5 px-3.5 py-2 rounded-xl text-xs font-bold border transition-all self-start sm:self-center ${isDark
-                        ? 'bg-slate-800 hover:bg-slate-700 text-sky-300 border-slate-700'
-                        : 'bg-[#0f172a] hover:bg-slate-800 text-white border-[#0f172a]'
-                      }`}
-                  >
-                    <Plus className="w-3.5 h-3.5" />
-                    <span>Tambah Gelombang ({year})</span>
-                  </button>
+
                 </div>
 
                 {/* Waves Table / List */}

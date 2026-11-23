@@ -24,7 +24,7 @@ export default function LoginPage() {
       setLoading(true);
       await login(formData);
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Login gagal. Periksa email & password Anda.');
+      setError(err.response?.data?.message || err.message || 'Login gagal. Periksa email & password Anda.');
     } finally {
       setLoading(false);
     }
@@ -130,7 +130,7 @@ export default function LoginPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-3 px-4 bg-amber-400 hover:bg-amber-300 text-white font-bold rounded-xl shadow-lg shadow-amber -500/20 hover:shadow-sky-500/30 transition-all flex items-center justify-center gap-2 text-sm disabled:opacity-50"
+                className="w-full py-3 px-4 bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold rounded-xl shadow-lg shadow-amber-400/20 hover:shadow-amber-400/30 transition-all flex items-center justify-center gap-2 text-sm disabled:opacity-50"
               >
                 {loading ? 'Memproses...' : 'Masuk Portal'}
                 <ArrowRight className="w-4 h-4" />
@@ -140,10 +140,6 @@ export default function LoginPage() {
 
           {/* Quick Demo Accounts Info */}
           <div className="mt-6 pt-6 border-t border-slate-700/60 text-xs text-slate-400">
-
-
-
-
           </div>
         </div>
       </div>

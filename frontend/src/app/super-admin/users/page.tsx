@@ -8,7 +8,6 @@ import {
   UserPlus,
   ShieldCheck,
   Crown,
-  KeyRound,
   Trash2,
   Search,
   RefreshCw,
@@ -43,12 +42,6 @@ export default function SuperAdminUsersPage() {
   const [newRoleSelect, setNewRoleSelect] = useState<'SUPER_ADMIN' | 'ADMIN' | 'APPLICANT'>('ADMIN');
   const [roleSubmitting, setRoleSubmitting] = useState(false);
 
-  // Modal Reset Password
-  const [showResetModal, setShowResetModal] = useState(false);
-  const [targetUserPass, setTargetUserPass] = useState<any | null>(null);
-  const [newPasswordInput, setNewPasswordInput] = useState('');
-  const [showPasswordText, setShowPasswordText] = useState(false);
-  const [resetSubmitting, setResetSubmitting] = useState(false);
 
   const fetchUsers = useCallback(async () => {
     try {
@@ -119,29 +112,6 @@ export default function SuperAdminUsersPage() {
     }
   };
 
-  // Handler Reset Password
-  const handleResetPassword = async () => {
-    if (!targetUserPass || !newPasswordInput) return;
-    if (newPasswordInput.length < 6) {
-      alert('Password minimal 6 karakter');
-      return;
-    }
-
-    try {
-      setResetSubmitting(true);
-      await api.put(`/super-admin/users/${targetUserPass.id}/reset-password`, {
-        password: newPasswordInput,
-      });
-      alert(`Password untuk ${targetUserPass.email} berhasil di-reset!`);
-      setShowResetModal(false);
-      setTargetUserPass(null);
-      setNewPasswordInput('');
-    } catch (err: any) {
-      alert(err.response?.data?.message || 'Gagal mereset password');
-    } finally {
-      setResetSubmitting(false);
-    }
-  };
 
   // Handler Delete User
   const handleDeleteUser = async (u: any) => {
@@ -483,25 +453,7 @@ export default function SuperAdminUsersPage() {
                             <span className="hidden sm:inline">Role</span>
                           </button>
 
-                          {/* Reset Password */}
-                          <button
-                            onClick={() => {
-                              setTargetUserPass(u);
-                              setNewPasswordInput('');
-                              setShowResetModal(true);
-                            }}
-                            className={`px-2.5 py-1.5 rounded-lg transition-colors text-[11px] font-semibold flex items-center gap-1 border ${isDark
-                                ? 'bg-slate-800 border-slate-700 text-slate-300 hover:text-white'
-                                : 'bg-slate-100 border-slate-200 text-[#0f172a] hover:bg-slate-200'
-                              }`}
-                            title="Reset Password Pengguna"
-                          >
-                            <KeyRound
-                              className={`w-3.5 h-3.5 ${isDark ? 'text-amber-400' : 'text-amber-600'
-                                }`}
-                            />
-                            <span className="hidden sm:inline">Reset</span>
-                          </button>
+
 
                           {/* Delete */}
                           <button
@@ -680,23 +632,7 @@ export default function SuperAdminUsersPage() {
                       <span>Role</span>
                     </button>
 
-                    <button
-                      onClick={() => {
-                        setTargetUserPass(u);
-                        setNewPasswordInput('');
-                        setShowResetModal(true);
-                      }}
-                      className={`py-2 px-2 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors border ${isDark
-                          ? 'bg-slate-800 border-slate-700/50 text-slate-200 hover:bg-slate-700'
-                          : 'bg-slate-100 border-slate-200 text-[#0f172a] hover:bg-slate-200'
-                        }`}
-                    >
-                      <KeyRound
-                        className={`w-3.5 h-3.5 ${isDark ? 'text-amber-400' : 'text-amber-600'
-                          }`}
-                      />
-                      <span>Reset</span>
-                    </button>
+
 
                     <button
                       onClick={() => handleDeleteUser(u)}
@@ -967,101 +903,7 @@ export default function SuperAdminUsersPage() {
         </div>
       )}
 
-      {/* MODAL: Reset Password */}
-      {showResetModal && targetUserPass && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
-          <div
-            className={`border rounded-2xl sm:rounded-3xl max-w-md w-full p-4 sm:p-6 max-h-[90vh] overflow-y-auto shadow-2xl relative transition-colors ${isDark
-                ? 'bg-[#0f172a] border-slate-700 text-white'
-                : 'bg-white border-slate-200 text-[#0f172a]'
-              }`}
-          >
-            <button
-              onClick={() => setShowResetModal(false)}
-              className={`absolute top-5 right-5 p-1 transition-colors ${isDark ? 'text-slate-400 hover:text-white' : 'text-slate-500 hover:text-[#0f172a]'
-                }`}
-            >
-              <X className="w-5 h-5" />
-            </button>
 
-            <div className="flex items-center gap-3 mb-4">
-              <div
-                className={`w-10 h-10 rounded-2xl border flex items-center justify-center ${isDark
-                    ? 'bg-amber-500/20 text-amber-400 border-amber-500/30'
-                    : 'bg-amber-500/15 text-amber-600 border-amber-500/30'
-                  }`}
-              >
-                <KeyRound className="w-5 h-5" />
-              </div>
-              <div>
-                <h3 className={`text-base font-bold ${isDark ? 'text-white' : 'text-[#0f172a]'}`}>
-                  Reset Kata Sandi Akun
-                </h3>
-                <p className={`text-xs truncate max-w-xs ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
-                  {targetUserPass.email}
-                </p>
-              </div>
-            </div>
-
-            <div className="my-5">
-              <label
-                className={`block text-xs font-semibold mb-1.5 ${isDark ? 'text-slate-300' : 'text-slate-700'
-                  }`}
-              >
-                Masukkan Kata Sandi Baru
-              </label>
-              <div className="relative">
-                <input
-                  type={showPasswordText ? 'text' : 'password'}
-                  placeholder="Minimal 6 karakter..."
-                  value={newPasswordInput}
-                  onChange={(e) => setNewPasswordInput(e.target.value)}
-                  className={`w-full px-3.5 py-2.5 pr-10 border rounded-xl text-xs placeholder-slate-400 focus:outline-none focus:ring-2 transition-colors ${isDark
-                      ? 'bg-slate-950 border-slate-700 text-white focus:ring-amber-500'
-                      : 'bg-slate-50 border-slate-300 text-[#0f172a] focus:ring-amber-500'
-                    }`}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPasswordText(!showPasswordText)}
-                  className={`absolute right-3 top-1/2 -translate-y-1/2 ${isDark ? 'text-slate-400 hover:text-white' : 'text-slate-500 hover:text-[#0f172a]'
-                    }`}
-                >
-                  {showPasswordText ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                </button>
-              </div>
-              <p
-                className={`text-[11px] mt-2 flex items-center gap-1.5 ${isDark ? 'text-slate-400' : 'text-slate-600'
-                  }`}
-              >
-                <AlertCircle
-                  className={`w-3.5 h-3.5 flex-shrink-0 ${isDark ? 'text-amber-400' : 'text-amber-500'
-                    }`}
-                />
-                <span>Pengguna dapat langsung masuk dengan kata sandi baru ini.</span>
-              </p>
-            </div>
-
-            <div className="flex items-center justify-end gap-2">
-              <button
-                type="button"
-                onClick={() => setShowResetModal(false)}
-                className={`px-4 py-2 rounded-xl text-xs font-semibold ${isDark ? 'text-slate-400 hover:text-white' : 'text-slate-600 hover:text-[#0f172a]'
-                  }`}
-              >
-                Batal
-              </button>
-              <button
-                onClick={handleResetPassword}
-                disabled={resetSubmitting || !newPasswordInput}
-                className="px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs shadow-lg shadow-amber-500/20 active:scale-95 disabled:opacity-50"
-              >
-                {resetSubmitting ? 'Memproses...' : 'Reset Password'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

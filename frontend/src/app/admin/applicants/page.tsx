@@ -42,8 +42,10 @@ export default function AdminApplicantsPage() {
   const [periodFilter, setPeriodFilter] = useState('');
 
   const [selectedApplicant, setSelectedApplicant] = useState<any | null>(null);
+  const [detailLoading, setDetailLoading] = useState(false);
   const [statusInput, setStatusInput] = useState('');
   const [notesInput, setNotesInput] = useState('');
+  const [previewFile, setPreviewFile] = useState<{ title: string; url: string } | null>(null);
 
   // Debounce search input (400ms) untuk mencegah request berlebihan saat mengetik
   useEffect(() => {
@@ -92,7 +94,7 @@ export default function AdminApplicantsPage() {
           const res = await api.get('/admin/applicants/trash', {
             signal: controller.signal,
           });
-          const trashData = Array.isArray(res.data) ? res.data : (res.data?.data || []);
+          const trashData = Array.isArray(res.data) ? res.data : res.data?.data || [];
           setApplicants(trashData);
           setTotalCount(trashData.length);
           setTotalPages(1);
@@ -160,7 +162,7 @@ export default function AdminApplicantsPage() {
         }
       } else {
         const res = await api.get('/admin/applicants/trash');
-        const trashData = Array.isArray(res.data) ? res.data : (res.data?.data || []);
+        const trashData = Array.isArray(res.data) ? res.data : res.data?.data || [];
         setApplicants(trashData);
         setTotalCount(trashData.length);
         setTotalPages(1);
@@ -175,7 +177,7 @@ export default function AdminApplicantsPage() {
       try {
         await api.delete(`/admin/applicants/${id}`);
         reloadCurrentData();
-      } catch (err: any) {
+      } catch {
         alert('Gagal menghapus data');
       }
     }
@@ -186,7 +188,7 @@ export default function AdminApplicantsPage() {
       try {
         await api.delete(`/admin/applicants/${id}/permanent`);
         reloadCurrentData();
-      } catch (err: any) {
+      } catch {
         alert('Gagal menghapus permanen');
       }
     }
@@ -204,9 +206,16 @@ export default function AdminApplicantsPage() {
     }
   };
 
-  const handleOpenDetail = async (id: string) => {
+  const handleOpenDetail = async (app: any) => {
+    // Langsung buka modal memakai data awal dari baris tabel agar tidak terasa lambat
+    setSelectedApplicant(app);
+    const initialReg = app.registrations?.[0];
+    setStatusInput(initialReg?.status || 'BELUM_LENGKAP');
+    setNotesInput(initialReg?.notes || '');
+
+    setDetailLoading(true);
     try {
-      const res = await api.get(`/admin/applicants/${id}`);
+      const res = await api.get(`/admin/applicants/${app.id}`);
       setSelectedApplicant(res.data);
       const reg = res.data.registrations?.[0];
       if (reg) {
@@ -215,6 +224,8 @@ export default function AdminApplicantsPage() {
       }
     } catch (err) {
       console.error(err);
+    } finally {
+      setDetailLoading(false);
     }
   };
 
@@ -231,7 +242,12 @@ export default function AdminApplicantsPage() {
         notes: notesInput,
       });
       alert('Status pendaftaran berhasil diperbarui!');
-      handleOpenDetail(selectedApplicant.id);
+      setSelectedApplicant((prev: any) => {
+        if (!prev?.registrations?.[0]) return prev;
+        const updatedRegs = [...prev.registrations];
+        updatedRegs[0] = { ...updatedRegs[0], status: statusInput, notes: notesInput };
+        return { ...prev, registrations: updatedRegs };
+      });
       reloadCurrentData();
     } catch (err: any) {
       alert(err.response?.data?.message || 'Gagal memperbarui status');
@@ -241,8 +257,15 @@ export default function AdminApplicantsPage() {
   const handleVerifyDocument = async (docId: string, isVerified: boolean) => {
     try {
       await api.put(`/admin/verify-document/${docId}`, { isVerified });
-      handleOpenDetail(selectedApplicant.id);
-      reloadCurrentData();
+      setSelectedApplicant((prev: any) => {
+        if (!prev?.documents) return prev;
+        return {
+          ...prev,
+          documents: prev.documents.map((doc: any) =>
+            doc.id === docId ? { ...doc, isVerified } : doc
+          ),
+        };
+      });
     } catch (err: any) {
       alert(err.response?.data?.message || 'Gagal merubah verifikasi dokumen');
     }
@@ -251,8 +274,17 @@ export default function AdminApplicantsPage() {
   const handleVerifyPayment = async (paymentId: string, status: 'VERIFIED' | 'REJECTED') => {
     try {
       await api.put(`/admin/verify-payment/${paymentId}`, { status });
-      handleOpenDetail(selectedApplicant.id);
-      reloadCurrentData();
+      setSelectedApplicant((prev: any) => {
+        if (!prev?.registrations?.[0]?.payments) return prev;
+        const updatedRegs = [...prev.registrations];
+        updatedRegs[0] = {
+          ...updatedRegs[0],
+          payments: updatedRegs[0].payments.map((pay: any) =>
+            pay.id === paymentId ? { ...pay, status } : pay
+          ),
+        };
+        return { ...prev, registrations: updatedRegs };
+      });
     } catch (err: any) {
       alert(err.response?.data?.message || 'Gagal merubah verifikasi pembayaran');
     }
@@ -286,8 +318,12 @@ export default function AdminApplicantsPage() {
       {/* Top Bar */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-slate-900 p-4 sm:p-6 rounded-2xl border border-slate-800 shadow-lg">
         <div>
-          <h1 className="text-xl sm:text-2xl font-extrabold text-white">Kelola & Verifikasi Calon Mahasiswa</h1>
-          <p className="text-xs text-slate-400 mt-1">Daftar seluruh calon mahasiswa pendaftar PMB Kampus Mulia Angkasa.</p>
+          <h1 className="text-xl sm:text-2xl font-extrabold text-white">
+            Kelola &amp; Verifikasi Calon Mahasiswa
+          </h1>
+          <p className="text-xs text-slate-400 mt-1">
+            Daftar seluruh calon mahasiswa pendaftar PMB Kampus Mulia Angkasa.
+          </p>
         </div>
         <button
           onClick={handleExportCsv}
@@ -302,19 +338,25 @@ export default function AdminApplicantsPage() {
         <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4 border-b border-slate-800 pb-3">
           <div className="flex items-center gap-2 overflow-x-auto pb-1 lg:pb-0">
             <button
-              onClick={() => setActiveTab('ACTIVE')}
+              onClick={() => {
+                setActiveTab('ACTIVE');
+                setCurrentPage(1);
+              }}
               className={`whitespace-nowrap px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 ${activeTab === 'ACTIVE'
-                ? 'bg-amber-400 text-slate-950 shadow-md'
-                : 'bg-slate-900 text-slate-400 hover:text-white border border-slate-800'
+                  ? 'bg-amber-400 text-slate-950 shadow-md'
+                  : 'bg-slate-900 text-slate-400 hover:text-white border border-slate-800'
                 }`}
             >
               Data Pendaftar Aktif
             </button>
             <button
-              onClick={() => setActiveTab('TRASH')}
+              onClick={() => {
+                setActiveTab('TRASH');
+                setCurrentPage(1);
+              }}
               className={`whitespace-nowrap px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 ${activeTab === 'TRASH'
-                ? 'bg-rose-500 text-white shadow-md'
-                : 'bg-slate-900 text-slate-400 hover:text-white border border-slate-800'
+                  ? 'bg-rose-500 text-white shadow-md'
+                  : 'bg-slate-900 text-slate-400 hover:text-white border border-slate-800'
                 }`}
             >
               <Trash2 className="w-3.5 h-3.5" /> Data Sampah (Trash)
@@ -329,15 +371,22 @@ export default function AdminApplicantsPage() {
               </div>
               <select
                 value={periodFilter}
-                onChange={(e) => setPeriodFilter(e.target.value)}
+                onChange={(e) => {
+                  setPeriodFilter(e.target.value);
+                  setCurrentPage(1);
+                }}
                 className="bg-slate-950 text-amber-400 font-bold px-3 py-1.5 rounded-lg border border-slate-700 text-xs focus:outline-none focus:border-amber-400 w-full sm:w-auto"
               >
                 <option value="">Semua Gelombang</option>
-                {periods.map((p) => (
-                  <option key={p.id} value={p.id}>
-                    T.A {p.year || p.academicYear || ''} - {p.name} {p.isActive ? '(AKTIF)' : ''}
-                  </option>
-                ))}
+                {periods.map((p) => {
+                  const yearLabel = p.year || p.academicYear;
+                  return (
+                    <option key={p.id} value={p.id}>
+                      {yearLabel ? `T.A ${yearLabel} - ` : ''}
+                      {p.name} {p.isActive ? '(AKTIF)' : ''}
+                    </option>
+                  );
+                })}
               </select>
             </div>
           )}
@@ -359,7 +408,10 @@ export default function AdminApplicantsPage() {
             <div>
               <select
                 value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
+                onChange={(e) => {
+                  setStatusFilter(e.target.value);
+                  setCurrentPage(1);
+                }}
                 className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-slate-300 focus:outline-none focus:border-amber-400"
               >
                 <option value="">Semua Status Pendaftaran</option>
@@ -376,7 +428,10 @@ export default function AdminApplicantsPage() {
             <div>
               <select
                 value={programFilter}
-                onChange={(e) => setProgramFilter(e.target.value)}
+                onChange={(e) => {
+                  setProgramFilter(e.target.value);
+                  setCurrentPage(1);
+                }}
                 className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-slate-300 focus:outline-none focus:border-amber-400"
               >
                 <option value="">Semua Program Studi</option>
@@ -418,13 +473,19 @@ export default function AdminApplicantsPage() {
                   const reg = app.registrations?.[0];
                   return (
                     <tr key={app.id} className="hover:bg-slate-800/50 transition-colors">
-                      <td className="p-4 font-mono font-bold text-amber-400">{app.registrationNumber}</td>
+                      <td className="p-4 font-mono font-bold text-amber-400">
+                        {app.registrationNumber}
+                      </td>
                       <td className="p-4 font-bold text-white">
                         {app.fullName}
-                        <span className="block text-[10px] text-slate-400 font-normal">{app.user?.email}</span>
+                        <span className="block text-[10px] text-slate-400 font-normal">
+                          {app.user?.email}
+                        </span>
                       </td>
                       <td className="p-4 text-slate-300">{app.phone}</td>
-                      <td className="p-4 text-slate-300">{app.educationData?.schoolName || '-'}</td>
+                      <td className="p-4 text-slate-300">
+                        {app.educationData?.schoolName || '-'}
+                      </td>
                       <td className="p-4 font-semibold text-sky-400">
                         {reg?.studyProgram?.name || 'Belum Memilih'}
                         {reg?.period && (
@@ -436,12 +497,12 @@ export default function AdminApplicantsPage() {
                       <td className="p-4">
                         <span
                           className={`px-2.5 py-1 rounded-lg text-[10px] font-extrabold uppercase whitespace-nowrap ${reg?.status === 'DITERIMA' || reg?.status === 'LULUS_SELEKSI'
-                            ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
-                            : reg?.status === 'DIVERIFIKASI'
-                              ? 'bg-sky-500/20 text-sky-400 border border-sky-500/30'
-                              : reg?.status === 'MENUNGGU_VERIFIKASI'
-                                ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
-                                : 'bg-slate-800 text-slate-400'
+                              ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                              : reg?.status === 'DIVERIFIKASI'
+                                ? 'bg-sky-500/20 text-sky-400 border border-sky-500/30'
+                                : reg?.status === 'MENUNGGU_VERIFIKASI'
+                                  ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
+                                  : 'bg-slate-800 text-slate-400'
                             }`}
                         >
                           {reg?.status || 'BELUM_LENGKAP'}
@@ -452,7 +513,7 @@ export default function AdminApplicantsPage() {
                           {activeTab === 'ACTIVE' ? (
                             <>
                               <button
-                                onClick={() => handleOpenDetail(app.id)}
+                                onClick={() => handleOpenDetail(app)}
                                 className="px-3 py-1.5 bg-sky-600 hover:bg-sky-500 text-white font-bold rounded-lg flex items-center justify-center gap-1 transition-colors"
                               >
                                 <Eye className="w-3.5 h-3.5" /> Detail
@@ -505,7 +566,11 @@ export default function AdminApplicantsPage() {
           <div>
             Total data: <span className="font-bold text-white">{totalCount}</span> pendaftar
             {totalPages > 1 && (
-              <span> &bull; Halaman <span className="font-bold text-white">{currentPage}</span> dari <span className="font-bold text-white">{totalPages}</span></span>
+              <span>
+                {' '}
+                &bull; Halaman <span className="font-bold text-white">{currentPage}</span> dari{' '}
+                <span className="font-bold text-white">{totalPages}</span>
+              </span>
             )}
           </div>
           {totalPages > 1 && (
@@ -536,17 +601,30 @@ export default function AdminApplicantsPage() {
             <div className="p-4 sm:p-6 bg-slate-950 border-b border-slate-800 flex justify-between items-center">
               <div>
                 <div className="flex items-center gap-2">
-                  <span className="text-xs font-mono text-amber-400 font-bold">{selectedApplicant.registrationNumber}</span>
+                  <span className="text-xs font-mono text-amber-400 font-bold">
+                    {selectedApplicant.registrationNumber}
+                  </span>
                   {selectedApplicant.registrations?.[0]?.period && (
                     <span className="px-2 py-0.5 rounded text-[10px] font-mono font-semibold bg-slate-800 text-sky-400 border border-slate-700">
-                      T.A {selectedApplicant.registrations[0].period.year} &bull; {selectedApplicant.registrations[0].period.name}
+                      T.A {selectedApplicant.registrations[0].period.year} &bull;{' '}
+                      {selectedApplicant.registrations[0].period.name}
+                    </span>
+                  )}
+                  {detailLoading && (
+                    <span className="text-[10px] text-slate-400 animate-pulse">
+                      Memuat berkas...
                     </span>
                   )}
                 </div>
-                <h3 className="text-lg sm:text-xl font-bold text-white">{selectedApplicant.fullName}</h3>
+                <h3 className="text-lg sm:text-xl font-bold text-white">
+                  {selectedApplicant.fullName}
+                </h3>
               </div>
               <button
-                onClick={() => setSelectedApplicant(null)}
+                onClick={() => {
+                  setPreviewFile(null);
+                  setSelectedApplicant(null);
+                }}
                 className="p-2 text-slate-400 hover:text-white"
               >
                 <X className="w-6 h-6" />
@@ -555,7 +633,9 @@ export default function AdminApplicantsPage() {
 
             <div className="p-4 sm:p-6 overflow-y-auto space-y-6 text-xs text-slate-300">
               <div className="p-4 bg-slate-950 rounded-xl border border-slate-800 space-y-3">
-                <h4 className="font-bold text-amber-400 text-sm">Ubah Status Pendaftaran & Catatan Admin</h4>
+                <h4 className="font-bold text-amber-400 text-sm">
+                  Ubah Status Pendaftaran &amp; Catatan Admin
+                </h4>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-slate-400 mb-1">Status Pendaftaran</label>
@@ -574,7 +654,9 @@ export default function AdminApplicantsPage() {
                     </select>
                   </div>
                   <div>
-                    <label className="block text-slate-400 mb-1">Catatan Tambahan untuk Mahasiswa</label>
+                    <label className="block text-slate-400 mb-1">
+                      Catatan Tambahan untuk Mahasiswa
+                    </label>
                     <input
                       type="text"
                       placeholder="Contoh: Berkas verified, ikuti tes wawancara..."
@@ -597,20 +679,44 @@ export default function AdminApplicantsPage() {
                   <h4 className="font-bold text-sky-400 text-xs uppercase border-b border-slate-800 pb-2">
                     Data Pribadi
                   </h4>
-                  <p><span className="text-slate-500">NIK:</span> {selectedApplicant.personalData?.nik || '-'}</p>
-                  <p><span className="text-slate-500">TTL:</span> {selectedApplicant.personalData?.birthPlace || '-'}</p>
-                  <p><span className="text-slate-500">Gender:</span> {selectedApplicant.personalData?.gender || '-'}</p>
-                  <p><span className="text-slate-500">Alamat:</span> {selectedApplicant.personalData?.address || '-'}</p>
+                  <p>
+                    <span className="text-slate-500">NIK:</span>{' '}
+                    {selectedApplicant.personalData?.nik || '-'}
+                  </p>
+                  <p>
+                    <span className="text-slate-500">TTL:</span>{' '}
+                    {selectedApplicant.personalData?.birthPlace || '-'}
+                  </p>
+                  <p>
+                    <span className="text-slate-500">Gender:</span>{' '}
+                    {selectedApplicant.personalData?.gender || '-'}
+                  </p>
+                  <p>
+                    <span className="text-slate-500">Alamat:</span>{' '}
+                    {selectedApplicant.personalData?.address || '-'}
+                  </p>
                 </div>
 
                 <div className="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-2">
                   <h4 className="font-bold text-sky-400 text-xs uppercase border-b border-slate-800 pb-2">
                     Data Pendidikan
                   </h4>
-                  <p><span className="text-slate-500">Sekolah:</span> {selectedApplicant.educationData?.schoolName || '-'}</p>
-                  <p><span className="text-slate-500">NPSN:</span> {selectedApplicant.educationData?.npsn || '-'}</p>
-                  <p><span className="text-slate-500">Jurusan:</span> {selectedApplicant.educationData?.major || '-'}</p>
-                  <p><span className="text-slate-500">Tahun Lulus:</span> {selectedApplicant.educationData?.graduationYear || '-'}</p>
+                  <p>
+                    <span className="text-slate-500">Sekolah:</span>{' '}
+                    {selectedApplicant.educationData?.schoolName || '-'}
+                  </p>
+                  <p>
+                    <span className="text-slate-500">NPSN:</span>{' '}
+                    {selectedApplicant.educationData?.npsn || '-'}
+                  </p>
+                  <p>
+                    <span className="text-slate-500">Jurusan:</span>{' '}
+                    {selectedApplicant.educationData?.major || '-'}
+                  </p>
+                  <p>
+                    <span className="text-slate-500">Tahun Lulus:</span>{' '}
+                    {selectedApplicant.educationData?.graduationYear || '-'}
+                  </p>
                 </div>
               </div>
 
@@ -629,19 +735,29 @@ export default function AdminApplicantsPage() {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-800">
-                      {selectedApplicant.documents && selectedApplicant.documents.length > 0 ? (
+                      {detailLoading && !selectedApplicant.documents ? (
+                        <tr>
+                          <td colSpan={4} className="p-4 text-center text-slate-500">
+                            Memuat daftar dokumen...
+                          </td>
+                        </tr>
+                      ) : selectedApplicant.documents && selectedApplicant.documents.length > 0 ? (
                         selectedApplicant.documents.map((doc: any) => (
                           <tr key={doc.id}>
                             <td className="p-3 font-bold text-white">{doc.type}</td>
                             <td className="p-3">
-                              <a
-                                href={getFileUrl(doc.fileUrl)}
-                                target="_blank"
-                                rel="noreferrer"
-                                className="text-sky-400 hover:underline truncate block max-w-[150px]"
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  setPreviewFile({
+                                    title: `Dokumen ${doc.type} - ${doc.fileName}`,
+                                    url: getFileUrl(doc.fileUrl),
+                                  })
+                                }
+                                className="text-sky-400 hover:underline truncate block max-w-[150px] text-left cursor-pointer"
                               >
                                 {doc.fileName}
-                              </a>
+                              </button>
                             </td>
                             <td className="p-3">
                               {doc.isVerified ? (
@@ -699,20 +815,35 @@ export default function AdminApplicantsPage() {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-800">
-                      {selectedApplicant.registrations?.[0]?.payments && selectedApplicant.registrations[0].payments.length > 0 ? (
+                      {detailLoading && !selectedApplicant.registrations?.[0]?.payments ? (
+                        <tr>
+                          <td colSpan={5} className="p-4 text-center text-slate-500">
+                            Memuat data pembayaran...
+                          </td>
+                        </tr>
+                      ) : selectedApplicant.registrations?.[0]?.payments &&
+                        selectedApplicant.registrations[0].payments.length > 0 ? (
                         selectedApplicant.registrations[0].payments.map((pay: any) => (
                           <tr key={pay.id}>
-                            <td className="p-3 font-bold text-white">{pay.paymentType || 'Pendaftaran'}</td>
-                            <td className="p-3 font-mono text-amber-400">Rp {pay.amount?.toLocaleString('id-ID')}</td>
+                            <td className="p-3 font-bold text-white">
+                              {pay.paymentType || 'Pendaftaran'}
+                            </td>
+                            <td className="p-3 font-mono text-amber-400">
+                              Rp {pay.amount?.toLocaleString('id-ID')}
+                            </td>
                             <td className="p-3">
-                              <a
-                                href={getFileUrl(pay.proofUrl)}
-                                target="_blank"
-                                rel="noreferrer"
-                                className="text-sky-400 hover:underline font-semibold"
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  setPreviewFile({
+                                    title: `Bukti Pembayaran (${pay.paymentType || 'Pendaftaran'}) - Rp ${pay.amount?.toLocaleString('id-ID')}`,
+                                    url: getFileUrl(pay.proofUrl),
+                                  })
+                                }
+                                className="text-sky-400 hover:underline font-semibold cursor-pointer"
                               >
                                 Lihat Bukti
-                              </a>
+                              </button>
                             </td>
                             <td className="p-3">
                               {pay.status === 'VERIFIED' ? (
@@ -753,6 +884,48 @@ export default function AdminApplicantsPage() {
                   </table>
                 </div>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* POP-UP PREVIEW DOKUMEN & BUKTI TRANSFER */}
+      {previewFile && (
+        <div
+          onClick={() => setPreviewFile(null)}
+          className="fixed inset-0 z-[60] bg-slate-950/90 backdrop-blur-sm flex items-center justify-center p-3 sm:p-6"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="bg-slate-900 border border-slate-700 rounded-2xl max-w-3xl w-full overflow-hidden shadow-2xl flex flex-col"
+          >
+            <div className="p-4 bg-slate-950 border-b border-slate-800 flex items-center justify-between gap-3">
+              <h4 className="text-xs sm:text-sm font-bold text-white truncate">
+                {previewFile.title}
+              </h4>
+              <button
+                type="button"
+                onClick={() => setPreviewFile(null)}
+                className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors shrink-0"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="p-4 bg-slate-950/60 flex items-center justify-center max-h-[80vh] overflow-auto">
+              {previewFile.url.toLowerCase().split('?')[0].endsWith('.pdf') ? (
+                <iframe
+                  src={previewFile.url}
+                  title={previewFile.title}
+                  className="w-full h-[75vh] rounded-xl bg-white"
+                />
+              ) : (
+                <img
+                  src={previewFile.url}
+                  alt={previewFile.title}
+                  className="max-h-[75vh] max-w-full object-contain rounded-xl"
+                />
+              )}
             </div>
           </div>
         </div>

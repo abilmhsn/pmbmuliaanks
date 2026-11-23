@@ -9,15 +9,18 @@ datasource db {
 }
 
 model User {
-  id        String     @id @default(uuid())
-  email     String     @unique
-  password  String
-  role      Role       @default(APPLICANT)
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
-  applicant Applicant?
-  auditLogs AuditLog[]
-  news      News[]
+  id                       String     @id @default(uuid())
+  email                    String     @unique
+  password                 String?
+  role                     Role       @default(APPLICANT)
+  createdAt                DateTime   @default(now())
+  updatedAt                DateTime   @updatedAt
+  emailVerified            Boolean    @default(true)
+  emailVerificationToken   String?
+  emailVerificationExpires DateTime?
+  applicant                Applicant?
+  auditLogs                AuditLog[]
+  news                     News[]
 }
 
 model Applicant {
@@ -25,7 +28,7 @@ model Applicant {
   userId             String         @unique
   fullName           String
   phone              String
-  registrationNumber String?         @unique @default(uuid())
+  registrationNumber String?        @unique @default(uuid())
   deletedAt          DateTime?
   createdAt          DateTime       @default(now())
   updatedAt          DateTime       @updatedAt
@@ -47,12 +50,12 @@ model PersonalData {
   birthDate   DateTime
   gender      String
   address     String
-  rtRw        String?
-  postalCode  String?
-  district    String?
-  subDistrict String?
   city        String
   province    String
+  district    String?
+  postalCode  String?
+  rtRw        String?
+  subDistrict String?
   applicant   Applicant @relation(fields: [applicantId], references: [id], onDelete: Cascade)
 }
 
@@ -159,8 +162,7 @@ model AuditLog {
   details   String?
   ipAddress String?
   createdAt DateTime @default(now())
-
-  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+  user      User?    @relation(fields: [userId], references: [id])
 }
 
 model SystemSetting {
@@ -171,10 +173,27 @@ model SystemSetting {
   updatedAt   DateTime @updatedAt
 }
 
+model News {
+  id          String     @id @default(uuid())
+  title       String
+  slug        String     @unique
+  excerpt     String?
+  content     String
+  imageUrl    String?
+  status      NewsStatus @default(DRAFT)
+  publishedAt DateTime?
+  authorId    String?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  author      User?      @relation(fields: [authorId], references: [id])
+
+  @@index([status, publishedAt])
+}
+
 enum Role {
-  SUPER_ADMIN
   ADMIN
   APPLICANT
+  SUPER_ADMIN
 }
 
 enum RegistrationStatus {
@@ -206,22 +225,3 @@ enum NewsStatus {
   DRAFT
   PUBLISHED
 }
-
-model News {
-  id          String     @id @default(uuid())
-  title       String
-  slug        String     @unique
-  excerpt     String?    @db.Text
-  content     String     @db.Text
-  imageUrl    String?
-  status      NewsStatus @default(DRAFT)
-  publishedAt DateTime?
-  authorId    String?
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
-
-  author      User?      @relation(fields: [authorId], references: [id], onDelete: SetNull)
-
-  @@index([status, publishedAt])
-}
-

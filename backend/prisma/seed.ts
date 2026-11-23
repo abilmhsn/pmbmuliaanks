@@ -1,37 +1,71 @@
 import { PrismaClient, Role } from '@prisma/client';
-import * as bcrypt from 'bcrypt';
+import { createClient } from '@supabase/supabase-js';
 
 const prisma = new PrismaClient();
 
 async function main() {
   console.log('Seeding database PMB Kampus Mulia Angkasa...');
 
-  // 1. Create Default Super Admin & Admin User
-  const superAdminPassword = await bcrypt.hash('superadmin123', 10);
-  const superAdminUser = await prisma.user.upsert({
-    where: { email: 'superadmin@muliaangkasa.ac.id' },
-    update: {
-      role: Role.SUPER_ADMIN,
-    },
-    create: {
-      email: 'superadmin@muliaangkasa.ac.id',
-      password: superAdminPassword,
-      role: Role.SUPER_ADMIN,
-    },
-  });
-  console.log('Super Admin user seeded:', superAdminUser.email);
+  const supabaseUrl = process.env.SUPABASE_URL;
+  const supabaseKey = process.env.SUPABASE_SECRET_KEY;
+  const supabase = supabaseUrl && supabaseKey ? createClient(supabaseUrl, supabaseKey) : null;
 
-  const adminPassword = await bcrypt.hash('admin123', 10);
-  const adminUser = await prisma.user.upsert({
-    where: { email: 'admin@muliaangkasa.ac.id' },
-    update: {},
-    create: {
+  // 1. Create Default Super Admin & Admin User in Supabase Auth & Prisma
+  const usersToSeed = [
+    {
+      email: 'superadmin@muliaangkasa.ac.id',
+      password: 'superadmin123',
+      role: Role.SUPER_ADMIN,
+    },
+    {
       email: 'admin@muliaangkasa.ac.id',
-      password: adminPassword,
+      password: 'admin123',
       role: Role.ADMIN,
     },
-  });
-  console.log('Admin user seeded:', adminUser.email);
+  ];
+
+  for (const item of usersToSeed) {
+    let userId: string | undefined;
+
+    if (supabase) {
+      try {
+        const { data: sbUser, error } = await supabase.auth.admin.createUser({
+          email: item.email,
+          password: item.password,
+          email_confirm: true,
+          user_metadata: { role: item.role },
+        });
+
+        if (error) {
+          if (error.message.includes('already registered')) {
+            const { data: list } = await supabase.auth.admin.listUsers();
+            const found = list.users.find((u) => u.email === item.email);
+            if (found) userId = found.id;
+          } else {
+            console.warn(`Supabase Auth seed warning (${item.email}):`, error.message);
+          }
+        } else if (sbUser?.user) {
+          userId = sbUser.user.id;
+        }
+      } catch (err: any) {
+        console.warn(`Supabase create error (${item.email}):`, err.message);
+      }
+    }
+
+    const seededUser = await prisma.user.upsert({
+      where: { email: item.email },
+      update: {
+        role: item.role,
+        ...(userId ? { id: userId } : {}),
+      },
+      create: {
+        ...(userId ? { id: userId } : {}),
+        email: item.email,
+        role: item.role,
+      },
+    });
+    console.log(`User seeded (${item.role}):`, seededUser.email, seededUser.id);
+  }
 
   // Default System Settings
   const defaultSettings = [
@@ -57,65 +91,54 @@ async function main() {
   const activePeriod = await prisma.pmbPeriod.upsert({
     where: { id: 'period-2027' },
     update: {
-      name: 'PMB Gelombang 1', // 👈 Update nama jika id sudah ada di DB
+      name: 'PMB Gelombang 1',
     },
     create: {
       id: 'period-2027',
       year: '2027/2028',
-      name: 'PMB Gelombang 1', // 👈 Ubah teks di sini
-      startDate: new Date('2027-01-01'),
-      endDate: new Date('2027-12-31'),
+      name: 'PMB Gelombang 1',
+      startDate: new Date('2026-10-01'),
+      endDate: new Date('2027-08-31'),
       isActive: true,
     },
   });
-  console.log('PMB Period seeded:', activePeriod.name);
+  console.log('Active Period seeded:', activePeriod.name);
 
-  // 3. Create Default PMB Period Gelombang 2 (TAMBAHKAN INI)
-  const waveTwoPeriod = await prisma.pmbPeriod.upsert({
-    where: { id: 'period-2027-wave2' },
-    update: {
-      name: 'PMB Gelombang 2',
-    },
-    create: {
-      id: 'period-2027-wave2',
-      year: '2027/2028',
-      name: 'PMB Gelombang 2',
-      startDate: new Date('2027-07-01'),
-      endDate: new Date('2027-12-31'),
-      isActive: false,
-    },
-  });
-  console.log('PMB Period seeded:', waveTwoPeriod.name);
-
-  // 3. Create Default Study Programs 
-  const alcProgram = await prisma.studyProgram.upsert({
-    where: { code: 'ALC' },
-    update: {},
-    create: {
-      code: 'ALC',
-      name: 'Air Lines Crew (Pramugari/Pramutra & Staff Bandara)',
-      description: 'Program keahlian khusus siap kerja untuk menjadi Cabin Crew (Pramugari/Pramutra) profesional dan Ground Handling Staff Bandara Internasional.',
-      quota: 60,
-      tuitionFee: 15000000,
-      isActive: true,
-    },
-  });
-
-  const avsecProgram = await prisma.studyProgram.upsert({
-    where: { code: 'AVSEC' },
-    update: {},
-    create: {
+  // 3. Create Default Study Programs
+  const prodis = [
+    {
       code: 'AVSEC',
-      name: 'AVSEC (Aviation Security / Keamanan Bandara)',
-      description: 'Program pendidikan & pelatihan khusus personel Keamanan Penerbangan (Aviation Security) bersertifikat lisensi resmi.',
+      name: 'Aviation Security (Avsec)',
+      description: 'Program pendidikan dan pelatihan keamanan penerbangan berlisensi resmi.',
+      quota: 40,
+      tuitionFee: 15000000,
+    },
+    {
+      code: 'FA',
+      name: 'Flight Attendant (Pramugari/Pramugara)',
+      description: 'Program pendidikan calon pramugari dan pramugara maskapai penerbangan.',
+      quota: 30,
+      tuitionFee: 25000000,
+    },
+    {
+      code: 'GH',
+      name: 'Ground Handling & Staff Bandara',
+      description: 'Program keahlian operasional pelayanan darat bandar udara dan maskapai.',
       quota: 50,
       tuitionFee: 12500000,
-      isActive: true,
     },
-  });
+  ];
 
-  console.log('Study programs seeded:', alcProgram.name, '&', avsecProgram.name);
-  console.log('Seeding completed successfully!');
+  for (const p of prodis) {
+    await prisma.studyProgram.upsert({
+      where: { code: p.code },
+      update: {},
+      create: p,
+    });
+  }
+  console.log('Study Programs seeded.');
+
+  console.log('Database seeding completed successfully.');
 }
 
 main()

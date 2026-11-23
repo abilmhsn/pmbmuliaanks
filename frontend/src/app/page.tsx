@@ -120,6 +120,8 @@ export default function LandingPage() {
                 src="/logo-mulia.png"
                 alt="Logo Mulia Angkasa"
                 fill
+                sizes="(max-width: 640px) 48px, 60px"
+                priority
                 className="object-contain"
               />
             </div>

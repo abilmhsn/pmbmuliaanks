@@ -5,12 +5,17 @@ import {
   ForbiddenException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { SupabaseService } from '../supabase/supabase.service';
 import { Role, RegistrationStatus, PaymentStatus } from '@prisma/client';
-import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class SuperAdminService {
-  constructor(private prisma: PrismaService) { }
+  private statsCache = new Map<string, { data: any; expiry: number }>();
+
+  constructor(
+    private prisma: PrismaService,
+    private supabaseService: SupabaseService,
+  ) { }
 
   /**
    * Catat aktivitas penting ke audit trail
@@ -44,77 +49,131 @@ export class SuperAdminService {
    * Executive Dashboard Statistics untuk Super Admin
    */
   async getExecutiveStats(periodId?: string) {
+    const cacheKey = periodId || 'all';
+    const cached = this.statsCache.get(cacheKey);
+    if (cached && Date.now() < cached.expiry) {
+      return cached.data;
+    }
+
     const periodFilter = periodId ? { periodId } : {};
 
-    // 1. User Demographic
-    const [totalUsers, superAdminCount, adminCount, applicantCount] =
-      await Promise.all([
-        this.prisma.user.count(),
-        this.prisma.user.count({ where: { role: Role.SUPER_ADMIN } }),
-        this.prisma.user.count({ where: { role: Role.ADMIN } }),
-        this.prisma.user.count({ where: { role: Role.APPLICANT } }),
-      ]);
-
-    // 2. Applicant & Registration Metrics
-    const totalApplicants = await this.prisma.applicant.count({
-      where: {
-        deletedAt: null,
-        ...(periodId ? { registrations: { some: { periodId } } } : {}),
-      },
-    });
-
-    const statusCounts = await Promise.all([
-      this.prisma.registration.count({
-        where: { status: RegistrationStatus.BELUM_LENGKAP, ...periodFilter },
+    // Optimasi: Gabungkan query secara paralel dan manfaatkan groupBy untuk mereduksi round-trip database
+    const [
+      userRoleGroups,
+      totalApplicants,
+      statusGroups,
+      verifiedPayments,
+      pendingPayments,
+      paymentList,
+      studyPrograms,
+      recentAuditLogs,
+    ] = await Promise.all([
+      this.prisma.user.groupBy({
+        by: ['role'],
+        _count: { _all: true },
       }),
-      this.prisma.registration.count({
-        where: { status: RegistrationStatus.MENUNGGU_VERIFIKASI, ...periodFilter },
+      this.prisma.applicant.count({
+        where: {
+          deletedAt: null,
+          ...(periodId ? { registrations: { some: { periodId } } } : {}),
+        },
       }),
-      this.prisma.registration.count({
-        where: { status: RegistrationStatus.DIVERIFIKASI, ...periodFilter },
+      this.prisma.registration.groupBy({
+        by: ['status'],
+        where: periodFilter,
+        _count: { _all: true },
       }),
-      this.prisma.registration.count({
-        where: { status: RegistrationStatus.LULUS_SELEKSI, ...periodFilter },
+      this.prisma.payment.aggregate({
+        where: {
+          status: PaymentStatus.VERIFIED,
+          ...(periodId ? { registration: { periodId } } : {}),
+        },
+        _sum: { amount: true },
+        _count: true,
       }),
-      this.prisma.registration.count({
-        where: { status: RegistrationStatus.DAFTAR_ULANG, ...periodFilter },
+      this.prisma.payment.aggregate({
+        where: {
+          status: PaymentStatus.PENDING,
+          ...(periodId ? { registration: { periodId } } : {}),
+        },
+        _sum: { amount: true },
+        _count: true,
       }),
-      this.prisma.registration.count({
-        where: { status: RegistrationStatus.DITERIMA, ...periodFilter },
+      this.prisma.payment.findMany({
+        where: {
+          status: { in: [PaymentStatus.VERIFIED, PaymentStatus.PENDING] },
+          ...(periodId ? { registration: { periodId } } : {}),
+        },
+        orderBy: { createdAt: 'desc' },
+        select: {
+          id: true,
+          amount: true,
+          paymentType: true,
+          proofUrl: true,
+          status: true,
+          notes: true,
+          verifiedAt: true,
+          createdAt: true,
+          registration: {
+            select: {
+              applicant: {
+                select: {
+                  fullName: true,
+                  registrationNumber: true,
+                  phone: true,
+                },
+              },
+              studyProgram: {
+                select: {
+                  code: true,
+                  name: true,
+                },
+              },
+              period: {
+                select: {
+                  year: true,
+                  name: true,
+                },
+              },
+            },
+          },
+        },
       }),
-      this.prisma.registration.count({
-        where: { status: RegistrationStatus.DITOLAK, ...periodFilter },
+      this.prisma.studyProgram.findMany({
+        include: {
+          registrations: {
+            where: periodFilter,
+            select: { status: true },
+          },
+        },
+      }),
+      this.prisma.auditLog.findMany({
+        take: 6,
+        orderBy: { createdAt: 'desc' },
+        include: {
+          user: {
+            select: { email: true, role: true },
+          },
+        },
       }),
     ]);
 
-    // 3. Financial Metrics (Khusus Rekap Uang Muka / DP)
-    const verifiedPayments = await this.prisma.payment.aggregate({
-      where: {
-        status: PaymentStatus.VERIFIED,
-        ...(periodId ? { registration: { periodId } } : {}),
-      },
-      _sum: { amount: true },
-      _count: true,
-    });
+    let totalUsers = 0;
+    let superAdminCount = 0;
+    let adminCount = 0;
+    let applicantCount = 0;
+    for (const group of userRoleGroups) {
+      const count = group._count._all;
+      totalUsers += count;
+      if (group.role === Role.SUPER_ADMIN) superAdminCount = count;
+      if (group.role === Role.ADMIN) adminCount = count;
+      if (group.role === Role.APPLICANT) applicantCount = count;
+    }
 
-    const pendingPayments = await this.prisma.payment.aggregate({
-      where: {
-        status: PaymentStatus.PENDING,
-        ...(periodId ? { registration: { periodId } } : {}),
-      },
-      _sum: { amount: true },
-      _count: true,
-    });
-
-    // 4. Study Program Quota Fulfillment
-    const studyPrograms = await this.prisma.studyProgram.findMany({
-      include: {
-        registrations: {
-          where: periodFilter,
-          select: { status: true },
-        },
-      },
-    });
+    const statusMap: Record<string, number> = {};
+    for (const s of statusGroups) {
+      statusMap[s.status] = s._count._all;
+    }
 
     const programFulfillment = studyPrograms.map((prog) => {
       const totalRegistered = prog.registrations.length;
@@ -143,21 +202,9 @@ export class SuperAdminService {
       };
     });
 
-    // 5. Recent Audit Logs
-    const recentAuditLogs = await this.prisma.auditLog.findMany({
-      take: 6,
-      orderBy: { createdAt: 'desc' },
-      include: {
-        user: {
-          select: { email: true, role: true },
-        },
-      },
-    });
-
-    // 6. System Setting: Registration Status (selalu dibuka)
     const isRegistrationOpen = true;
 
-    return {
+    const result = {
       userDemographic: {
         totalUsers,
         superAdminCount,
@@ -166,24 +213,30 @@ export class SuperAdminService {
       },
       applicantMetrics: {
         totalApplicants,
-        belumLengkap: statusCounts[0],
-        menungguVerifikasi: statusCounts[1],
-        diverifikasi: statusCounts[2],
-        lulusSeleksi: statusCounts[3],
-        daftarUlang: statusCounts[4],
-        diterima: statusCounts[5],
-        ditolak: statusCounts[6],
+        belumLengkap: statusMap[RegistrationStatus.BELUM_LENGKAP] || 0,
+        menungguVerifikasi: statusMap[RegistrationStatus.MENUNGGU_VERIFIKASI] || 0,
+        diverifikasi: statusMap[RegistrationStatus.DIVERIFIKASI] || 0,
+        lulusSeleksi: statusMap[RegistrationStatus.LULUS_SELEKSI] || 0,
+        daftarUlang: statusMap[RegistrationStatus.DAFTAR_ULANG] || 0,
+        diterima: statusMap[RegistrationStatus.DITERIMA] || 0,
+        ditolak: statusMap[RegistrationStatus.DITOLAK] || 0,
       },
       financialMetrics: {
         verifiedAmount: verifiedPayments._sum.amount || 0,
         verifiedCount: verifiedPayments._count,
         pendingAmount: pendingPayments._sum.amount || 0,
         pendingCount: pendingPayments._count,
+        transactions: paymentList,
       },
       programFulfillment,
       recentAuditLogs,
       isRegistrationOpen,
     };
+
+    // Cache hasil selama 30 detik untuk respon instan di dashboard
+    this.statsCache.set(cacheKey, { data: result, expiry: Date.now() + 30000 });
+
+    return result;
   }
 
   /**
@@ -234,26 +287,42 @@ export class SuperAdminService {
   }
 
   /**
-   * Buat Akun Admin / Super Admin Baru
+   * Buat Akun Admin / Super Admin Baru via Supabase Auth
    */
   async createAdmin(
     dto: { email: string; password: string; fullName?: string; role?: Role },
     currentAdmin: { id: string; email: string },
   ) {
+    const cleanEmail = dto.email.trim().toLowerCase();
     const existing = await this.prisma.user.findUnique({
-      where: { email: dto.email.trim().toLowerCase() },
+      where: { email: cleanEmail },
     });
     if (existing) {
-      throw new BadRequestException('Email sudah terdaftar dalam sistem');
+      throw new BadRequestException('Email sudah terdaftar dalam sistem PMB');
     }
 
-    const hashedPassword = await bcrypt.hash(dto.password, 10);
     const targetRole = dto.role === Role.SUPER_ADMIN ? Role.SUPER_ADMIN : Role.ADMIN;
 
+    // 1. Buat akun di Supabase Auth (Password dikelola oleh Supabase Auth)
+    let sbUser: any;
+    try {
+      sbUser = await this.supabaseService.adminCreateUser({
+        email: cleanEmail,
+        password: dto.password,
+        user_metadata: {
+          fullName: dto.fullName || cleanEmail,
+          role: targetRole,
+        },
+      });
+    } catch (err: any) {
+      throw new BadRequestException(`Gagal membuat akun di Supabase Auth: ${err?.message || err}`);
+    }
+
+    // 2. Simpan identitas pengguna ke Prisma User dengan ID yang sama persis
     const newUser = await this.prisma.user.create({
       data: {
-        email: dto.email.trim().toLowerCase(),
-        password: hashedPassword,
+        id: sbUser.id,
+        email: cleanEmail,
         role: targetRole,
       },
       select: { id: true, email: true, role: true, createdAt: true },
@@ -264,7 +333,7 @@ export class SuperAdminService {
       userEmail: currentAdmin.email,
       action: 'CREATE_ADMIN_USER',
       target: `User: ${newUser.email} (Role: ${newUser.role})`,
-      details: `Super Admin ${currentAdmin.email} membuat akun ${newUser.role} baru.`,
+      details: `Super Admin ${currentAdmin.email} membuat akun ${newUser.role} baru via Supabase Auth.`,
     });
 
     return {
@@ -321,7 +390,7 @@ export class SuperAdminService {
   }
 
   /**
-   * Reset / Ganti Password Pengguna Langsung
+   * Reset / Ganti Password Pengguna Langsung via Supabase Auth
    */
   async resetUserPassword(
     userId: string,
@@ -339,18 +408,18 @@ export class SuperAdminService {
       throw new NotFoundException('Pengguna tidak ditemukan');
     }
 
-    const hashedPassword = await bcrypt.hash(newPass, 10);
-    await this.prisma.user.update({
-      where: { id: userId },
-      data: { password: hashedPassword },
-    });
+    try {
+      await this.supabaseService.adminUpdateUser(userId, { password: newPass });
+    } catch (err: any) {
+      throw new BadRequestException(`Gagal memperbarui password di Supabase Auth: ${err?.message || err}`);
+    }
 
     await this.logAction({
       userId: currentAdmin.id,
       userEmail: currentAdmin.email,
       action: 'RESET_USER_PASSWORD',
       target: `User: ${targetUser.email}`,
-      details: `Password pengguna di-reset oleh Super Admin ${currentAdmin.email}`,
+      details: `Password pengguna di-reset oleh Super Admin ${currentAdmin.email} via Supabase Auth`,
     });
 
     return { message: `Password untuk ${targetUser.email} berhasil diperbarui` };
@@ -382,6 +451,10 @@ export class SuperAdminService {
       }
     }
 
+    // Hapus dari Supabase Auth
+    await this.supabaseService.adminDeleteUser(userId).catch(() => { });
+
+    // Hapus dari Prisma
     await this.prisma.user.delete({
       where: { id: userId },
     });

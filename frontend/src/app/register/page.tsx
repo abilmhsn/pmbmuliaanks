@@ -2,13 +2,15 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import api from '@/lib/api';
 import { Plane, User, Mail, Phone, Lock, ArrowRight, ShieldCheck, CheckCircle2, AlertTriangle, MessageCircle } from 'lucide-react';
 import Image from 'next/image';
 
 export default function RegisterPage() {
-  const { register } = useAuth();
+  const router = useRouter();
+  const { register, login } = useAuth();
   const [formData, setFormData] = useState({
     fullName: '',
     email: '',
@@ -57,8 +59,18 @@ export default function RegisterPage() {
         phone: formData.phone,
         password: formData.password,
       });
+
+      // Otomatis login langsung setelah registrasi berhasil (tanpa verifikasi email)
+      try {
+        await login({
+          email: formData.email,
+          password: formData.password,
+        });
+      } catch {
+        router.push('/login');
+      }
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Registrasi gagal. Silakan coba lagi.');
+      setError(err.response?.data?.message || err.message || 'Registrasi gagal. Silakan coba lagi.');
     } finally {
       setLoading(false);
     }
@@ -184,8 +196,6 @@ export default function RegisterPage() {
                     />
                   </div>
                 </div>
-
-
 
                 <div>
                   <label className="block text-xs font-semibold text-slate-300 mb-1">

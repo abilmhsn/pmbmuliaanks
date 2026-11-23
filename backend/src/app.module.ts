@@ -2,6 +2,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { PrismaModule } from './prisma/prisma.module';
+import { SupabaseModule } from './supabase/supabase.module';
 import { AuthModule } from './auth/auth.module';
 import { ApplicantsModule } from './applicants/applicants.module';
 import { StudyProgramsModule } from './study-programs/study-programs.module';
@@ -17,6 +18,7 @@ import { NewsModule } from './news/news.module';
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
     PrismaModule,
+    SupabaseModule,
     AuthModule,
     ApplicantsModule,
     StudyProgramsModule,

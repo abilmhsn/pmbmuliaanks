@@ -15,7 +15,7 @@ interface RateLimitRecord {
 @Injectable()
 export class RateLimitGuard implements CanActivate {
   private readonly hits = new Map<string, RateLimitRecord>();
-  private readonly limit = 10; // Maksimal 10 request
+  private readonly limit = 30; // Maksimal 30 request per menit (aman untuk multi-tab & testing)
   private readonly ttlMs = 60 * 1000; // per 1 menit (60 detik)
 
   constructor() {

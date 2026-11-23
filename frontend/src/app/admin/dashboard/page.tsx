@@ -116,18 +116,16 @@ export default function AdminDashboardPage() {
   // Handler Export CSV
   const handleExportCsv = async () => {
     try {
-      const token = localStorage.getItem('pmb_token');
+      const token = sessionStorage.getItem('pmb_token');
       const urlQuery = selectedPeriod ? `?periodId=${selectedPeriod}` : '';
-      const response = await fetch(`http://localhost:5000/api/admin/export-csv${urlQuery}`, {
-        method: 'GET',
+      const response = await api.get(`/admin/export-csv${urlQuery}`, {
+        responseType: 'blob',
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
 
-      if (!response.ok) throw new Error('Export CSV gagal');
-
-      const blob = await response.blob();
+      const blob = new Blob([response.data], { type: 'text/csv' });
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;

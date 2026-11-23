@@ -4,9 +4,17 @@ import { RegistrationStatus, PaymentStatus } from '@prisma/client';
 
 @Injectable()
 export class AdminService {
+  private statsCache = new Map<string, { data: any; expiry: number }>();
+
   constructor(private prisma: PrismaService) { }
 
   async getDashboardStats(periodId?: string) {
+    const cacheKey = periodId || 'all';
+    const cached = this.statsCache.get(cacheKey);
+    if (cached && Date.now() < cached.expiry) {
+      return cached.data;
+    }
+
     const registrationFilter = periodId ? { periodId } : {};
 
     const now = new Date();
@@ -118,7 +126,7 @@ export class AdminService {
       count: trendDataMap[date],
     }));
 
-    return {
+    const result = {
       totalApplicants,
       newApplicants,
       pendingVerification,
@@ -129,6 +137,10 @@ export class AdminService {
       recentActivity,
       trend,
     };
+
+    this.statsCache.set(cacheKey, { data: result, expiry: Date.now() + 30000 });
+
+    return result;
   }
 
   async getApplicants(
@@ -304,6 +316,7 @@ export class AdminService {
     notes?: string,
     currentUser?: { id?: string; email?: string },
   ) {
+    this.statsCache.clear();
     const reg = await this.prisma.registration.update({
       where: { id: registrationId },
       data: { status, notes },
