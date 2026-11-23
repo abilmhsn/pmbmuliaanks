@@ -564,6 +564,11 @@ export class SuperAdminService {
 
     const userIds = trashedApplicants.map((a) => a.userId);
 
+    // Hapus juga akun autentikasi di Supabase Auth agar email bisa didaftarkan ulang jika diperlukan
+    await Promise.allSettled(
+      userIds.map((uid) => this.supabaseService.adminDeleteUser(uid).catch(() => { })),
+    );
+
     const result = await this.prisma.user.deleteMany({
       where: { id: { in: userIds } },
     });

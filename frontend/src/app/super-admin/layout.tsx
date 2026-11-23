@@ -90,7 +90,7 @@ function SuperAdminLayoutContent({ children }: { children: React.ReactNode }) {
     },
   ];
 
-  const SidebarContent = () => (
+  const sidebarContent = (
     <div
       className={`flex flex-col h-full border-r transition-colors ${isDark
           ? 'bg-[#0f172a] border-slate-800/80 text-white'
@@ -385,7 +385,7 @@ function SuperAdminLayoutContent({ children }: { children: React.ReactNode }) {
           className={`hidden md:flex md:w-64 flex-shrink-0 md:sticky md:top-0 md:h-screen flex-col z-30 transition-colors ${isDark ? 'bg-[#0f172a] text-white' : 'bg-white text-[#0f172a]'
             }`}
         >
-          <SidebarContent />
+          {sidebarContent}
         </aside>
 
         {/* Mobile Drawer */}
@@ -393,7 +393,7 @@ function SuperAdminLayoutContent({ children }: { children: React.ReactNode }) {
           className={`fixed top-0 left-0 h-full w-72 max-w-[85vw] flex flex-col z-50 shadow-2xl transition-transform duration-300 ease-in-out md:hidden ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'
             } ${isDark ? 'bg-[#0f172a] text-white' : 'bg-white text-[#0f172a]'}`}
         >
-          <SidebarContent />
+          {sidebarContent}
         </aside>
 
         {/* Content View */}

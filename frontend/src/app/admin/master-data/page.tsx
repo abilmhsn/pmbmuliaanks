@@ -35,10 +35,6 @@ export default function AdminMasterDataPage() {
   const [annContent, setAnnContent] = useState('');
   const [annType, setAnnType] = useState('INFO');
 
-  useEffect(() => {
-    fetchMasterData();
-  }, []);
-
   const fetchMasterData = async () => {
     try {
       setLoading(true);
@@ -56,6 +52,10 @@ export default function AdminMasterDataPage() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchMasterData();
+  }, []);
 
   const handleOpenCreateProgram = () => {
     setEditingProgramId(null);

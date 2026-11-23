@@ -10,10 +10,6 @@ export default function CetakBuktiPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  useEffect(() => {
-    fetchSlipData();
-  }, []);
-
   const fetchSlipData = async () => {
     try {
       setLoading(true);
@@ -28,6 +24,10 @@ export default function CetakBuktiPage() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchSlipData();
+  }, []);
 
   const formattedPrintDate = new Date().toLocaleDateString('id-ID', {
     day: 'numeric',

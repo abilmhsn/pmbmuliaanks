@@ -36,14 +36,6 @@ export default function SuperAdminDashboardPage() {
   const [paymentModalType, setPaymentModalType] = useState<'VERIFIED' | 'PENDING'>('VERIFIED');
   const [paymentSearch, setPaymentSearch] = useState('');
 
-  useEffect(() => {
-    fetchPeriods();
-  }, []);
-
-  useEffect(() => {
-    fetchStats();
-  }, [selectedPeriod]);
-
   const fetchPeriods = async () => {
     try {
       const res = await api.get('/pmb-periods');
@@ -68,6 +60,14 @@ export default function SuperAdminDashboardPage() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchPeriods();
+  }, []);
+
+  useEffect(() => {
+    fetchStats();
+  }, [selectedPeriod]);
 
   const formatRupiah = (val: number) => {
     return new Intl.NumberFormat('id-ID', {

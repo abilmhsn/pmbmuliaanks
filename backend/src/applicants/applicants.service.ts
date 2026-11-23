@@ -279,6 +279,7 @@ export class ApplicantsService {
     const applicant = await this.prisma.applicant.findUnique({
       where: { userId },
       include: {
+        user: { select: { email: true } },
         personalData: true,
         educationData: true,
         registrations: {
@@ -316,11 +317,11 @@ export class ApplicantsService {
 
     return {
       campusName: 'KAMPUS MULIA ANGKASA',
-      campusAddress: 'Jl. Penerbangan No. 88, Ksatria Bandara, Indonesia',
+      campusAddress: 'Jl. Kesambi No. 92, Kel. Kesambi, Kec. Kesambi, Kota Cirebon, Jawa Barat',
       registrationNumber: applicant.registrationNumber,
       registeredAt: registration.registeredAt,
       applicantName: applicant.fullName,
-      email: applicant.phone,
+      email: applicant.user?.email || '-',
       phone: applicant.phone,
       nik: applicant.personalData?.nik || '-',
       gender: applicant.personalData?.gender || '-',

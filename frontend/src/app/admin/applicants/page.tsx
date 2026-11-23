@@ -15,6 +15,7 @@ import {
 
 // URL Public Storage Supabase dengan Nama Bucket: pmb-documents
 const SUPABASE_STORAGE_URL =
+  process.env.NEXT_PUBLIC_SUPABASE_STORAGE_URL ||
   'https://apuvscjcdkpoevuacnzm.supabase.co/storage/v1/object/public/pmb-documents';
 
 // Helper fungsi untuk mengubah path relatif ("documents/xxx.png" / "payments/xxx.png") jadi HTTPS Link Aktif
@@ -55,6 +56,29 @@ export default function AdminApplicantsPage() {
     }, 400);
     return () => clearTimeout(handler);
   }, [search]);
+
+  const fetchPeriods = async () => {
+    try {
+      const res = await api.get('/pmb-periods');
+      const periodList = Array.isArray(res.data) ? res.data : [];
+      setPeriods(periodList);
+      const activePer = periodList.find((p: any) => p.isActive);
+      if (activePer) {
+        setPeriodFilter(activePer.id);
+      }
+    } catch (err) {
+      console.error('Error fetching periods:', err);
+    }
+  };
+
+  const fetchPrograms = async () => {
+    try {
+      const res = await api.get('/study-programs');
+      setPrograms(res.data);
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   // Fetch Gelombang & Prodi saat pertama kali mount
   useEffect(() => {
@@ -114,29 +138,6 @@ export default function AdminApplicantsPage() {
       controller.abort();
     };
   }, [debouncedSearch, statusFilter, programFilter, periodFilter, activeTab, currentPage]);
-
-  const fetchPeriods = async () => {
-    try {
-      const res = await api.get('/pmb-periods');
-      const periodList = Array.isArray(res.data) ? res.data : [];
-      setPeriods(periodList);
-      const activePer = periodList.find((p: any) => p.isActive);
-      if (activePer) {
-        setPeriodFilter(activePer.id);
-      }
-    } catch (err) {
-      console.error('Error fetching periods:', err);
-    }
-  };
-
-  const fetchPrograms = async () => {
-    try {
-      const res = await api.get('/study-programs');
-      setPrograms(res.data);
-    } catch (err) {
-      console.error(err);
-    }
-  };
 
   const reloadCurrentData = async () => {
     try {

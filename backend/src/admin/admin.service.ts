@@ -467,8 +467,8 @@ export class AdminService {
   }
 
   async exportApplicantsToCsv(periodId?: string): Promise<string> {
-    const SUPABASE_STORAGE_PUBLIC_URL =
-      'https://apuvscjcdkpoevuacnzm.supabase.co/storage/v1/object/public/pmb-documents';
+    const supabaseBase = (process.env.SUPABASE_URL || 'https://apuvscjcdkpoevuacnzm.supabase.co').replace(/\/+$/, '');
+    const SUPABASE_STORAGE_PUBLIC_URL = `${supabaseBase}/storage/v1/object/public/pmb-documents`;
 
     const formatUrl = (path?: string) => {
       if (!path || path === '-' || path.trim() === '') return '-';

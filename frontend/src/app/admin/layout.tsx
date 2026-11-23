@@ -33,7 +33,7 @@ export default function AdminLayout({
     { href: '/admin/logs', label: 'Log Aktivitas Kerja', Icon: History },
   ];
 
-  const SidebarContent = () => (
+  const sidebarContent = (
     <div className="flex flex-col h-full">
 
 
@@ -144,14 +144,14 @@ export default function AdminLayout({
 
         {/* ── Sidebar ── */}
         <aside className="hidden md:flex md:w-64 bg-slate-900 backdrop-blur-xl text-white flex-shrink-0 border-r border-slate-800 md:sticky md:top-0 md:h-screen flex-col z-30">
-          <SidebarContent />
+          {sidebarContent}
         </aside>
 
         <aside
           className={`fixed top-0 left-0 h-full w-72 bg-slate-900 text-white flex flex-col z-50 shadow-2xl transition-transform duration-300 ease-in-out md:hidden ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'
             }`}
         >
-          <SidebarContent />
+          {sidebarContent}
         </aside>
 
         {/* ── Main Content — Latar Belakang Terang (bg-slate-50) ── */}

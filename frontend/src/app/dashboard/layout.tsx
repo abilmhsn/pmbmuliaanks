@@ -28,7 +28,7 @@ export default function DashboardLayout({
     user?.applicant?.registrations?.[0]?.status || 'BELUM_LENGKAP';
   const canPrintProof = PRINT_UNLOCKED_STATUSES.includes(currentStatus);
 
-  const SidebarContent = () => (
+  const sidebarContent = (
     <div className="flex flex-col h-full">
       {/* Header / Logo */}
       <div className="p-4 border-b border-slate-800 flex items-center justify-between">
@@ -154,7 +154,7 @@ export default function DashboardLayout({
 
         {/* ── Sidebar — Desktop (sticky) ── */}
         <aside className="hidden md:flex md:w-64 bg-slate-900 text-white flex-shrink-0 border-r border-slate-800 flex-col md:sticky md:top-0 md:h-screen print:hidden">
-          <SidebarContent />
+          {sidebarContent}
         </aside>
 
         {/* ── Sidebar — Mobile (drawer) ── */}
@@ -162,7 +162,7 @@ export default function DashboardLayout({
           className={`fixed top-0 left-0 h-full w-72 bg-slate-900 text-white flex flex-col z-50 shadow-2xl transition-transform duration-300 ease-in-out md:hidden print:hidden ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'
             }`}
         >
-          <SidebarContent />
+          {sidebarContent}
         </aside>
 
         {/* ── Main Content — Dirender konsisten tanpa early return ── */}

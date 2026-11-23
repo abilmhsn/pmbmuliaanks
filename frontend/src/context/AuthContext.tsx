@@ -39,6 +39,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
 
+  const logout = () => {
+    if (typeof window !== 'undefined') {
+      sessionStorage.removeItem('pmb_token');
+    }
+    setToken(null);
+    setUser(null);
+    router.push('/login');
+  };
+
   const fetchProfile = async (authToken?: string) => {
     try {
       const activeToken =
@@ -109,15 +118,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const register = async (formData: any) => {
     const res = await api.post('/auth/register', formData);
     return res.data;
-  };
-
-  const logout = () => {
-    if (typeof window !== 'undefined') {
-      sessionStorage.removeItem('pmb_token');
-    }
-    setToken(null);
-    setUser(null);
-    router.push('/login');
   };
 
   const refreshUser = async () => {

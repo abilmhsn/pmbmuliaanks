@@ -259,6 +259,7 @@ export default function StudentDashboard() {
     }
 
     const SUPABASE_STORAGE_PUBLIC_URL =
+      process.env.NEXT_PUBLIC_SUPABASE_STORAGE_URL ||
       'https://apuvscjcdkpoevuacnzm.supabase.co/storage/v1/object/public/pmb-documents';
 
     return `${SUPABASE_STORAGE_PUBLIC_URL}/${filePath.replace(/^\//, '')}`;
