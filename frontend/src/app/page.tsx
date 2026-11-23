@@ -228,27 +228,23 @@ export default function LandingPage() {
               className="lg:col-span-10 lg:col-start-2 space-y-5 sm:space-y-6 text-center"
             >
               {/* Badge Periode & Batas Pendaftaran (Responsif HP & Desktop) */}
-              <div className="inline-flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2.5 px-4 py-2 sm:py-1.5 rounded-2xl sm:rounded-full bg-amber-400 border border-amber-500/20 text-slate-950 mx-auto shadow-lg max-w-full">
-                <div className="flex items-center justify-center gap-2">
+              <div className="inline-flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2 px-3.5 sm:px-4 py-2 sm:py-1.5 rounded-2xl sm:rounded-full bg-amber-400 border border-amber-500/20 text-slate-900 font-bold mx-auto shadow-md max-w-full">
+                <div className="flex items-center justify-center gap-1.5 sm:gap-2">
                   <span className="w-2 h-2 shrink-0 rounded-full bg-emerald-700 animate-pulse" />
-                  <span className="text-[11px] sm:text-xs font-extrabold leading-snug">
+                  <span className="text-[10.5px] sm:text-xs leading-tight text-center">
                     Penerimaan Mahasiswa Baru{' '}
                     {activePeriod ? `T.A ${activePeriod.year} - ${activePeriod.name}` : 'Tahun Ini'}
                   </span>
                 </div>
-
                 {activePeriod?.endDate && (
-                  <>
-                    <span className="hidden sm:inline text-slate-950/30">|</span>
-                    <span className="text-[10px] sm:text-[11px] font-bold text-slate-900 bg-amber-300/90 px-2.5 py-0.5 rounded-full whitespace-nowrap">
-                      Batas Pendaftaran:{' '}
-                      {new Date(activePeriod.endDate).toLocaleDateString('id-ID', {
-                        day: 'numeric',
-                        month: 'short',
-                        year: 'numeric',
-                      })}
-                    </span>
-                  </>
+                  <span className="text-[10px] sm:text-[11px] font-semibold text-slate-800 bg-amber-300/80 px-2.5 py-0.5 rounded-full whitespace-nowrap">
+                    Batas Pendaftaran:{' '}
+                    {new Date(activePeriod.endDate).toLocaleDateString('id-ID', {
+                      day: 'numeric',
+                      month: 'short',
+                      year: 'numeric',
+                    })}
+                  </span>
                 )}
               </div>
 
