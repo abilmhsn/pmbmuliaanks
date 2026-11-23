@@ -228,22 +228,41 @@ export default function LandingPage() {
               transition={{ duration: 0.8, ease: "easeOut" }}
               className="lg:col-span-10 lg:col-start-2 space-y-6 text-center"
             >
-              <div className="inline-flex flex-wrap items-center justify-center gap-2 px-4 py-1.5 text-slate-50 text-xs font-bold mx-auto shadow-md">
-                <span className="w-2 h-2 rounded-full bg-emerald-700 animate-pulse" />
-                <span>
-                  Penerimaan Mahasiswa Baru{' '}
-                  {activePeriod ? `T.A ${activePeriod.year} - ${activePeriod.name}` : 'Tahun Ini'}
-                </span>
-                {activePeriod?.endDate && (
-                  <span className="hidden sm:inline text-[11px] font-semibold text-slate-800 bg-amber-300/80 px-2 py-0.5 rounded-full">
-                    Batas Pendaftaran:{' '}
-                    {new Date(activePeriod.endDate).toLocaleDateString('id-ID', {
-                      day: 'numeric',
-                      month: 'short',
-                      year: 'numeric',
-                    })}
-                  </span>
-                )}
+              {/* Running Text / Marquee Periode Pendaftaran */}
+              <div className="relative w-full max-w-xl mx-auto overflow-hidden py-1.5 px-4 rounded-full bg-slate-900/60 border border-white/10 backdrop-blur-sm shadow-md [mask-image:linear-gradient(to_right,transparent,black_10%,black_90%,transparent)]">
+                <motion.div
+                  className="flex w-max items-center gap-8"
+                  animate={{ x: ['0%', '-50%'] }}
+                  transition={{
+                    repeat: Infinity,
+                    ease: 'linear',
+                    duration: 18,
+                  }}
+                >
+                  {[0, 1].map((loopIndex) => (
+                    <div
+                      key={loopIndex}
+                      className="flex items-center gap-3 text-slate-50 text-xs font-bold whitespace-nowrap"
+                    >
+                      <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse flex-shrink-0" />
+                      <span>
+                        Penerimaan Mahasiswa Baru{' '}
+                        {activePeriod ? `T.A ${activePeriod.year} - ${activePeriod.name}` : 'Tahun Ini'}
+                      </span>
+                      {activePeriod?.endDate && (
+                        <span className="text-[11px] font-semibold text-slate-950 bg-amber-300/90 px-2.5 py-0.5 rounded-full">
+                          Batas Pendaftaran:{' '}
+                          {new Date(activePeriod.endDate).toLocaleDateString('id-ID', {
+                            day: 'numeric',
+                            month: 'short',
+                            year: 'numeric',
+                          })}
+                        </span>
+                      )}
+                      <span className="text-amber-400/50 mx-2">•</span>
+                    </div>
+                  ))}
+                </motion.div>
               </div>
 
               <h1 className="text-3xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-amber-400 leading-tight drop-shadow-md">
