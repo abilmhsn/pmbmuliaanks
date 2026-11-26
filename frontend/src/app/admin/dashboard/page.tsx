@@ -19,7 +19,7 @@ import {
 // Komponen SVG Geometric Pattern (Motif Geometris Footer Card)
 const GeometricMosaicFooter = ({ colors }: { colors: { bg: string; c1: string; c2: string; c3: string; c4: string } }) => {
   return (
-    <div className="w-full h-12 overflow-hidden rounded-b-2xl border-t border-slate-200/60 mt-4">
+    <div className="w-full h-5 sm:h-12 overflow-hidden rounded-b-2xl sm:rounded-b-3xl border-t border-slate-200/60 mt-2.5 sm:mt-4">
       <svg
         viewBox="0 0 360 48"
         fill="none"
@@ -160,7 +160,7 @@ export default function AdminDashboardPage() {
       },
     },
     {
-      title: 'PENDAFTAR BARU (7 HARI)',
+      title: 'PENDAFTAR BARU (3 BULAN)',
       value: stats?.newApplicants ?? 0,
       desc: 'Registrasi minggu ini',
       icon: UserPlus,
@@ -291,47 +291,47 @@ export default function AdminDashboardPage() {
         </div>
       </div>
 
-      {/* 6 CARD GRID - CLEAN & MINIMALIST (TANPA TOP PILL) */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+      {/* 6 CARD GRID - MINIMALIS 2 KOLOM DI HP & 3 KOLOM DI DESKTOP */}
+      <div className="grid grid-cols-2 lg:grid-cols-3 gap-2.5 sm:gap-5">
         {statCards.map((card, idx) => {
           const Icon = card.icon;
           return (
             <div
               key={idx}
-              className="bg-white rounded-3xl border border-slate-300/80 shadow-md hover:shadow-2xl hover:-translate-y-3 transition-all duration-300 pt-5 flex flex-col justify-between overflow-hidden"
+              className="bg-white rounded-2xl sm:rounded-3xl border border-slate-300/80 shadow-md hover:shadow-2xl hover:-translate-y-1.5 sm:hover:-translate-y-3 transition-all duration-300 pt-3 sm:pt-5 flex flex-col justify-between overflow-hidden"
             >
-              <div className="px-5">
+              <div className="px-3 sm:px-5">
                 {/* Content Row: Title & Icon */}
-                <div className="flex items-start justify-between gap-2">
-                  <div>
-                    <span className="text-[11px] font-black text-slate-700 tracking-wider uppercase block">
+                <div className="flex items-start justify-between gap-1.5 sm:gap-2">
+                  <div className="min-w-0">
+                    <span className="text-[9px] sm:text-[11px] font-black text-slate-700 tracking-wider uppercase block leading-tight line-clamp-1">
                       {card.title}
                     </span>
                     {/* Metric Value */}
                     {loading ? (
-                      <div className="h-12 w-20 bg-slate-100 animate-pulse rounded-xl my-2" />
+                      <div className="h-7 w-12 sm:h-12 sm:w-20 bg-slate-100 animate-pulse rounded-lg sm:rounded-xl my-1 sm:my-2" />
                     ) : (
-                      <span className="text-5xl font-black text-slate-900 font-mono tracking-tight block my-2">
+                      <span className="text-2xl sm:text-5xl font-black text-slate-900 font-mono tracking-tight block my-1 sm:my-2">
                         {card.value.toLocaleString('id-ID')}
                       </span>
                     )}
                   </div>
 
                   {/* Icon Container in Rounded Pill Box */}
-                  <div className={`p-4 rounded-2xl shadow-sm ${card.iconBoxBg}`}>
-                    <Icon className="w-7 h-7" />
+                  <div className={`p-2 sm:p-4 rounded-xl sm:rounded-2xl shadow-sm shrink-0 ${card.iconBoxBg}`}>
+                    <Icon className="w-4 h-4 sm:w-7 sm:h-7" />
                   </div>
                 </div>
 
-                {/* Dual Pill Row (Kapsul Keterangan & Badge di Bawah) */}
-                <div className="flex items-center justify-between gap-2 mt-4">
-                  {/* Left Pill: Description */}
-                  <span className={`px-3.5 py-1.5 rounded-full text-[11px] font-semibold border truncate max-w-[65%] ${card.pillDescBg}`}>
+                {/* Dual Pill Row (Ringkas di HP, Penuh di Desktop) */}
+                <div className="flex items-center justify-between gap-1.5 sm:gap-2 mt-1.5 sm:mt-4">
+                  {/* Left Pill: Description (Tampil di Desktop/Tablet) */}
+                  <span className={`hidden sm:inline-block px-3.5 py-1.5 rounded-full text-[11px] font-semibold border truncate max-w-[65%] ${card.pillDescBg}`}>
                     {card.desc}
                   </span>
 
                   {/* Right Pill: Badge Status */}
-                  <span className={`px-3.5 py-1.5 rounded-full text-[11px] border shrink-0 ${card.pillBadgeBg}`}>
+                  <span className={`px-2 py-0.5 sm:px-3.5 sm:py-1.5 rounded-full text-[9px] sm:text-[11px] border shrink-0 ${card.pillBadgeBg}`}>
                     {card.badge}
                   </span>
                 </div>

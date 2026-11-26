@@ -247,14 +247,12 @@ export default function AdminMasterDataPage() {
                   periods.slice(0, 5).map((per) => (
                     <div
                       key={per.id}
-                      className={`p-4 bg-slate-950 rounded-xl border flex flex-col sm:flex-row sm:items-center justify-between gap-3 transition-all ${
-                        per.isActive ? 'border-emerald-500/40 bg-emerald-950/10' : 'border-slate-800'
-                      }`}
+                      className={`p-4 bg-slate-950 rounded-xl border flex flex-col sm:flex-row sm:items-center justify-between gap-3 transition-all ${per.isActive ? 'border-emerald-500/40 bg-emerald-950/10' : 'border-slate-800'
+                        }`}
                     >
                       <div className="space-y-0.5">
                         <div className="flex items-center gap-2">
                           <h4 className="font-bold text-white text-sm">{per.name}</h4>
-                          <span className="text-xs text-amber-400 font-mono font-semibold">T.A {per.year || per.academicYear}</span>
                         </div>
                         {per.startDate && per.endDate && (
                           <p className="text-[11px] text-slate-400">

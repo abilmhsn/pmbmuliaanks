@@ -67,7 +67,7 @@ async function main() {
     console.log(`User seeded (${item.role}):`, seededUser.email, seededUser.id);
   }
 
-  // Default System Settings
+  // Default System Settings (Tanpa hardcode TA manual)
   const defaultSettings = [
     { key: 'REGISTRATION_OPEN', value: 'true', description: 'Status buka/tutup pendaftaran publik PMB' },
     { key: 'REGISTRATION_FEE', value: '250000', description: 'Biaya formulir pendaftaran PMB (Rupiah)' },
@@ -75,7 +75,11 @@ async function main() {
     { key: 'PAYMENT_ACCOUNT_NUMBER', value: '137-00-1234567-8', description: 'Nomor Rekening Resmi Kampus' },
     { key: 'PAYMENT_ACCOUNT_HOLDER', value: 'Yayasan Mulia Angkasa Akademi', description: 'Atas Nama Rekening Kampus' },
     { key: 'HELP_DESK_PHONE', value: '081255401558', description: 'Nomor WhatsApp Helpdesk PMB' },
-    { key: 'ANNOUNCEMENT_BANNER', value: 'Pendaftaran Mahasiswa Baru Gelombang 1 TA 2027/2028 telah dibuka! Segera lengkapi berkas dan verifikasi pendaftaran.', description: 'Teks banner pengumuman atas portal calon mahasiswa' },
+    {
+      key: 'ANNOUNCEMENT_BANNER',
+      value: 'Pendaftaran Mahasiswa Baru telah dibuka! Segera lengkapi berkas dan verifikasi pendaftaran.',
+      description: 'Teks banner pengumuman atas portal calon mahasiswa',
+    },
   ];
 
   for (const setting of defaultSettings) {
@@ -87,18 +91,21 @@ async function main() {
   }
   console.log('Default System Settings seeded.');
 
-  // 2. Create Default PMB Period Gelombang 1
+  // 2. Create Default PMB Period Gelombang 1 (Dinamis mengikuti tahun berjalan)
+  const currentYear = new Date().getFullYear();
+  const academicYear = `${currentYear}/${currentYear + 1}`;
+
   const activePeriod = await prisma.pmbPeriod.upsert({
-    where: { id: 'period-2027' },
+    where: { id: 'period-default-1' },
     update: {
       name: 'PMB Gelombang 1',
     },
     create: {
-      id: 'period-2027',
-      year: '2027/2028',
+      id: 'period-default-1',
+      year: academicYear,
       name: 'PMB Gelombang 1',
-      startDate: new Date('2026-10-01'),
-      endDate: new Date('2027-08-31'),
+      startDate: new Date(`${currentYear}-10-01`),
+      endDate: new Date(`${currentYear + 1}-08-31`),
       isActive: true,
     },
   });
