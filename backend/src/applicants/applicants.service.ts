@@ -355,7 +355,10 @@ export class ApplicantsService {
 
   async getTrashApplicants() {
     return await this.prisma.applicant.findMany({
-      where: { deletedAt: { not: null } },
+      where: {
+        deletedAt: { not: null },
+        registrations: { some: {} },
+      },
       include: {
         user: { select: { email: true } },
         personalData: true,

@@ -22,10 +22,12 @@ export class AdminService {
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
     const threeMonthsStart = new Date(now.getFullYear(), now.getMonth() - 2, 1);
 
-    // Hanya hitung pendaftar yang AKTIF (deletedAt: null)
+    // Hanya hitung pendaftar yang AKTIF (deletedAt: null) dan memiliki registrasi PMB
     const activeApplicantWhere = {
       deletedAt: null,
-      ...(periodId ? { registrations: { some: { periodId } } } : {}),
+      registrations: {
+        some: periodId ? { periodId } : {},
+      },
     };
 
     const [
@@ -46,7 +48,9 @@ export class AdminService {
         where: {
           createdAt: { gte: sevenDaysAgo },
           deletedAt: null,
-          ...(periodId ? { registrations: { some: { periodId } } } : {}),
+          registrations: {
+            some: periodId ? { periodId } : {},
+          },
         },
       }),
       this.prisma.registration.count({
@@ -92,7 +96,9 @@ export class AdminService {
         where: {
           createdAt: { gte: threeMonthsStart },
           deletedAt: null,
-          ...(periodId ? { registrations: { some: { periodId } } } : {}),
+          registrations: {
+            some: periodId ? { periodId } : {},
+          },
         },
         select: { createdAt: true },
       }),
@@ -152,8 +158,16 @@ export class AdminService {
     limit: number = 25,
   ) {
     // Selalu filter pendaftar yang TIDAK DIHAPUS (deletedAt: null)
+    // dan HANYA yang benar-benar telah mendaftar ke gelombang PMB (memiliki data registrasi)
     const where: any = {
       deletedAt: null,
+      registrations: {
+        some: {
+          ...(status ? { status } : {}),
+          ...(studyProgramId ? { studyProgramId } : {}),
+          ...(periodId ? { periodId } : {}),
+        },
+      },
     };
 
     if (search) {
@@ -163,16 +177,6 @@ export class AdminService {
         { phone: { contains: search, mode: 'insensitive' } },
         { personalData: { nik: { contains: search, mode: 'insensitive' } } },
       ];
-    }
-
-    if (status || studyProgramId || periodId) {
-      where.registrations = {
-        some: {
-          ...(status ? { status } : {}),
-          ...(studyProgramId ? { studyProgramId } : {}),
-          ...(periodId ? { periodId } : {}),
-        },
-      };
     }
 
     const safePage = Math.max(1, page);
@@ -267,7 +271,10 @@ export class AdminService {
 
   async getTrashApplicants() {
     return await this.prisma.applicant.findMany({
-      where: { deletedAt: { not: null } },
+      where: {
+        deletedAt: { not: null },
+        registrations: { some: {} },
+      },
       include: {
         user: { select: { email: true } },
         personalData: true,
@@ -479,7 +486,9 @@ export class AdminService {
     const applicants = await this.prisma.applicant.findMany({
       where: {
         deletedAt: null,
-        ...(periodId ? { registrations: { some: { periodId } } } : {}),
+        registrations: {
+          some: periodId ? { periodId } : {},
+        },
       },
       include: {
         user: { select: { email: true } },

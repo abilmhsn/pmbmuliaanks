@@ -75,7 +75,9 @@ export class SuperAdminService {
       this.prisma.applicant.count({
         where: {
           deletedAt: null,
-          ...(periodId ? { registrations: { some: { periodId } } } : {}),
+          registrations: {
+            some: periodId ? { periodId } : {},
+          },
         },
       }),
       this.prisma.registration.groupBy({

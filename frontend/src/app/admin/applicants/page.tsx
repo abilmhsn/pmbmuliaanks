@@ -488,7 +488,7 @@ export default function AdminApplicantsPage() {
                         {app.educationData?.schoolName || '-'}
                       </td>
                       <td className="p-4 font-semibold text-sky-400">
-                        {reg?.studyProgram?.name || 'Belum Memilih'}
+                        {reg?.studyProgram?.name || '-'}
                         {reg?.period && (
                           <span className="block text-[10px] text-amber-400/90 font-mono font-normal">
                             T.A {reg.period.year} - {reg.period.name}
