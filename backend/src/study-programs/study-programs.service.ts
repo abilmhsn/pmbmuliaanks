@@ -38,8 +38,8 @@ export class StudyProgramsService {
         {
           id: 'alc-default',
           code: 'ALC',
-          name: 'Air Lines Crew (Pramugari/Pramutra & Staff Bandara)',
-          description: 'Program keahlian khusus siap kerja untuk menjadi Cabin Crew (Pramugari/Pramutra) profesional dan Ground Handling Staff Bandara Internasional.',
+          name: 'Air Lines Crew (Pramugari/Pramugara & Staff Bandara)',
+          description: 'Program keahlian khusus siap kerja untuk menjadi Cabin Crew (Pramugari/Pramugara) profesional dan Ground Handling Staff Bandara Internasional.',
           quota: 57,
           filledCount: 0,
           remainingQuota: 57,

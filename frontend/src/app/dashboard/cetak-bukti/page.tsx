@@ -157,7 +157,7 @@ export default function CetakBuktiPage() {
                 PENERIMAAN MAHASISWA BARU (PMB)
               </p>
               <p className="text-[11px] sm:text-xs print:text-xs text-black leading-relaxed pt-0.5">
-                Jl. Kesambi No. 92, Kel. Kesambi, Kec. Kesambi, Kota Cirebon, Jawa Barat
+                Jl. Kesambi No. 92 B,Kota Cirebon, Jawa Barat
                 <br className="hidden sm:inline print:inline" />{' '}
                 <span className="sm:hidden print:hidden">| </span>
                 Email: muliaangkasaakademi@gmail.com
