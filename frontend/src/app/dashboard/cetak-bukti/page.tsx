@@ -179,7 +179,7 @@ export default function CetakBuktiPage() {
 
         {/* PEMBUKA SINGKAT */}
         <p className="text-xs sm:text-sm print:text-sm text-black leading-relaxed mb-5 text-justify">
-          Panitia Penerimaan Mahasiswa Baru (PMB) Kampus Mulia Angkasa Akademi menerangkan bahwa calon mahasiswa dengan identitas di bawah ini telah terdaftar pada sistem seleksi penerimaan mahasiswa baru:
+          Petugas Penerimaan Mahasiswa Baru (PMB) Kampus Mulia Angkasa Akademi menerangkan bahwa calon mahasiswa dengan identitas di bawah ini telah terdaftar pada sistem seleksi penerimaan mahasiswa baru:
         </p>
 
         {/* DATA PENDAFTAR & KOTAK PASFOTO */}
@@ -240,14 +240,14 @@ export default function CetakBuktiPage() {
               Cirebon, {formattedPrintDate}
             </p>
             <p className="text-xs sm:text-sm print:text-sm font-bold text-black mt-0.5">
-              Ketua Panitia PMB,
+              Di isi oleh petugas PMB,
             </p>
             <div className="h-16 sm:h-20 print:h-20" />
             <p className="text-xs sm:text-sm print:text-sm font-bold underline text-black">
               ( ........................................ )
             </p>
             <p className="text-[11px] text-black mt-0.5">
-              Ttd &amp; Stempel Panitia PMB
+              Ttd &amp; Stempel
             </p>
           </div>
         </div>
