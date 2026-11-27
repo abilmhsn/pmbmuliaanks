@@ -438,7 +438,7 @@ export default function SuperAdminDashboardPage() {
                       className={`text-xs font-extrabold ${isDark ? 'text-white' : 'text-[#0f172a]'
                         }`}
                     >
-                      {prog.totalRegistered ?? 0} / {prog.quota} Siswa
+                      {prog.acceptedCount} / {prog.quota} Siswa
                     </span>
                     <span
                       className={`text-[11px] font-bold ${isDark ? 'text-sky-400' : 'text-[#0f172a]'
@@ -533,9 +533,7 @@ export default function SuperAdminDashboardPage() {
                       className={`font-bold truncate ${isDark ? 'text-slate-200' : 'text-[#0f172a]'
                         }`}
                     >
-                      {prog.remainingQuota !== undefined
-                        ? prog.remainingQuota
-                        : Math.max(0, (prog.quota || 0) - (prog.totalRegistered || 0))}
+                      {Math.max(0, (prog.quota || 0) - (prog.acceptedCount || 0))}
                     </span>
                   </div>
                 </div>
