@@ -142,12 +142,17 @@ export class SuperAdminService {
         },
       }),
       this.prisma.studyProgram.findMany({
+        where: { isActive: true },
         include: {
           registrations: {
-            where: periodFilter,
+            where: {
+              ...periodFilter,
+              applicant: { deletedAt: null },
+            },
             select: { status: true },
           },
         },
+        orderBy: { code: 'asc' },
       }),
       this.prisma.auditLog.findMany({
         take: 6,
@@ -185,11 +190,15 @@ export class SuperAdminService {
         ),
       ).length;
       const passedCount = prog.registrations.filter((r) =>
-        r.status === RegistrationStatus.LULUS_SELEKSI,
+        ([RegistrationStatus.LULUS_SELEKSI, RegistrationStatus.DITERIMA, RegistrationStatus.DAFTAR_ULANG] as RegistrationStatus[]).includes(
+          r.status,
+        ),
       ).length;
 
+      // Keterisian kuota program studi dihitung dari pendaftar/peminat yang memilih jurusan tersebut
       const percentageFilled =
-        prog.quota > 0 ? Math.min(100, Math.round((acceptedCount / prog.quota) * 100)) : 0;
+        prog.quota > 0 ? Math.min(100, Math.round((totalRegistered / prog.quota) * 100)) : 0;
+      const remainingQuota = Math.max(0, (prog.quota || 0) - totalRegistered);
 
       return {
         id: prog.id,
@@ -201,6 +210,7 @@ export class SuperAdminService {
         acceptedCount,
         passedCount,
         percentageFilled,
+        remainingQuota,
       };
     });
 
@@ -235,8 +245,8 @@ export class SuperAdminService {
       isRegistrationOpen,
     };
 
-    // Cache hasil selama 30 detik untuk respon instan di dashboard
-    this.statsCache.set(cacheKey, { data: result, expiry: Date.now() + 30000 });
+    // Cache hasil selama 5 detik untuk respon instan di dashboard saat ada yang memilih jurusan
+    this.statsCache.set(cacheKey, { data: result, expiry: Date.now() + 5000 });
 
     return result;
   }
