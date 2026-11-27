@@ -154,7 +154,7 @@ export default function CetakBuktiPage() {
                 KAMPUS MULIA ANGKASA AKADEMI
               </h1>
               <p className="text-xs sm:text-sm print:text-sm font-bold uppercase tracking-wider text-black">
-                PANITIA PENERIMAAN MAHASISWA BARU (PMB)
+                PENERIMAAN MAHASISWA BARU (PMB)
               </p>
               <p className="text-[11px] sm:text-xs print:text-xs text-black leading-relaxed pt-0.5">
                 Jl. Kesambi No. 92, Kel. Kesambi, Kec. Kesambi, Kota Cirebon, Jawa Barat
