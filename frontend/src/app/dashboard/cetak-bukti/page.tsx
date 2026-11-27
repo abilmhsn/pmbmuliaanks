@@ -35,6 +35,36 @@ export default function CetakBuktiPage() {
     year: 'numeric',
   });
 
+  const handlePrint = () => {
+    if (typeof window === 'undefined') return;
+
+    // Deteksi jika halaman dibuka di dalam iframe (misal ekstensi Mobile Simulator)
+    const isInsideIframe = window.self !== window.top;
+
+    if (isInsideIframe) {
+      // Buka halaman di jendela/tab baru browser agar dialog cetak dan simpan PDF aktif normal
+      const printWin = window.open(window.location.href, '_blank');
+      if (printWin) {
+        printWin.focus();
+        setTimeout(() => {
+          try {
+            printWin.print();
+          } catch {
+            // fallback
+          }
+        }, 500);
+        return;
+      }
+    }
+
+    try {
+      window.focus();
+      window.print();
+    } catch {
+      window.open(window.location.href, '_blank');
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-[60vh] flex items-center justify-center p-6">
@@ -125,7 +155,7 @@ export default function CetakBuktiPage() {
         </Link>
         <button
           type="button"
-          onClick={() => window.print()}
+          onClick={handlePrint}
           className="px-6 py-2.5 bg-amber-400 hover:bg-amber-300 text-slate-950 font-extrabold text-xs rounded-xl shadow-sm flex items-center justify-center gap-2 transition-all active:scale-95 cursor-pointer"
         >
           <Printer className="w-4 h-4" />

@@ -124,7 +124,7 @@ export default function DashboardLayout({
   );
 
   return (
-    <div className="min-h-screen bg-slate-100 flex flex-col">
+    <div className="min-h-screen bg-slate-100 flex flex-col print:bg-white print:min-h-0 print:block">
       {/* ── Mobile Top Bar ── */}
       <header className="md:hidden flex items-center gap-3 px-4 py-3 bg-slate-900 border-b border-slate-800 sticky top-0 z-40 print:hidden">
         <button
@@ -142,11 +142,11 @@ export default function DashboardLayout({
         </span>
       </header>
 
-      <div className="flex flex-1 relative">
+      <div className="flex flex-1 relative print:block">
         {/* ── Mobile overlay backdrop ── */}
         {sidebarOpen && (
           <div
-            className="fixed inset-0 bg-black/60 z-40 md:hidden"
+            className="fixed inset-0 bg-black/60 z-40 md:hidden print:hidden"
             onClick={() => setSidebarOpen(false)}
             aria-hidden="true"
           />
@@ -166,7 +166,7 @@ export default function DashboardLayout({
         </aside>
 
         {/* ── Main Content — Dirender konsisten tanpa early return ── */}
-        <main className="flex-1 p-4 sm:p-6 md:p-10 overflow-y-auto">
+        <main className="flex-1 w-full min-w-0 p-3.5 sm:p-6 md:p-10 overflow-y-auto print:p-0 print:m-0 print:overflow-visible print:w-full print:block">
           {children}
         </main>
       </div>
